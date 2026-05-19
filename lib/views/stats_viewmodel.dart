@@ -23,11 +23,7 @@ class StatsCategoryShare {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'count': count,
-      'ratio': ratio,
-    };
+    return {'name': name, 'count': count, 'ratio': ratio};
   }
 }
 
@@ -77,8 +73,12 @@ class StatsViewModel extends ViewModel {
   });
 
   factory StatsViewModel.fromFirestore(Map<String, dynamic> map) {
-    final rawCategoryCounts = (map['categoryCounts'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
-    final rawCategoryRatios = (map['categoryRatios'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
+    final rawCategoryCounts =
+        (map['categoryCounts'] as Map?)?.cast<String, dynamic>() ??
+        <String, dynamic>{};
+    final rawCategoryRatios =
+        (map['categoryRatios'] as Map?)?.cast<String, dynamic>() ??
+        <String, dynamic>{};
 
     return StatsViewModel(
       uid: map['uid'] as String? ?? '',
@@ -90,16 +90,33 @@ class StatsViewModel extends ViewModel {
       bestFocusStartMinute: (map['bestFocusStartMinute'] as num?)?.toInt() ?? 0,
       bestFocusEndMinute: (map['bestFocusEndMinute'] as num?)?.toInt() ?? 0,
       streakDays: (map['streakDays'] as num?)?.toInt() ?? 0,
-      totalFocusTime: (map['total_focus_time'] as num?)?.toInt() ?? (map['totalFocusTime'] as num?)?.toInt() ?? 0,
-      totalBreakTime: (map['total_break_time'] as num?)?.toInt() ?? (map['totalBreakTime'] as num?)?.toInt() ?? 0,
-      breakDuration: (map['break_duration'] as num?)?.toInt() ?? (map['breakDuration'] as num?)?.toInt() ?? 0,
-      focusDuration: (map['focus_duration'] as num?)?.toInt() ?? (map['focusDuration'] as num?)?.toInt() ?? 0,
-      dateString: map['date_string'] as String? ?? map['dateString'] as String? ?? '',
+      totalFocusTime:
+          (map['total_focus_time'] as num?)?.toInt() ??
+          (map['totalFocusTime'] as num?)?.toInt() ??
+          0,
+      totalBreakTime:
+          (map['total_break_time'] as num?)?.toInt() ??
+          (map['totalBreakTime'] as num?)?.toInt() ??
+          0,
+      breakDuration:
+          (map['break_duration'] as num?)?.toInt() ??
+          (map['breakDuration'] as num?)?.toInt() ??
+          0,
+      focusDuration:
+          (map['focus_duration'] as num?)?.toInt() ??
+          (map['focusDuration'] as num?)?.toInt() ??
+          0,
+      dateString:
+          map['date_string'] as String? ?? map['dateString'] as String? ?? '',
       timestamp: map['timestamp'] as Timestamp?,
       averageFocusMinutes: (map['averageFocusMinutes'] as num?)?.toInt() ?? 0,
       breakMinutes: (map['breakMinutes'] as num?)?.toInt() ?? 0,
-      categoryCounts: rawCategoryCounts.map((key, value) => MapEntry(key, (value as num?)?.toInt() ?? 0)),
-      categoryRatios: rawCategoryRatios.map((key, value) => MapEntry(key, (value as num?)?.toDouble() ?? 0)),
+      categoryCounts: rawCategoryCounts.map(
+        (key, value) => MapEntry(key, (value as num?)?.toInt() ?? 0),
+      ),
+      categoryRatios: rawCategoryRatios.map(
+        (key, value) => MapEntry(key, (value as num?)?.toDouble() ?? 0),
+      ),
       updatedAt: map['updatedAt'] as Timestamp?,
     );
   }
@@ -134,10 +151,16 @@ class StatsViewModel extends ViewModel {
     DateTime? now,
   }) {
     final currentTime = now ?? DateTime.now();
-    final todayStart = DateTime(currentTime.year, currentTime.month, currentTime.day);
+    final todayStart = DateTime(
+      currentTime.year,
+      currentTime.month,
+      currentTime.day,
+    );
     final tomorrowStart = todayStart.add(const Duration(days: 1));
     final totalTasks = tasks.length;
-    final completedTasks = tasks.where((task) => task.stat == 'Hoàn thành').length;
+    final completedTasks = tasks
+        .where((task) => task.stat == 'Hoàn thành')
+        .length;
     final overdueTasks = tasks.where((task) {
       if (task.stat == 'Hoàn thành') return false;
       final dueAt = task.dueAt?.toDate();
@@ -157,7 +180,9 @@ class StatsViewModel extends ViewModel {
     Timestamp? lastTimestamp;
 
     for (final task in tasks) {
-      final category = task.category.trim().isEmpty ? 'Khác' : task.category.trim();
+      final category = task.category.trim().isEmpty
+          ? 'Khác'
+          : task.category.trim();
       categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
 
       totalFocusTime += task.totalFocusTime ?? task.focusDuration ?? 0;
@@ -166,18 +191,23 @@ class StatsViewModel extends ViewModel {
       final taskFocus = task.totalFocusTime ?? task.focusDuration ?? 0;
       final taskBreak = task.totalBreakTime ?? task.breakDuration ?? 0;
 
-      final taskAnchorTs = task.timestamp ?? task.createdAt ?? task.completedAt ?? task.dueAt;
+      final taskAnchorTs =
+          task.timestamp ?? task.createdAt ?? task.completedAt ?? task.dueAt;
       final taskAnchor = taskAnchorTs?.toDate();
       final taskDateString = task.dateString?.trim() ?? '';
-      final isToday = taskDateString == _formatDate(currentTime) ||
-          (taskAnchor != null && !taskAnchor.isBefore(todayStart) && taskAnchor.isBefore(tomorrowStart));
+      final isToday =
+          taskDateString == _formatDate(currentTime) ||
+          (taskAnchor != null &&
+              !taskAnchor.isBefore(todayStart) &&
+              taskAnchor.isBefore(tomorrowStart));
 
       if (isToday) {
         todayFocusTime += taskFocus;
         todayBreakTime += taskBreak;
       }
 
-      final taskTimestamp = task.timestamp ?? task.completedAt ?? task.createdAt ?? task.dueAt;
+      final taskTimestamp =
+          task.timestamp ?? task.completedAt ?? task.createdAt ?? task.dueAt;
       if (taskTimestamp != null) {
         final candidate = taskTimestamp.toDate();
         final currentLatest = lastTimestamp?.toDate();
@@ -186,7 +216,9 @@ class StatsViewModel extends ViewModel {
           lastFocusDuration = task.focusDuration ?? 0;
           lastBreakDuration = task.breakDuration ?? 0;
           final taskDateString = task.dateString?.trim() ?? '';
-          lastDateString = taskDateString.isNotEmpty ? taskDateString : _formatDate(candidate);
+          lastDateString = taskDateString.isNotEmpty
+              ? taskDateString
+              : _formatDate(candidate);
         }
       }
 
@@ -285,11 +317,13 @@ class StatsViewModel extends ViewModel {
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return entries
-        .map((entry) => StatsCategoryShare(
-              name: entry.key,
-              count: entry.value,
-              ratio: categoryRatios[entry.key] ?? 0,
-            ))
+        .map(
+          (entry) => StatsCategoryShare(
+            name: entry.key,
+            count: entry.value,
+            ratio: categoryRatios[entry.key] ?? 0,
+          ),
+        )
         .toList();
   }
 

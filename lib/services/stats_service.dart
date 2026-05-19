@@ -11,9 +11,9 @@ class StatsService {
     if (stats.uid.trim().isEmpty) return;
 
     await FirebaseFirestore.instance
-      .collection('stat')
-      .doc(stats.uid)
-      .set(stats.toFirestoreMap(), SetOptions(merge: true));
+        .collection('stat')
+        .doc(stats.uid)
+        .set(stats.toFirestoreMap(), SetOptions(merge: true));
   }
 
   Stream<DocumentSnapshot<Map<String, dynamic>>> watchUserStats(String uid) {

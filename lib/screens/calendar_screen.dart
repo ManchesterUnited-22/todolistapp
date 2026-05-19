@@ -8,20 +8,20 @@ import '../views/task_viewmodel.dart';
 
 // ── Design Tokens ─────────────────────────────────────────────────────────────
 class _C {
-  static const background          = Color(0xFFF7F9FB);
-  static const surface             = Color(0xFFF7F9FB);
+  static const background = Color(0xFFF7F9FB);
+  static const surface = Color(0xFFF7F9FB);
   static const surfaceContainerLowest = Color(0xFFFFFFFF);
-  static const onSurface           = Color(0xFF191C1E);
-  static const onSurfaceVariant    = Color(0xFF464554);
-  static const outlineVariant      = Color(0xFFC7C4D7);
-  static const outline             = Color(0xFF767586);
-  static const primary             = Color(0xFF4648D4);
-  static const primaryContainer    = Color(0xFF6063EE);
-  static const primaryFixed        = Color(0xFFE1E0FF);
-  static const error               = Color(0xFFBA1A1A);
-  static const tertiary            = Color(0xFF006C49);
-  static const secondaryFixed      = Color(0xFFD4E3FF);
-  static const onSecondaryFixed    = Color(0xFF001C39);
+  static const onSurface = Color(0xFF191C1E);
+  static const onSurfaceVariant = Color(0xFF464554);
+  static const outlineVariant = Color(0xFFC7C4D7);
+  static const outline = Color(0xFF767586);
+  static const primary = Color(0xFF4648D4);
+  static const primaryContainer = Color(0xFF6063EE);
+  static const primaryFixed = Color(0xFFE1E0FF);
+  static const error = Color(0xFFBA1A1A);
+  static const tertiary = Color(0xFF006C49);
+  static const secondaryFixed = Color(0xFFD4E3FF);
+  static const onSecondaryFixed = Color(0xFF001C39);
 }
 
 // ── Screen ────────────────────────────────────────────────────────────────────
@@ -34,8 +34,10 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   int _selectedDay = DateTime.now().day;
-  DateTime _displayedMonth =
-      DateTime(DateTime.now().year, DateTime.now().month);
+  DateTime _displayedMonth = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+  );
 
   String get _currentUserUid => FirebaseAuth.instance.currentUser?.uid ?? '';
 
@@ -58,11 +60,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               Navigator.of(context).pop();
               Navigator.of(context).pushNamed('/stats');
             },
-            onEditProfile: () =>
-                Navigator.of(context).pushNamed('/profile'),
-            onLanguage: () =>
-                Navigator.of(context).pushNamed('/language'),
-           
+            onEditProfile: () => Navigator.of(context).pushNamed('/profile'),
+            onLanguage: () => Navigator.of(context).pushNamed('/language'),
           ),
         ),
       ),
@@ -83,9 +82,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   onDaySelected: (d) => setState(() => _selectedDay = d),
                   onPrevMonth: () => setState(() {
                     final prev = DateTime(
-                        _displayedMonth.year, _displayedMonth.month - 1);
-                    final daysInPrev =
-                        DateTime(prev.year, prev.month + 1, 0).day;
+                      _displayedMonth.year,
+                      _displayedMonth.month - 1,
+                    );
+                    final daysInPrev = DateTime(
+                      prev.year,
+                      prev.month + 1,
+                      0,
+                    ).day;
                     _displayedMonth = prev;
                     if (_selectedDay > daysInPrev) {
                       _selectedDay = daysInPrev;
@@ -93,9 +97,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   }),
                   onNextMonth: () => setState(() {
                     final next = DateTime(
-                        _displayedMonth.year, _displayedMonth.month + 1);
-                    final daysInNext =
-                        DateTime(next.year, next.month + 1, 0).day;
+                      _displayedMonth.year,
+                      _displayedMonth.month + 1,
+                    );
+                    final daysInNext = DateTime(
+                      next.year,
+                      next.month + 1,
+                      0,
+                    ).day;
                     _displayedMonth = next;
                     if (_selectedDay > daysInNext) {
                       _selectedDay = daysInNext;
@@ -117,8 +126,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ],
       ),
-      bottomNavigationBar:
-          const FloatingBottomNavBar(currentIndex: 1, showFab: false),
+      bottomNavigationBar: const FloatingBottomNavBar(
+        currentIndex: 1,
+        showFab: false,
+      ),
     );
   }
 
@@ -165,8 +176,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   // ── Header Section ─────────────────────────────────────────────────────────
   Widget _buildHeaderSection() {
     final now = DateTime.now();
-    final isCurrentMonth = _displayedMonth.year == now.year &&
-        _displayedMonth.month == now.month;
+    final isCurrentMonth =
+        _displayedMonth.year == now.year && _displayedMonth.month == now.month;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -204,8 +215,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             _selectedDay = n.day;
           }),
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: _C.primary.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(999),
@@ -237,9 +247,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   String _monthLabel(DateTime dt) {
     const names = [
-      'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4',
-      'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8',
-      'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12',
+      'Tháng 1',
+      'Tháng 2',
+      'Tháng 3',
+      'Tháng 4',
+      'Tháng 5',
+      'Tháng 6',
+      'Tháng 7',
+      'Tháng 8',
+      'Tháng 9',
+      'Tháng 10',
+      'Tháng 11',
+      'Tháng 12',
     ];
     return '${names[dt.month - 1]}, ${dt.year}';
   }
@@ -265,9 +284,18 @@ class _CalendarCard extends StatelessWidget {
 
   static const _weekdays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
   static const _monthNames = [
-    'Tháng Một', 'Tháng Hai', 'Tháng Ba', 'Tháng Tư',
-    'Tháng Năm', 'Tháng Sáu', 'Tháng Bảy', 'Tháng Tám',
-    'Tháng Chín', 'Tháng Mười', 'Tháng Mười Một', 'Tháng Mười Hai',
+    'Tháng Một',
+    'Tháng Hai',
+    'Tháng Ba',
+    'Tháng Tư',
+    'Tháng Năm',
+    'Tháng Sáu',
+    'Tháng Bảy',
+    'Tháng Tám',
+    'Tháng Chín',
+    'Tháng Mười',
+    'Tháng Mười Một',
+    'Tháng Mười Hai',
   ];
 
   @override
@@ -277,8 +305,7 @@ class _CalendarCard extends StatelessWidget {
         // glass-card from HTML code 1
         color: Colors.white.withValues(alpha: 0.70),
         borderRadius: BorderRadius.circular(24),
-        border:
-            Border.all(color: Colors.white.withValues(alpha: 0.20)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -294,8 +321,7 @@ class _CalendarCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _NavButton(
-                  icon: Icons.chevron_left, onTap: onPrevMonth),
+              _NavButton(icon: Icons.chevron_left, onTap: onPrevMonth),
               Text(
                 '${_monthNames[displayedMonth.month - 1]} ${displayedMonth.year}',
                 style: const TextStyle(
@@ -305,8 +331,7 @@ class _CalendarCard extends StatelessWidget {
                   color: _C.onSurface,
                 ),
               ),
-              _NavButton(
-                  icon: Icons.chevron_right, onTap: onNextMonth),
+              _NavButton(icon: Icons.chevron_right, onTap: onNextMonth),
             ],
           ),
           const SizedBox(height: 20),
@@ -314,18 +339,20 @@ class _CalendarCard extends StatelessWidget {
           // Weekday headers
           Row(
             children: _weekdays
-                .map((d) => Expanded(
-                      child: Center(
-                        child: Text(
-                          d,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: _C.outlineVariant,
-                          ),
+                .map(
+                  (d) => Expanded(
+                    child: Center(
+                      child: Text(
+                        d,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: _C.outlineVariant,
                         ),
                       ),
-                    ))
+                    ),
+                  ),
+                )
                 .toList(),
           ),
           const SizedBox(height: 12),
@@ -336,8 +363,7 @@ class _CalendarCard extends StatelessWidget {
                 .collection('tasks')
                 .where(
                   'uid',
-                  isEqualTo:
-                      FirebaseAuth.instance.currentUser?.uid ?? '',
+                  isEqualTo: FirebaseAuth.instance.currentUser?.uid ?? '',
                 )
                 .snapshots(),
             builder: (context, snap) {
@@ -346,22 +372,17 @@ class _CalendarCard extends StatelessWidget {
 
               if (snap.hasData) {
                 for (final doc in snap.data!.docs) {
-                  final data =
-                      doc.data() as Map<String, dynamic>?;
-                  final due =
-                      (data?['dueAt'] as Timestamp?)?.toDate();
+                  final data = doc.data() as Map<String, dynamic>?;
+                  final due = (data?['dueAt'] as Timestamp?)?.toDate();
                   if (due != null &&
                       due.year == displayedMonth.year &&
                       due.month == displayedMonth.month) {
                     final day = due.day;
-                    final category =
-                        (data?['category'] as String?) ?? '';
+                    final category = (data?['category'] as String?) ?? '';
                     Color col = _C.primary;
                     if (category.toLowerCase().contains('sức')) {
                       col = _C.error;
-                    } else if (category
-                        .toLowerCase()
-                        .contains('cá nhân')) {
+                    } else if (category.toLowerCase().contains('cá nhân')) {
                       col = _C.tertiary;
                     } else {
                       col = _C.primaryContainer;
@@ -481,8 +502,7 @@ class _DayCell extends StatelessWidget {
             top: 2,
             right: 2,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 4, vertical: 1),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -512,8 +532,7 @@ class _DayCell extends StatelessWidget {
               '$day',
               style: TextStyle(
                 fontSize: 14,
-                fontWeight:
-                    isSelected ? FontWeight.w700 : FontWeight.w400,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                 color: isSelected ? Colors.white : _C.onSurface,
               ),
             ),
@@ -523,19 +542,20 @@ class _DayCell extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: dots
                     .take(3)
-                    .map((c) => Container(
-                          width: 4,
-                          height: 4,
-                          margin:
-                              const EdgeInsets.symmetric(horizontal: 1),
-                          decoration: BoxDecoration(
-                            // white dots on selected, colored otherwise
-                            color: isSelected
-                                ? Colors.white.withValues(alpha: 0.80)
-                                : c,
-                            shape: BoxShape.circle,
-                          ),
-                        ))
+                    .map(
+                      (c) => Container(
+                        width: 4,
+                        height: 4,
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        decoration: BoxDecoration(
+                          // white dots on selected, colored otherwise
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.80)
+                              : c,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    )
                     .toList(),
               ),
             ],
@@ -551,16 +571,16 @@ class _TaskSection extends StatelessWidget {
   final int selectedDay;
   final DateTime displayedMonth;
 
-  const _TaskSection({
-    required this.selectedDay,
-    required this.displayedMonth,
-  });
+  const _TaskSection({required this.selectedDay, required this.displayedMonth});
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final start = DateTime(
-        displayedMonth.year, displayedMonth.month, selectedDay);
+      displayedMonth.year,
+      displayedMonth.month,
+      selectedDay,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -583,16 +603,14 @@ class _TaskSection extends StatelessWidget {
               stream: user == null
                   ? null
                   : FirebaseFirestore.instance
-                      .collection('tasks')
-                      .where('uid', isEqualTo: user.uid)
-                      .snapshots(),
+                        .collection('tasks')
+                        .where('uid', isEqualTo: user.uid)
+                        .snapshots(),
               builder: (context, snap) {
                 final count = snap.hasData
                     ? snap.data!.docs.where((doc) {
-                        final data =
-                            doc.data() as Map<String, dynamic>?;
-                        final due = (data?['dueAt'] as Timestamp?)
-                            ?.toDate();
+                        final data = doc.data() as Map<String, dynamic>?;
+                        final due = (data?['dueAt'] as Timestamp?)?.toDate();
                         return due != null &&
                             due.year == start.year &&
                             due.month == start.month &&
@@ -602,7 +620,9 @@ class _TaskSection extends StatelessWidget {
 
                 return Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: _C.secondaryFixed,
                     borderRadius: BorderRadius.circular(999),
@@ -641,20 +661,17 @@ class _TaskSection extends StatelessWidget {
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Center(
-                    child:
-                        Text('Lỗi tải dữ liệu: ${snapshot.error}'));
+                  child: Text('Lỗi tải dữ liệu: ${snapshot.error}'),
+                );
               }
               if (!snapshot.hasData) {
-                return const Center(
-                    child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               }
 
               // Filter tasks for the selected date by dueAt
               final docs = snapshot.data!.docs.where((doc) {
-                final data =
-                    doc.data() as Map<String, dynamic>?;
-                final due =
-                    (data?['dueAt'] as Timestamp?)?.toDate();
+                final data = doc.data() as Map<String, dynamic>?;
+                final due = (data?['dueAt'] as Timestamp?)?.toDate();
                 return due != null &&
                     due.year == start.year &&
                     due.month == start.month &&
@@ -667,8 +684,7 @@ class _TaskSection extends StatelessWidget {
                     padding: EdgeInsets.symmetric(vertical: 40),
                     child: Text(
                       'Chưa có nhiệm vụ nào',
-                      style: TextStyle(
-                          color: _C.outline, fontSize: 15),
+                      style: TextStyle(color: _C.outline, fontSize: 15),
                     ),
                   ),
                 );
@@ -678,15 +694,16 @@ class _TaskSection extends StatelessWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: docs.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: 12),
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final doc = docs[index];
                   final task = TaskViewModel.fromMap(
-                      doc.data() as Map<String, dynamic>);
+                    doc.data() as Map<String, dynamic>,
+                  );
                   final isCompleted = task.stat == 'Hoàn thành';
                   final dueAt = task.dueAt?.toDate();
-                  final isOverdue = !isCompleted &&
+                  final isOverdue =
+                      !isCompleted &&
                       (dueAt != null
                           ? dueAt.isBefore(DateTime.now())
                           : task.stat == 'Quá hạn');
@@ -796,9 +813,8 @@ class _CalendarTaskCard extends StatelessWidget {
 
     return Dismissible(
       key: ValueKey(
-          task.title +
-              (task.createdAt?.millisecondsSinceEpoch.toString() ??
-                  '')),
+        task.title + (task.createdAt?.millisecondsSinceEpoch.toString() ?? ''),
+      ),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
@@ -807,8 +823,7 @@ class _CalendarTaskCard extends StatelessWidget {
           color: _C.error.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(20),
         ),
-        child:
-            const Icon(Icons.delete_outline_rounded, color: _C.error),
+        child: const Icon(Icons.delete_outline_rounded, color: _C.error),
       ),
       confirmDismiss: (_) async {
         onDelete();
@@ -862,9 +877,7 @@ class _CalendarTaskCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: isCompleted
-                            ? _C.outline
-                            : _C.onSurface,
+                        color: isCompleted ? _C.outline : _C.onSurface,
                         decoration: isCompleted
                             ? TextDecoration.lineThrough
                             : null,
@@ -884,16 +897,16 @@ class _CalendarTaskCard extends StatelessWidget {
                           color: isCompleted
                               ? _C.tertiary
                               : isOverdue
-                                  ? _C.error
-                                  : _C.outline,
+                              ? _C.error
+                              : _C.outline,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           isCompleted
                               ? 'Đã hoàn thành'
                               : isOverdue
-                                  ? 'Quá hạn: ${_formatTs(task.dueAt)}'
-                                  : _formatTs(task.dueAt),
+                              ? 'Quá hạn: ${_formatTs(task.dueAt)}'
+                              : _formatTs(task.dueAt),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: isOverdue
@@ -902,8 +915,8 @@ class _CalendarTaskCard extends StatelessWidget {
                             color: isCompleted
                                 ? _C.tertiary
                                 : isOverdue
-                                    ? _C.error
-                                    : _C.outline,
+                                ? _C.error
+                                : _C.outline,
                           ),
                         ),
                       ],
@@ -924,8 +937,11 @@ class _CalendarTaskCard extends StatelessWidget {
                           color: _C.primary,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.check_rounded,
-                            color: Colors.white, size: 16),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                       )
                     : Container(
                         width: 26,

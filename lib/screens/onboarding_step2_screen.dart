@@ -93,7 +93,9 @@ class OnboardingStep2Screen extends StatelessWidget {
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.textSecondary,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
                           shape: const StadiumBorder(),
                         ),
                         onPressed: () => Navigator.of(context).pop(),
@@ -132,7 +134,9 @@ class OnboardingStep2Screen extends StatelessWidget {
                             shape: const StadiumBorder(),
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 32, vertical: 16),
+                              horizontal: 32,
+                              vertical: 16,
+                            ),
                           ),
                           onPressed: () {
                             Navigator.of(context).push(
@@ -183,9 +187,7 @@ class _BentoIllustrationCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.70),
             borderRadius: BorderRadius.circular(28),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.40),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.40)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -237,17 +239,18 @@ class _BentoIllustrationCard extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               Container(
-                            decoration: BoxDecoration(
-                              color:
-                                  AppColors.brand.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Icon(
-                              Icons.task_alt_rounded,
-                              color: AppColors.brand,
-                              size: 64,
-                            ),
-                          ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.brand.withValues(
+                                    alpha: 0.08,
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Icon(
+                                  Icons.task_alt_rounded,
+                                  color: AppColors.brand,
+                                  size: 64,
+                                ),
+                              ),
                         ),
                       ),
                     ),
@@ -263,13 +266,17 @@ class _BentoIllustrationCard extends StatelessWidget {
                           icon: Icons.priority_high_rounded,
                           label: 'High Priority',
                           color: const Color(0xFF0060AC),
-                          bgColor: const Color(0xFF64A8FE).withValues(alpha: 0.10),
+                          bgColor: const Color(
+                            0xFF64A8FE,
+                          ).withValues(alpha: 0.10),
                         ),
                         _FloatingChip(
                           icon: Icons.done_all_rounded,
                           label: 'Done',
                           color: const Color(0xFF006C49),
-                          bgColor: const Color(0xFF00885D).withValues(alpha: 0.10),
+                          bgColor: const Color(
+                            0xFF00885D,
+                          ).withValues(alpha: 0.10),
                         ),
                       ],
                     ),
@@ -316,9 +323,9 @@ class _FloatingChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -339,9 +346,7 @@ class _ProgressDot extends StatelessWidget {
       width: active ? 24 : 8,
       height: 8,
       decoration: BoxDecoration(
-        color: active
-            ? AppColors.brand
-            : const Color(0xFFC7C4D7),
+        color: active ? AppColors.brand : const Color(0xFFC7C4D7),
         borderRadius: BorderRadius.circular(4),
       ),
     );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:smart_app/ai/tour_keys.dart';
 
 class VoiceTaskButton extends StatefulWidget {
   final Future<void> Function(String) onVoiceResult;
-
   const VoiceTaskButton({super.key, required this.onVoiceResult});
 
   @override
@@ -38,15 +38,15 @@ class _VoiceTaskButtonState extends State<VoiceTaskButton>
       // Mở luôn luồng hội thoại voice; AI sẽ hỏi câu đầu tiên ngay trong dialog.
       await widget.onVoiceResult('');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã mở trợ lý giọng nói')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Đã mở trợ lý giọng nói')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi khi xử lý giọng nói: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi khi xử lý giọng nói: $e')));
       }
     } finally {
       if (mounted) {
@@ -71,7 +71,10 @@ class _VoiceTaskButtonState extends State<VoiceTaskButton>
         if (_isProcessing)
           ScaleTransition(
             scale: Tween<double>(begin: 1.0, end: 1.35).animate(
-              CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+              CurvedAnimation(
+                parent: _pulseController,
+                curve: Curves.easeInOut,
+              ),
             ),
             child: Container(
               width: 72,
@@ -82,7 +85,9 @@ class _VoiceTaskButtonState extends State<VoiceTaskButton>
               ),
             ),
           ),
+        // attach global key for tour highlight
         FloatingActionButton(
+          key: TourKeys.neoNutMic,
           onPressed: _openVoiceAssistant,
           backgroundColor: _isProcessing ? Colors.red : Colors.blue,
           child: Icon(_isProcessing ? Icons.hourglass_top : Icons.mic_none),

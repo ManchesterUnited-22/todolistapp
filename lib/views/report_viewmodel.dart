@@ -92,10 +92,18 @@ class ReportViewModel {
   });
 
   factory ReportViewModel.fromMap(String id, Map<String, dynamic> map) {
-    final rawPriority = (map['priorityCounts'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
-    final rawCompletedByPriority = (map['completedByPriority'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
-    final rawCategoryCounts = (map['categoryCounts'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
-    final rawCategoryStats = (map['categoryStats'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
+    final rawPriority =
+        (map['priorityCounts'] as Map?)?.cast<String, dynamic>() ??
+        <String, dynamic>{};
+    final rawCompletedByPriority =
+        (map['completedByPriority'] as Map?)?.cast<String, dynamic>() ??
+        <String, dynamic>{};
+    final rawCategoryCounts =
+        (map['categoryCounts'] as Map?)?.cast<String, dynamic>() ??
+        <String, dynamic>{};
+    final rawCategoryStats =
+        (map['categoryStats'] as Map?)?.cast<String, dynamic>() ??
+        <String, dynamic>{};
 
     return ReportViewModel(
       id: id,
@@ -108,18 +116,32 @@ class ReportViewModel {
       onTimeCount: (map['onTimeCount'] as num?)?.toInt() ?? 0,
       lateCount: (map['lateCount'] as num?)?.toInt() ?? 0,
       avgDelayMinutes: (map['avgDelayMinutes'] as num?)?.toInt() ?? 0,
-      priorityCounts: rawPriority.map((k, v) => MapEntry(k, (v as num?)?.toInt() ?? 0)),
-      completedByPriority: rawCompletedByPriority.map((k, v) => MapEntry(k, (v as num?)?.toInt() ?? 0)),
-      categoryCounts: rawCategoryCounts.map((k, v) => MapEntry(k, (v as num?)?.toInt() ?? 0)),
+      priorityCounts: rawPriority.map(
+        (k, v) => MapEntry(k, (v as num?)?.toInt() ?? 0),
+      ),
+      completedByPriority: rawCompletedByPriority.map(
+        (k, v) => MapEntry(k, (v as num?)?.toInt() ?? 0),
+      ),
+      categoryCounts: rawCategoryCounts.map(
+        (k, v) => MapEntry(k, (v as num?)?.toInt() ?? 0),
+      ),
       topCategory: map['topCategory'] as String? ?? '',
       topOverdueTitle: map['topOverdueTitle'] as String? ?? '',
       topOverdueMinutes: (map['topOverdueMinutes'] as num?)?.toInt() ?? 0,
-      incompleteOverdueCount: (map['incompleteOverdueCount'] as num?)?.toInt() ?? 0,
+      incompleteOverdueCount:
+          (map['incompleteOverdueCount'] as num?)?.toInt() ?? 0,
       completedLateCount: (map['completedLateCount'] as num?)?.toInt() ?? 0,
-      completedLateTotalMinutes: (map['completedLateTotalMinutes'] as num?)?.toInt() ?? 0,
+      completedLateTotalMinutes:
+          (map['completedLateTotalMinutes'] as num?)?.toInt() ?? 0,
       earliestCompletionTitle: map['earliestCompletionTitle'] as String? ?? '',
-      earliestCompletionMinutes: (map['earliestCompletionMinutes'] as num?)?.toInt() ?? 0,
-      categoryStats: rawCategoryStats.map((k, v) => MapEntry(k, ReportCategoryStat.fromMap((v as Map).cast<String, dynamic>()))),
+      earliestCompletionMinutes:
+          (map['earliestCompletionMinutes'] as num?)?.toInt() ?? 0,
+      categoryStats: rawCategoryStats.map(
+        (k, v) => MapEntry(
+          k,
+          ReportCategoryStat.fromMap((v as Map).cast<String, dynamic>()),
+        ),
+      ),
       notes: map['notes'] as String? ?? '',
       generatedAt: map['generatedAt'] as Timestamp? ?? Timestamp.now(),
       updatedAt: map['updatedAt'] as Timestamp?,

@@ -4,14 +4,18 @@ import 'app_colors.dart';
 class AppTheme {
   static ThemeData light() {
     final seed = AppColors.brand;
-    ColorScheme scheme = ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.light).copyWith(
-      surface: AppColors.surface,
-      primary: AppColors.brand,
-      secondary: AppColors.info,
-      error: AppColors.high,
-      onPrimary: Colors.white,
-      onSurface: AppColors.textPrimary,
-    );
+    ColorScheme scheme =
+        ColorScheme.fromSeed(
+          seedColor: seed,
+          brightness: Brightness.light,
+        ).copyWith(
+          surface: AppColors.surface,
+          primary: AppColors.brand,
+          secondary: AppColors.info,
+          error: AppColors.high,
+          onPrimary: Colors.white,
+          onSurface: AppColors.textPrimary,
+        );
 
     return ThemeData(
       useMaterial3: true,
@@ -30,7 +34,9 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.brand,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
@@ -39,7 +45,9 @@ class AppTheme {
           foregroundColor: AppColors.textPrimary,
           side: BorderSide(color: AppColors.brand.withValues(alpha: 0.12)),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
       textTheme: TextTheme(
@@ -51,14 +59,18 @@ class AppTheme {
 
   static ThemeData dark() {
     final seed = AppColors.brand;
-    ColorScheme scheme = ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark).copyWith(
-      surface: const Color(0xFF121826),
-      primary: AppColors.brand,
-      secondary: AppColors.info,
-      error: AppColors.high,
-      onPrimary: Colors.white,
-      onSurface: const Color(0xFFE5E7EB),
-    );
+    ColorScheme scheme =
+        ColorScheme.fromSeed(
+          seedColor: seed,
+          brightness: Brightness.dark,
+        ).copyWith(
+          surface: const Color(0xFF121826),
+          primary: AppColors.brand,
+          secondary: AppColors.info,
+          error: AppColors.high,
+          onPrimary: Colors.white,
+          onSurface: const Color(0xFFE5E7EB),
+        );
 
     return ThemeData(
       useMaterial3: true,
@@ -77,7 +89,9 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.brand,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
@@ -86,7 +100,9 @@ class AppTheme {
           foregroundColor: const Color(0xFFE5E7EB),
           side: BorderSide(color: AppColors.brand.withValues(alpha: 0.12)),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
       textTheme: TextTheme(
@@ -108,7 +124,10 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.brand.withValues(alpha: 0.65), width: 1.5),
+          borderSide: BorderSide(
+            color: AppColors.brand.withValues(alpha: 0.65),
+            width: 1.5,
+          ),
         ),
       ),
     );

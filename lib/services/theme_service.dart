@@ -27,7 +27,9 @@ class ThemeService {
   static Future<void> setMode(ThemeMode m) async {
     mode.value = m;
     final prefs = await SharedPreferences.getInstance();
-    final s = m == ThemeMode.dark ? 'dark' : (m == ThemeMode.system ? 'system' : 'light');
+    final s = m == ThemeMode.dark
+        ? 'dark'
+        : (m == ThemeMode.system ? 'system' : 'light');
     await prefs.setString(_key, s);
   }
 
@@ -40,7 +42,9 @@ class ThemeService {
   }
 
   static Future<void> toggle() async {
-    final next = mode.value == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    final next = mode.value == ThemeMode.light
+        ? ThemeMode.dark
+        : ThemeMode.light;
     await setMode(next);
   }
 

@@ -78,7 +78,9 @@ class OnboardingStep3Screen extends StatelessWidget {
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 32),
+                      horizontal: 24,
+                      vertical: 32,
+                    ),
                     child: Column(
                       children: [
                         // Illustration glass card
@@ -141,10 +143,7 @@ class OnboardingStep3Screen extends StatelessWidget {
                             gradient: const LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF4648D4),
-                                Color(0xFF6063EE),
-                              ],
+                              colors: [Color(0xFF4648D4), Color(0xFF6063EE)],
                             ),
                             borderRadius: BorderRadius.circular(999),
                             boxShadow: [
@@ -335,8 +334,9 @@ class _AnalyticsCard extends StatelessWidget {
                                       height: 8,
                                       decoration: BoxDecoration(
                                         color: _primaryContainer,
-                                        borderRadius:
-                                            BorderRadius.circular(999),
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
                                       ),
                                     ),
                                   ),

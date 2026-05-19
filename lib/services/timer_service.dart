@@ -6,7 +6,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'notification_service.dart';
 
-enum TimerPhase { idle, preStart, focusing, breaking, overtime, paused, stopped }
+enum TimerPhase {
+  idle,
+  preStart,
+  focusing,
+  breaking,
+  overtime,
+  paused,
+  stopped,
+}
 
 class TimerService extends ChangeNotifier {
   TimerService._();
@@ -142,7 +150,8 @@ class TimerService extends ChangeNotifier {
     // send notification once
     NotificationService.instance.showSimpleNotification(
       title: 'Đã quá thời gian tập trung',
-      body: 'Bạn đã vượt quá thời gian tập trung. Nhấn Stop nếu muốn dừng, hoặc để tiếp tục tính overtime.',
+      body:
+          'Bạn đã vượt quá thời gian tập trung. Nhấn Stop nếu muốn dừng, hoặc để tiếp tục tính overtime.',
     );
 
     _ticker = Timer.periodic(const Duration(seconds: 1), (t) async {
@@ -215,7 +224,10 @@ class TimerService extends ChangeNotifier {
     data['timestamp'] = FieldValue.serverTimestamp();
     if (completed) data['completedAt'] = FieldValue.serverTimestamp();
     try {
-      await _db.collection('tasks').doc(taskDocId).set(data, SetOptions(merge: true));
+      await _db
+          .collection('tasks')
+          .doc(taskDocId)
+          .set(data, SetOptions(merge: true));
     } catch (e) {
       if (kDebugMode) print('Error persisting timer totals: $e');
     }
@@ -234,7 +246,10 @@ class TimerService extends ChangeNotifier {
       await prefs.setInt('timer_accBreak', accumulatedBreakSeconds);
       await prefs.setBool('timer_isOverrun', isOverrun);
       await prefs.setInt('timer_overrun', overrunSeconds);
-      await prefs.setInt('timer_savedAt', DateTime.now().millisecondsSinceEpoch);
+      await prefs.setInt(
+        'timer_savedAt',
+        DateTime.now().millisecondsSinceEpoch,
+      );
     } catch (e) {
       if (kDebugMode) print('Error saving timer state: $e');
     }

@@ -7,7 +7,11 @@ class VoiceNudgeResult {
   final String message;
   final DateTime? suggestedTime;
 
-  VoiceNudgeResult({required this.shouldWarn, required this.message, this.suggestedTime});
+  VoiceNudgeResult({
+    required this.shouldWarn,
+    required this.message,
+    this.suggestedTime,
+  });
 }
 
 class VoiceNudgeService {
@@ -44,13 +48,19 @@ class VoiceNudgeService {
     final cutoff = now.subtract(const Duration(days: 21));
     final recent = history.where((h) => h.dueAt.isAfter(cutoff)).toList();
     if (recent.isEmpty) {
-      return VoiceNudgeResult(shouldWarn: false, message: 'Không đủ dữ liệu lịch sử.');
+      return VoiceNudgeResult(
+        shouldWarn: false,
+        message: 'Không đủ dữ liệu lịch sử.',
+      );
     }
 
     final targetHour = proposedDue.hour;
     final sameHour = recent.where((h) => h.dueAt.hour == targetHour).toList();
     if (sameHour.length < 3) {
-      return VoiceNudgeResult(shouldWarn: false, message: 'Không đủ số lần cùng khung giờ để kết luận.');
+      return VoiceNudgeResult(
+        shouldWarn: false,
+        message: 'Không đủ số lần cùng khung giờ để kết luận.',
+      );
     }
 
     final missed = sameHour.where((h) {
@@ -68,17 +78,35 @@ class VoiceNudgeService {
         final h = (targetHour + offset) % 24;
         final same = recent.where((r) => r.dueAt.hour == h).toList();
         if (same.isEmpty) continue;
-        final m = same.where((r) => (r.completedAt == null) && r.dueAt.isBefore(now)).length / same.length;
+        final m =
+            same
+                .where((r) => (r.completedAt == null) && r.dueAt.isBefore(now))
+                .length /
+            same.length;
         if (m < missRatio) {
-          suggested = DateTime(proposedDue.year, proposedDue.month, proposedDue.day, h, proposedDue.minute);
+          suggested = DateTime(
+            proposedDue.year,
+            proposedDue.month,
+            proposedDue.day,
+            h,
+            proposedDue.minute,
+          );
           break;
         }
       }
 
-      final msg = 'Phát hiện bạn thường xuyên trễ tại khung ${targetHour}h (tỷ lệ bỏ lỡ ${ (missRatio*100).round() }%). Gợi ý dời sang khung giờ khác.';
-      return VoiceNudgeResult(shouldWarn: true, message: msg, suggestedTime: suggested);
+      final msg =
+          'Phát hiện bạn thường xuyên trễ tại khung ${targetHour}h (tỷ lệ bỏ lỡ ${(missRatio * 100).round()}%). Gợi ý dời sang khung giờ khác.';
+      return VoiceNudgeResult(
+        shouldWarn: true,
+        message: msg,
+        suggestedTime: suggested,
+      );
     }
 
-    return VoiceNudgeResult(shouldWarn: false, message: 'Không thấy vấn đề với khung giờ này.');
+    return VoiceNudgeResult(
+      shouldWarn: false,
+      message: 'Không thấy vấn đề với khung giờ này.',
+    );
   }
 }

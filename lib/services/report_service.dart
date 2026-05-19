@@ -25,11 +25,18 @@ class ReportService {
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> watchUserReports(String uid) {
-    return FirebaseFirestore.instance.collection('report').where('uid', isEqualTo: uid).orderBy('generatedAt', descending: true).snapshots();
+    return FirebaseFirestore.instance
+        .collection('report')
+        .where('uid', isEqualTo: uid)
+        .orderBy('generatedAt', descending: true)
+        .snapshots();
   }
 
   Future<ReportViewModel?> getReportById(String id) async {
-    final snap = await FirebaseFirestore.instance.collection('report').doc(id).get();
+    final snap = await FirebaseFirestore.instance
+        .collection('report')
+        .doc(id)
+        .get();
     if (!snap.exists) return null;
     return ReportViewModel.fromMap(snap.id, snap.data()!);
   }

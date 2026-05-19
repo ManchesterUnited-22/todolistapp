@@ -13,20 +13,20 @@ import '../widgets/timer.dart';
 
 // ── Design Tokens ─────────────────────────────────────────────────────────────
 class _C {
-  static const background          = Color(0xFFF7F9FB);
-  static const surface             = Color(0xFFF7F9FB);
+  static const background = Color(0xFFF7F9FB);
+  static const surface = Color(0xFFF7F9FB);
   static const surfaceContainerLow = Color(0xFFF2F4F6);
-  static const onSurface           = Color(0xFF191C1E);
-  static const onSurfaceVariant    = Color(0xFF464554);
-  static const onPrimaryFixedVar   = Color(0xFF2F2EBE);
-  static const onPrimaryFixed      = Color(0xFF07006C);
-  static const primaryFixed        = Color(0xFFE1E0FF);
-  static const primary             = Color(0xFF4648D4);
-  static const primaryContainer    = Color(0xFF6063EE);
-  static const secondary           = Color(0xFF0060AC);
-  static const tertiary            = Color(0xFF006C49);
-  static const error               = Color(0xFFBA1A1A);
-  static const outlineVariant      = Color(0xFFC7C4D7);
+  static const onSurface = Color(0xFF191C1E);
+  static const onSurfaceVariant = Color(0xFF464554);
+  static const onPrimaryFixedVar = Color(0xFF2F2EBE);
+  static const onPrimaryFixed = Color(0xFF07006C);
+  static const primaryFixed = Color(0xFFE1E0FF);
+  static const primary = Color(0xFF4648D4);
+  static const primaryContainer = Color(0xFF6063EE);
+  static const secondary = Color(0xFF0060AC);
+  static const tertiary = Color(0xFF006C49);
+  static const error = Color(0xFFBA1A1A);
+  static const outlineVariant = Color(0xFFC7C4D7);
 }
 
 BoxDecoration get _glassCard => BoxDecoration(
@@ -53,8 +53,7 @@ class ChartsScreen extends StatefulWidget {
 class _ChartsScreenState extends State<ChartsScreen> {
   String _lastSyncedSignature = '';
 
-  String get _currentUserUid =>
-      FirebaseAuth.instance.currentUser?.uid ?? '';
+  String get _currentUserUid => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   @override
   void initState() {
@@ -87,7 +86,10 @@ class _ChartsScreenState extends State<ChartsScreen> {
       ),
       appBar: _buildAppBar(),
       body: _buildBody(),
-      bottomNavigationBar: const FloatingBottomNavBar(currentIndex: 2, showFab: false),
+      bottomNavigationBar: const FloatingBottomNavBar(
+        currentIndex: 2,
+        showFab: false,
+      ),
     );
   }
 
@@ -161,8 +163,7 @@ class _ChartsScreenState extends State<ChartsScreen> {
         final tasks = snapshot.data!.docs
             .map((doc) => TaskViewModel.fromMap(doc.data()))
             .toList();
-        final stats =
-            StatsViewModel.fromTasks(uid: uid, tasks: tasks);
+        final stats = StatsViewModel.fromTasks(uid: uid, tasks: tasks);
 
         if (stats.syncSignature != _lastSyncedSignature) {
           _lastSyncedSignature = stats.syncSignature;
@@ -279,8 +280,11 @@ class _SummaryBanner extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.40),
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: const Icon(Icons.insights_rounded,
-                    color: _C.primary, size: 44),
+                child: const Icon(
+                  Icons.insights_rounded,
+                  color: _C.primary,
+                  size: 44,
+                ),
               ),
             ],
           ),
@@ -330,8 +334,7 @@ class _KpiGrid extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
           child: Row(
             children: [
-              const Icon(Icons.task_alt_rounded,
-                  color: _C.secondary, size: 30),
+              const Icon(Icons.task_alt_rounded, color: _C.secondary, size: 30),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -430,17 +433,14 @@ class _WeeklyChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final monday =
-        DateTime(now.year, now.month, now.day - (now.weekday - 1));
+    final monday = DateTime(now.year, now.month, now.day - (now.weekday - 1));
 
     // Bucket tasks by weekday
     final tasksByDay = List.generate(7, (_) => <TaskViewModel>[]);
     for (final task in tasks) {
-      final anchor =
-          task.dueAt?.toDate() ?? task.createdAt?.toDate();
+      final anchor = task.dueAt?.toDate() ?? task.createdAt?.toDate();
       if (anchor == null) continue;
-      final dayOnly =
-          DateTime(anchor.year, anchor.month, anchor.day);
+      final dayOnly = DateTime(anchor.year, anchor.month, anchor.day);
       final diff = dayOnly.difference(monday).inDays;
       if (diff < 0 || diff > 6) continue;
       tasksByDay[diff].add(task);
@@ -450,13 +450,13 @@ class _WeeklyChart extends StatelessWidget {
     final ratios = List.generate(7, (i) {
       final dayTasks = tasksByDay[i];
       if (dayTasks.isEmpty) return 0.0;
-      final completed =
-          dayTasks.where((t) => t.stat == 'Hoàn thành').length;
+      final completed = dayTasks.where((t) => t.stat == 'Hoàn thành').length;
       return completed / dayTasks.length;
     });
 
-    final maxVal =
-        ratios.isEmpty ? 1.0 : ratios.reduce(math.max).clamp(0.01, 1.0);
+    final maxVal = ratios.isEmpty
+        ? 1.0
+        : ratios.reduce(math.max).clamp(0.01, 1.0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -504,14 +504,21 @@ class _WeeklyChart extends StatelessWidget {
                 final ratio = ratios[dayIndex];
                 final barFraction = maxVal > 0 ? (ratio / maxVal) : 0.0;
                 final dayDate = monday.add(Duration(days: dayIndex));
-                final completedCount = tasksByDay[dayIndex].where((t) => t.stat == 'Hoàn thành').length;
+                final completedCount = tasksByDay[dayIndex]
+                    .where((t) => t.stat == 'Hoàn thành')
+                    .length;
                 final totalCount = tasksByDay[dayIndex].length;
 
                 return Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 2),
                     child: GestureDetector(
-                      onLongPress: () => _showDayTasks(context, dayIndex, dayDate, tasksByDay[dayIndex]),
+                      onLongPress: () => _showDayTasks(
+                        context,
+                        dayIndex,
+                        dayDate,
+                        tasksByDay[dayIndex],
+                      ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -619,12 +626,16 @@ class _WeeklyChart extends StatelessWidget {
                       itemBuilder: (context, idx) {
                         final task = dayTasks[idx];
                         final isCompleted = task.stat == 'Hoàn thành';
-                        final iconColor = isCompleted ? _C.tertiary : _C.onSurfaceVariant;
+                        final iconColor = isCompleted
+                            ? _C.tertiary
+                            : _C.onSurfaceVariant;
                         return Container(
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.75),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.5),
+                            ),
                           ),
                           padding: const EdgeInsets.all(14),
                           child: Row(
@@ -667,8 +678,12 @@ class _WeeklyChart extends StatelessWidget {
                                 ),
                               ),
                               Icon(
-                                isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-                                color: isCompleted ? _C.tertiary : _C.onSurfaceVariant,
+                                isCompleted
+                                    ? Icons.check_circle
+                                    : Icons.radio_button_unchecked,
+                                color: isCompleted
+                                    ? _C.tertiary
+                                    : _C.onSurfaceVariant,
                               ),
                             ],
                           ),
@@ -774,8 +789,7 @@ class _DistributionSection extends StatelessWidget {
             children: categories.map((share) {
               final color = share['color'] as Color;
               final name = share['name'] as String;
-              final ratio =
-                  (share['ratio'] as double).clamp(0.0, 1.0);
+              final ratio = (share['ratio'] as double).clamp(0.0, 1.0);
               final icon = share['icon'] as IconData;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
@@ -857,8 +871,7 @@ class _InsightRow extends StatelessWidget {
                 child: LinearProgressIndicator(
                   minHeight: 6,
                   value: ratio.clamp(0.0, 1.0),
-                  backgroundColor:
-                      barColor.withValues(alpha: 0.12),
+                  backgroundColor: barColor.withValues(alpha: 0.12),
                   valueColor: AlwaysStoppedAnimation(barColor),
                 ),
               ),
@@ -1011,8 +1024,11 @@ class _MotivationCard extends StatelessWidget {
               color: _C.primary.withValues(alpha: 0.10),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.lightbulb_rounded,
-                color: _C.primary, size: 36),
+            child: const Icon(
+              Icons.lightbulb_rounded,
+              color: _C.primary,
+              size: 36,
+            ),
           ),
           const SizedBox(height: 16),
           const Text(
@@ -1075,4 +1091,3 @@ class _RingPainter extends CustomPainter {
   @override
   bool shouldRepaint(_RingPainter old) => old.value != value;
 }
-

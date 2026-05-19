@@ -19,12 +19,18 @@ class RegisterScreen extends StatelessWidget {
           Positioned(
             top: -MediaQuery.of(context).size.height * 0.1,
             right: -MediaQuery.of(context).size.width * 0.1,
-            child: _GlowOrb(size: MediaQuery.of(context).size.width * 0.6, color: AppColors.brand.withValues(alpha: 0.06)),
+            child: _GlowOrb(
+              size: MediaQuery.of(context).size.width * 0.6,
+              color: AppColors.brand.withValues(alpha: 0.06),
+            ),
           ),
           Positioned(
             bottom: -MediaQuery.of(context).size.height * 0.1,
             left: -MediaQuery.of(context).size.width * 0.1,
-            child: _GlowOrb(size: MediaQuery.of(context).size.width * 0.6, color: AppColors.brand.withValues(alpha: 0.04)),
+            child: _GlowOrb(
+              size: MediaQuery.of(context).size.width * 0.6,
+              color: AppColors.brand.withValues(alpha: 0.04),
+            ),
           ),
           Positioned.fill(
             child: IgnorePointer(
@@ -66,7 +72,11 @@ class RegisterScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.task_alt, color: Colors.white, size: 34),
+                      child: const Icon(
+                        Icons.task_alt,
+                        color: Colors.white,
+                        size: 34,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -93,7 +103,9 @@ class RegisterScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.72),
                         borderRadius: BorderRadius.circular(28),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.4),
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.05),
@@ -107,7 +119,14 @@ class RegisterScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     Row(
                       children: [
-                        Expanded(child: Divider(color: AppColors.textSecondary.withValues(alpha: 0.16), thickness: 1)),
+                        Expanded(
+                          child: Divider(
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.16,
+                            ),
+                            thickness: 1,
+                          ),
+                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Text(
@@ -118,7 +137,14 @@ class RegisterScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        Expanded(child: Divider(color: AppColors.textSecondary.withValues(alpha: 0.16), thickness: 1)),
+                        Expanded(
+                          child: Divider(
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.16,
+                            ),
+                            thickness: 1,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -126,14 +152,19 @@ class RegisterScreen extends StatelessWidget {
                       children: const [
                         Expanded(
                           child: _SocialButton(
-                            iconUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDKxJtwhgLu_0wH-JVdz0om2ZLDGFCsJ8XN0TwdouqrBcwveKL8oofanJ7yN0QVuUwCVzmkB5-z4TKTxwr44v7DOJD64xPm5RfAc9U1rE14d8EzEriXj04RFoU2aCZvl3C-aXoGS7pGL0UUtDn61NTMFrVcNS0nlFiQVJBTAOf6qNwAP6I9K1qs2eGM91bFjnKxsOymg9TOiOSi_z3bhT54Yj1m-cp7g6Npe6bG4izhXwCr954sAzSZR7WaE40nHgMMHeLuzqIIngg',
+                            iconUrl:
+                                'https://lh3.googleusercontent.com/aida-public/AB6AXuDKxJtwhgLu_0wH-JVdz0om2ZLDGFCsJ8XN0TwdouqrBcwveKL8oofanJ7yN0QVuUwCVzmkB5-z4TKTxwr44v7DOJD64xPm5RfAc9U1rE14d8EzEriXj04RFoU2aCZvl3C-aXoGS7pGL0UUtDn61NTMFrVcNS0nlFiQVJBTAOf6qNwAP6I9K1qs2eGM91bFjnKxsOymg9TOiOSi_z3bhT54Yj1m-cp7g6Npe6bG4izhXwCr954sAzSZR7WaE40nHgMMHeLuzqIIngg',
                             label: 'Google',
                           ),
                         ),
                         SizedBox(width: 12),
                         Expanded(
                           child: _SocialButton(
-                            icon: Icon(Icons.apple, size: 20, color: AppColors.textPrimary),
+                            icon: Icon(
+                              Icons.apple,
+                              size: 20,
+                              color: AppColors.textPrimary,
+                            ),
                             label: 'Apple',
                           ),
                         ),
@@ -143,7 +174,9 @@ class RegisterScreen extends StatelessWidget {
                     RichText(
                       textAlign: TextAlign.center,
                       text: TextSpan(
-                        style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                         children: [
                           const TextSpan(text: 'Bạn đã có tài khoản? '),
                           WidgetSpan(
@@ -220,9 +253,7 @@ class _RegisterFormState extends State<_RegisterForm> {
         confirmPassword: _confirmPasswordController.text,
       );
 
-      await _authService.registerUser(
-        registerViewModel,
-      );
+      await _authService.registerUser(registerViewModel);
 
       if (!mounted) {
         return;
@@ -237,7 +268,13 @@ class _RegisterFormState extends State<_RegisterForm> {
             children: [
               Lottie.asset('assets/animations/success.json', height: 100),
               const SizedBox(height: 16),
-              Text('Account initialized', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+              Text(
+                'Account initialized',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
             ],
           ),
         ),
@@ -259,7 +296,11 @@ class _RegisterFormState extends State<_RegisterForm> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Auth ${error.code}: ${error.message ?? 'Registration failed.'}')),
+        SnackBar(
+          content: Text(
+            'Auth ${error.code}: ${error.message ?? 'Registration failed.'}',
+          ),
+        ),
       );
     } on FirebaseException catch (error) {
       if (!mounted) {
@@ -278,7 +319,9 @@ class _RegisterFormState extends State<_RegisterForm> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            error.toString().isNotEmpty ? error.toString() : 'Registration failed. Please try again.',
+            error.toString().isNotEmpty
+                ? error.toString()
+                : 'Registration failed. Please try again.',
           ),
         ),
       );
@@ -299,11 +342,19 @@ class _RegisterFormState extends State<_RegisterForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Họ và tên', style: theme.textTheme.labelMedium?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+          Text(
+            'Họ và tên',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 8),
           TextFormField(
             controller: _fullNameController,
-            style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textPrimary),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.textPrimary,
+            ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Vui lòng nhập họ tên';
@@ -312,7 +363,10 @@ class _RegisterFormState extends State<_RegisterForm> {
               return null;
             },
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.person_outline, color: AppColors.textSecondary),
+              prefixIcon: const Icon(
+                Icons.person_outline,
+                color: AppColors.textSecondary,
+              ),
               hintText: 'Nguyễn Văn A',
               filled: true,
               fillColor: AppColors.surface,
@@ -326,17 +380,30 @@ class _RegisterFormState extends State<_RegisterForm> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(18),
-                borderSide: BorderSide(color: AppColors.brand.withValues(alpha: 0.22), width: 1.5),
+                borderSide: BorderSide(
+                  color: AppColors.brand.withValues(alpha: 0.22),
+                  width: 1.5,
+                ),
               ),
-              hintStyle: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary.withValues(alpha: 0.55)),
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary.withValues(alpha: 0.55),
+              ),
             ),
           ),
           const SizedBox(height: 16),
-          Text('Email', style: theme.textTheme.labelMedium?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+          Text(
+            'Email',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 8),
           TextFormField(
             controller: _emailController,
-            style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textPrimary),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.textPrimary,
+            ),
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
               final text = value?.trim() ?? '';
@@ -351,7 +418,10 @@ class _RegisterFormState extends State<_RegisterForm> {
               return null;
             },
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.mail_outline, color: AppColors.textSecondary),
+              prefixIcon: const Icon(
+                Icons.mail_outline,
+                color: AppColors.textSecondary,
+              ),
               hintText: 'email@vi-du.com',
               filled: true,
               fillColor: AppColors.surface,
@@ -365,17 +435,30 @@ class _RegisterFormState extends State<_RegisterForm> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(18),
-                borderSide: BorderSide(color: AppColors.brand.withValues(alpha: 0.22), width: 1.5),
+                borderSide: BorderSide(
+                  color: AppColors.brand.withValues(alpha: 0.22),
+                  width: 1.5,
+                ),
               ),
-              hintStyle: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary.withValues(alpha: 0.55)),
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary.withValues(alpha: 0.55),
+              ),
             ),
           ),
           const SizedBox(height: 16),
-          Text('Mật khẩu', style: theme.textTheme.labelMedium?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+          Text(
+            'Mật khẩu',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 8),
           TextFormField(
             controller: _passwordController,
-            style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textPrimary),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.textPrimary,
+            ),
             obscureText: _obscure1,
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -389,9 +472,15 @@ class _RegisterFormState extends State<_RegisterForm> {
               return null;
             },
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textSecondary),
+              prefixIcon: const Icon(
+                Icons.lock_outline,
+                color: AppColors.textSecondary,
+              ),
               suffixIcon: IconButton(
-                icon: Icon(_obscure1 ? Icons.visibility : Icons.visibility_off, color: AppColors.textSecondary),
+                icon: Icon(
+                  _obscure1 ? Icons.visibility : Icons.visibility_off,
+                  color: AppColors.textSecondary,
+                ),
                 onPressed: () => setState(() => _obscure1 = !_obscure1),
               ),
               hintText: '••••••••',
@@ -407,17 +496,30 @@ class _RegisterFormState extends State<_RegisterForm> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(18),
-                borderSide: BorderSide(color: AppColors.brand.withValues(alpha: 0.22), width: 1.5),
+                borderSide: BorderSide(
+                  color: AppColors.brand.withValues(alpha: 0.22),
+                  width: 1.5,
+                ),
               ),
-              hintStyle: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary.withValues(alpha: 0.55)),
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary.withValues(alpha: 0.55),
+              ),
             ),
           ),
           const SizedBox(height: 16),
-          Text('Xác nhận mật khẩu', style: theme.textTheme.labelMedium?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+          Text(
+            'Xác nhận mật khẩu',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 8),
           TextFormField(
             controller: _confirmPasswordController,
-            style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textPrimary),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.textPrimary,
+            ),
             obscureText: _obscure2,
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -431,9 +533,15 @@ class _RegisterFormState extends State<_RegisterForm> {
               return null;
             },
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.verified_user_outlined, color: AppColors.textSecondary),
+              prefixIcon: const Icon(
+                Icons.verified_user_outlined,
+                color: AppColors.textSecondary,
+              ),
               suffixIcon: IconButton(
-                icon: Icon(_obscure2 ? Icons.visibility : Icons.visibility_off, color: AppColors.textSecondary),
+                icon: Icon(
+                  _obscure2 ? Icons.visibility : Icons.visibility_off,
+                  color: AppColors.textSecondary,
+                ),
                 onPressed: () => setState(() => _obscure2 = !_obscure2),
               ),
               hintText: '••••••••',
@@ -449,9 +557,14 @@ class _RegisterFormState extends State<_RegisterForm> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(18),
-                borderSide: BorderSide(color: AppColors.brand.withValues(alpha: 0.22), width: 1.5),
+                borderSide: BorderSide(
+                  color: AppColors.brand.withValues(alpha: 0.22),
+                  width: 1.5,
+                ),
               ),
-              hintStyle: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary.withValues(alpha: 0.55)),
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary.withValues(alpha: 0.55),
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -460,7 +573,9 @@ class _RegisterFormState extends State<_RegisterForm> {
               backgroundColor: AppColors.brand,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
               elevation: 0,
               shadowColor: AppColors.brand.withValues(alpha: 0.25),
             ),
@@ -469,9 +584,15 @@ class _RegisterFormState extends State<_RegisterForm> {
                 ? const SizedBox(
                     height: 20,
                     width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
-                : const Text('Tạo tài khoản', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                : const Text(
+                    'Tạo tài khoản',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                  ),
           ),
         ],
       ),
@@ -493,9 +614,7 @@ class _GlowOrb extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color,
-        boxShadow: [
-          BoxShadow(color: color, blurRadius: 120, spreadRadius: 20),
-        ],
+        boxShadow: [BoxShadow(color: color, blurRadius: 120, spreadRadius: 20)],
       ),
     );
   }
@@ -545,4 +664,3 @@ class _SocialButton extends StatelessWidget {
     );
   }
 }
-

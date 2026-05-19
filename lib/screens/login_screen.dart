@@ -104,7 +104,9 @@ class LoginScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Divider(
-                            color: AppColors.textSecondary.withValues(alpha: 0.18),
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.18,
+                            ),
                             thickness: 1,
                           ),
                         ),
@@ -120,7 +122,9 @@ class LoginScreen extends StatelessWidget {
                         ),
                         Expanded(
                           child: Divider(
-                            color: AppColors.textSecondary.withValues(alpha: 0.18),
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.18,
+                            ),
                             thickness: 1,
                           ),
                         ),
@@ -139,7 +143,8 @@ class LoginScreen extends StatelessWidget {
                               'https://lh3.googleusercontent.com/aida-public/AB6AXuAvMRrpsB93lZG8ak3-cnzD2jpE7DN0MPaOrlYwz76Ngj72iXBZKGKzoeb_gplIM-AA2jDZZ97RrTQiIhfYPNkFJqou53mz0tjBcQnLuE_NvQWOerV3_dKE8wJqYidcPIHeqtSFpjnP9uEa5m_GSkKV_jyQ-Ccw_b24C7ZgVGz8AJCxwtMAxYpoin7KTPYpvS-98O0tSm7aym52Eh5CagU3B_1NJfTo3Og0ru7VYUbYhmMjeozCU-OdL2xUoJYlYys56rIdZAlsXWs',
                               width: 18,
                               height: 18,
-                              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                              errorBuilder: (_, __, ___) =>
+                                  const SizedBox.shrink(),
                             ),
                             onPressed: () {},
                           ),
@@ -148,7 +153,11 @@ class LoginScreen extends StatelessWidget {
                         Expanded(
                           child: _SocialButton(
                             text: 'Apple',
-                            icon: const Icon(Icons.apple, size: 18, color: AppColors.textPrimary),
+                            icon: const Icon(
+                              Icons.apple,
+                              size: 18,
+                              color: AppColors.textPrimary,
+                            ),
                             onPressed: () {},
                           ),
                         ),
@@ -172,7 +181,8 @@ class LoginScreen extends StatelessWidget {
                               onTap: () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) => const RegisterScreen(),
+                                    builder: (context) =>
+                                        const RegisterScreen(),
                                   ),
                                 );
                               },
@@ -243,9 +253,9 @@ class _LoginFormState extends State<_LoginForm> {
       );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google sign-in failed: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Google sign-in failed: $error')));
     }
   }
 
@@ -264,19 +274,25 @@ class _LoginFormState extends State<_LoginForm> {
       if (!mounted) return;
       if (credential.user != null) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const OnboardingStep1Screen()),
+          MaterialPageRoute(
+            builder: (context) => const OnboardingStep1Screen(),
+          ),
         );
       }
     } on FirebaseAuthException catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sai thông tin đăng nhập: ${error.message ?? error.code}')),
+        SnackBar(
+          content: Text(
+            'Sai thông tin đăng nhập: ${error.message ?? error.code}',
+          ),
+        ),
       );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Đăng nhập thất bại: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Đăng nhập thất bại: $error')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -303,7 +319,9 @@ class _LoginFormState extends State<_LoginForm> {
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textPrimary),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.textPrimary,
+            ),
             validator: (value) {
               final text = value?.trim() ?? '';
               if (text.isEmpty) return 'Vui lòng nhập email';
@@ -311,7 +329,10 @@ class _LoginFormState extends State<_LoginForm> {
               return null;
             },
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.mail_outline_rounded, color: AppColors.textSecondary),
+              prefixIcon: const Icon(
+                Icons.mail_outline_rounded,
+                color: AppColors.textSecondary,
+              ),
               hintText: 'example@gmail.com',
               filled: true,
               fillColor: AppColors.surface,
@@ -370,16 +391,24 @@ class _LoginFormState extends State<_LoginForm> {
           TextFormField(
             controller: _passwordController,
             obscureText: _obscure,
-            style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textPrimary),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.textPrimary,
+            ),
             validator: (value) {
-              if (value == null || value.isEmpty) return 'Vui lòng nhập mật khẩu';
+              if (value == null || value.isEmpty)
+                return 'Vui lòng nhập mật khẩu';
               return null;
             },
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.textSecondary),
+              prefixIcon: const Icon(
+                Icons.lock_outline_rounded,
+                color: AppColors.textSecondary,
+              ),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                   color: AppColors.textSecondary,
                 ),
                 onPressed: () => setState(() => _obscure = !_obscure),
@@ -412,23 +441,31 @@ class _LoginFormState extends State<_LoginForm> {
 
           // ── Login button ──
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.brand,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
-              shadowColor: AppColors.brand.withValues(alpha: 0.30),
-            ).copyWith(
-              elevation: WidgetStateProperty.all(0),
-              overlayColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.1)),
-            ),
+            style:
+                ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.brand,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                  shadowColor: AppColors.brand.withValues(alpha: 0.30),
+                ).copyWith(
+                  elevation: WidgetStateProperty.all(0),
+                  overlayColor: WidgetStateProperty.all(
+                    Colors.white.withValues(alpha: 0.1),
+                  ),
+                ),
             onPressed: _isLoading ? null : _handleEmailLogin,
             child: _isLoading
                 ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      color: Colors.white,
+                    ),
                   )
                 : const Text(
                     'Đăng nhập',
@@ -509,10 +546,7 @@ class _GlowOrb extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle, 
-        color: color,
-      ),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
         child: const SizedBox.expand(),

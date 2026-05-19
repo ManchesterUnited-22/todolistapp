@@ -6,22 +6,22 @@ import '../services/task_notification_service.dart';
 
 // ── Colour tokens (shared, import from app_colors nếu cần) ───────────────────
 class _C {
-  static const background           = Color(0xFFF7F9FB);
-  static const surface              = Color(0xFFFFFFFF);
-  static const surfaceContainer     = Color(0xFFECEEF0);
-  static const surfaceContainerLow  = Color(0xFFF2F4F6);
+  static const background = Color(0xFFF7F9FB);
+  static const surface = Color(0xFFFFFFFF);
+  static const surfaceContainer = Color(0xFFECEEF0);
+  static const surfaceContainerLow = Color(0xFFF2F4F6);
   static const surfaceContainerHigh = Color(0xFFE6E8EA);
-  static const primary              = Color(0xFF4648D4);
-  static const primaryContainer     = Color(0xFF6063EE);
-  static const primaryFixed         = Color(0xFFE1E0FF);
-  static const secondary            = Color(0xFF0060AC);
-  static const tertiary             = Color(0xFF006C49);
-  static const onSurface            = Color(0xFF191C1E);
-  static const onSurfaceVariant     = Color(0xFF464554);
-  static const outline              = Color(0xFF767586);
-  static const outlineVariant       = Color(0xFFC7C4D7);
-  static const error                = Color(0xFFBA1A1A);
-  static const errorContainer       = Color(0xFFFFDAD6);
+  static const primary = Color(0xFF4648D4);
+  static const primaryContainer = Color(0xFF6063EE);
+  static const primaryFixed = Color(0xFFE1E0FF);
+  static const secondary = Color(0xFF0060AC);
+  static const tertiary = Color(0xFF006C49);
+  static const onSurface = Color(0xFF191C1E);
+  static const onSurfaceVariant = Color(0xFF464554);
+  static const outline = Color(0xFF767586);
+  static const outlineVariant = Color(0xFFC7C4D7);
+  static const error = Color(0xFFBA1A1A);
+  static const errorContainer = Color(0xFFFFDAD6);
 }
 
 // ── Public sidebar widget ─────────────────────────────────────────────────────
@@ -59,8 +59,6 @@ class DashboardSidebar extends StatelessWidget {
 
   /// Màn hình hiện tại để highlight menu chính.
   final String? currentPage;
-
-  
 
   const DashboardSidebar({
     super.key,
@@ -117,13 +115,16 @@ class DashboardSidebar extends StatelessWidget {
               },
               child: ClipOval(
                 child: StreamBuilder<DocumentSnapshot>(
-                    stream: FirebaseFirestore.instance
+                  stream: FirebaseFirestore.instance
                       .collection('users')
                       .doc(FirebaseAuth.instance.currentUser?.uid ?? '')
                       .snapshots(),
                   builder: (context, snap) {
                     final data = snap.data?.data() as Map<String, dynamic>?;
-                    final src = (data != null && (data['avatarUrl'] as String?)?.trim().isNotEmpty == true)
+                    final src =
+                        (data != null &&
+                            (data['avatarUrl'] as String?)?.trim().isNotEmpty ==
+                                true)
                         ? data['avatarUrl'] as String
                         : avatarUrl;
 
@@ -153,10 +154,19 @@ class DashboardSidebar extends StatelessWidget {
                       .snapshots(),
                   builder: (context, snapshot) {
                     final data = snapshot.data?.data() as Map<String, dynamic>?;
-                    final displayName = (data != null && (data['displayName'] as String?)?.trim().isNotEmpty == true)
-                      ? data['displayName'] as String
-                      : (FirebaseAuth.instance.currentUser?.displayName ?? userName);
-                    final email = (data != null && (data['email'] as String?)?.trim().isNotEmpty == true)
+                    final displayName =
+                        (data != null &&
+                            (data['displayName'] as String?)
+                                    ?.trim()
+                                    .isNotEmpty ==
+                                true)
+                        ? data['displayName'] as String
+                        : (FirebaseAuth.instance.currentUser?.displayName ??
+                              userName);
+                    final email =
+                        (data != null &&
+                            (data['email'] as String?)?.trim().isNotEmpty ==
+                                true)
                         ? data['email'] as String
                         : (FirebaseAuth.instance.currentUser?.email ?? '');
 
@@ -215,10 +225,7 @@ class DashboardSidebar extends StatelessWidget {
     );
   }
 
-  Widget _buildNavListContent(
-    BuildContext context,
-    Map<String, int> counts,
-  ) {
+  Widget _buildNavListContent(BuildContext context, Map<String, int> counts) {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       children: [
@@ -234,7 +241,9 @@ class DashboardSidebar extends StatelessWidget {
           icon: Icons.calendar_month_outlined,
           label: 'Lịch',
           active: currentPage == 'calendar',
-          onTap: onCalendarTap ?? () => Navigator.of(context).pushNamed('/calendar'),
+          onTap:
+              onCalendarTap ??
+              () => Navigator.of(context).pushNamed('/calendar'),
         ),
         _SidebarNavItem(
           icon: Icons.leaderboard_outlined,
@@ -287,11 +296,7 @@ class DashboardSidebar extends StatelessWidget {
   }
 
   Map<String, int> _groupTaskCounts(Iterable<QueryDocumentSnapshot> docs) {
-    final counts = <String, int>{
-      'Công việc': 0,
-      'Cá nhân': 0,
-      'Sức khỏe': 0,
-    };
+    final counts = <String, int>{'Công việc': 0, 'Cá nhân': 0, 'Sức khỏe': 0};
 
     for (final doc in docs) {
       final data = doc.data() as Map<String, dynamic>?;
@@ -318,7 +323,6 @@ class DashboardSidebar extends StatelessWidget {
         ),
         color: _C.surfaceContainerLow.withValues(alpha: 0.5),
       ),
-     
     );
   }
 }
@@ -327,7 +331,8 @@ class _TaskNotificationToggle extends StatefulWidget {
   const _TaskNotificationToggle();
 
   @override
-  State<_TaskNotificationToggle> createState() => _TaskNotificationToggleState();
+  State<_TaskNotificationToggle> createState() =>
+      _TaskNotificationToggleState();
 }
 
 class _TaskNotificationToggleState extends State<_TaskNotificationToggle> {
@@ -388,7 +393,9 @@ class _TaskNotificationToggleState extends State<_TaskNotificationToggle> {
         child: Row(
           children: [
             Icon(
-              _enabled ? Icons.notifications_active_rounded : Icons.notifications_off_rounded,
+              _enabled
+                  ? Icons.notifications_active_rounded
+                  : Icons.notifications_off_rounded,
               color: _enabled ? _C.error : _C.outline,
               size: 20,
             ),
@@ -427,17 +434,17 @@ class _SidebarSectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: _C.outline,
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.2,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+    child: Text(
+      text,
+      style: const TextStyle(
+        color: _C.outline,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.2,
+      ),
+    ),
+  );
 }
 
 class _SidebarNavItem extends StatelessWidget {
@@ -461,8 +468,7 @@ class _SidebarNavItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 1),
       decoration: BoxDecoration(
-        color:
-            active ? _C.primary.withValues(alpha: 0.08) : Colors.transparent,
+        color: active ? _C.primary.withValues(alpha: 0.08) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
@@ -477,8 +483,7 @@ class _SidebarNavItem extends StatelessWidget {
           ),
         ),
         onTap: onTap ?? () {},
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         hoverColor: _C.primary.withValues(alpha: 0.05),
       ),
     );
@@ -501,35 +506,33 @@ class _SidebarTagItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.symmetric(vertical: 1),
-        child: ListTile(
-          dense: true,
-          leading: _TagIcon(label: label, color: color, selected: selected),
-          title: Text(
-            label,
-            style: TextStyle(
-              color: selected ? _C.primary : _C.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
-          trailing: Text(
-            count,
-            style: TextStyle(
-              color: selected ? _C.primary : _C.outline,
-              fontSize: 12,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-            ),
-          ),
-          onTap: onTap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          selected: selected,
-          selectedTileColor: _C.primary.withValues(alpha: 0.08),
-          hoverColor: _C.surfaceContainerHigh,
+    margin: const EdgeInsets.symmetric(vertical: 1),
+    child: ListTile(
+      dense: true,
+      leading: _TagIcon(label: label, color: color, selected: selected),
+      title: Text(
+        label,
+        style: TextStyle(
+          color: selected ? _C.primary : _C.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
         ),
-      );
+      ),
+      trailing: Text(
+        count,
+        style: TextStyle(
+          color: selected ? _C.primary : _C.outline,
+          fontSize: 12,
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+        ),
+      ),
+      onTap: onTap,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      selected: selected,
+      selectedTileColor: _C.primary.withValues(alpha: 0.08),
+      hoverColor: _C.surfaceContainerHigh,
+    ),
+  );
 }
 
 class _TagIcon extends StatelessWidget {
@@ -537,7 +540,11 @@ class _TagIcon extends StatelessWidget {
   final Color color;
   final bool selected;
 
-  const _TagIcon({required this.label, required this.color, required this.selected});
+  const _TagIcon({
+    required this.label,
+    required this.color,
+    required this.selected,
+  });
 
   IconData _iconForLabel() {
     switch (label) {

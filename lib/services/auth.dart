@@ -13,8 +13,8 @@ Future<void> initializeFirebase() async {
 
 class AuthService {
   AuthService({FirebaseAuth? auth, FirebaseFirestore? firestore})
-      : _auth = auth ?? FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+    : _auth = auth ?? FirebaseAuth.instance,
+      _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
@@ -55,11 +55,14 @@ class AuthService {
 
     debugPrint('Login: writing login record to Firestore');
     try {
-      await _firestore.collection('login').doc(loginData.uid).set(
-            loginData.toFirestoreMap(),
-          );
+      await _firestore
+          .collection('login')
+          .doc(loginData.uid)
+          .set(loginData.toFirestoreMap());
     } on FirebaseException catch (error) {
-      debugPrint('Login firestore error: ${error.plugin} ${error.code} ${error.message}');
+      debugPrint(
+        'Login firestore error: ${error.plugin} ${error.code} ${error.message}',
+      );
       rethrow;
     }
   }
@@ -117,17 +120,26 @@ class AuthService {
     try {
       await user.updateDisplayName(registerData.name.trim());
     } on FirebaseException catch (error) {
-      debugPrint('Register profile error: ${error.plugin} ${error.code} ${error.message}');
+      debugPrint(
+        'Register profile error: ${error.plugin} ${error.code} ${error.message}',
+      );
       rethrow;
     }
 
     debugPrint('Register: writing user profile to Firestore');
     try {
-      await _firestore.collection('register').doc(user.uid).set(
-            registerData.copyWith(uid: user.uid).toFirestoreMap(uidValue: user.uid),
+      await _firestore
+          .collection('register')
+          .doc(user.uid)
+          .set(
+            registerData
+                .copyWith(uid: user.uid)
+                .toFirestoreMap(uidValue: user.uid),
           );
     } on FirebaseException catch (error) {
-      debugPrint('Register firestore error: ${error.plugin} ${error.code} ${error.message}');
+      debugPrint(
+        'Register firestore error: ${error.plugin} ${error.code} ${error.message}',
+      );
       rethrow;
     }
 

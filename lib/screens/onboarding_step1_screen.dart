@@ -79,7 +79,9 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
                         constraints: const BoxConstraints(maxWidth: 420),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
                           child: Column(
                             children: [
                               const SizedBox(height: 8),
@@ -93,8 +95,7 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
                                     width: 32,
                                     decoration: BoxDecoration(
                                       color: AppColors.brand,
-                                      borderRadius:
-                                          BorderRadius.circular(999),
+                                      borderRadius: BorderRadius.circular(999),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -102,10 +103,10 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
                                     height: 6,
                                     width: 8,
                                     decoration: BoxDecoration(
-                                      color: AppColors.textSecondary
-                                          .withValues(alpha: 0.18),
-                                      borderRadius:
-                                          BorderRadius.circular(999),
+                                      color: AppColors.textSecondary.withValues(
+                                        alpha: 0.18,
+                                      ),
+                                      borderRadius: BorderRadius.circular(999),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -113,10 +114,10 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
                                     height: 6,
                                     width: 8,
                                     decoration: BoxDecoration(
-                                      color: AppColors.textSecondary
-                                          .withValues(alpha: 0.18),
-                                      borderRadius:
-                                          BorderRadius.circular(999),
+                                      color: AppColors.textSecondary.withValues(
+                                        alpha: 0.18,
+                                      ),
+                                      borderRadius: BorderRadius.circular(999),
                                     ),
                                   ),
                                 ],
@@ -147,8 +148,9 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             border: Border.all(
-                                              color: AppColors.brand
-                                                  .withValues(alpha: 0.10),
+                                              color: AppColors.brand.withValues(
+                                                alpha: 0.10,
+                                              ),
                                               width: 1,
                                             ),
                                           ),
@@ -161,8 +163,9 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(
-                                            color: AppColors.brand
-                                                .withValues(alpha: 0.20),
+                                            color: AppColors.brand.withValues(
+                                              alpha: 0.20,
+                                            ),
                                             width: 1,
                                           ),
                                         ),
@@ -174,8 +177,9 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(
-                                            color: AppColors.brand
-                                                .withValues(alpha: 0.40),
+                                            color: AppColors.brand.withValues(
+                                              alpha: 0.40,
+                                            ),
                                             width: 1,
                                           ),
                                         ),
@@ -199,27 +203,32 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
                                                   width: 288,
                                                   height: 288,
                                                   fit: BoxFit.cover,
-                                                  errorBuilder: (context,
-                                                          error,
-                                                          stackTrace) =>
-                                                      Container(
-                                                    width: 288,
-                                                    height: 288,
-                                                    decoration: BoxDecoration(
-                                                      color: AppColors.brand
-                                                          .withValues(
-                                                              alpha: 0.08),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              24),
-                                                    ),
-                                                    child: Icon(
-                                                      Icons
-                                                          .center_focus_strong_outlined,
-                                                      color: AppColors.brand,
-                                                      size: 64,
-                                                    ),
-                                                  ),
+                                                  errorBuilder:
+                                                      (
+                                                        context,
+                                                        error,
+                                                        stackTrace,
+                                                      ) => Container(
+                                                        width: 288,
+                                                        height: 288,
+                                                        decoration: BoxDecoration(
+                                                          color: AppColors.brand
+                                                              .withValues(
+                                                                alpha: 0.08,
+                                                              ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                24,
+                                                              ),
+                                                        ),
+                                                        child: Icon(
+                                                          Icons
+                                                              .center_focus_strong_outlined,
+                                                          color:
+                                                              AppColors.brand,
+                                                          size: 64,
+                                                        ),
+                                                      ),
                                                 ),
                                               ),
 
@@ -243,8 +252,7 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
                               Text(
                                 'Welcome to Serene Focus',
                                 textAlign: TextAlign.center,
-                                style:
-                                    theme.textTheme.headlineLarge?.copyWith(
+                                style: theme.textTheme.headlineLarge?.copyWith(
                                   color: AppColors.textPrimary,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: -0.8,
@@ -288,15 +296,14 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
                               gradient: const LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [
-                                  Color(0xFF4648D4),
-                                  Color(0xFF6063EE),
-                                ],
+                                colors: [Color(0xFF4648D4), Color(0xFF6063EE)],
                               ),
                               borderRadius: BorderRadius.circular(999),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.brand.withValues(alpha: 0.25),
+                                  color: AppColors.brand.withValues(
+                                    alpha: 0.25,
+                                  ),
                                   blurRadius: 16,
                                   offset: const Offset(0, 8),
                                 ),
@@ -369,8 +376,9 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
                         Text(
                           'Step 1 of 3',
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppColors.textSecondary
-                                .withValues(alpha: 0.60),
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.60,
+                            ),
                             letterSpacing: 0.03 * 12,
                           ),
                         ),
@@ -405,9 +413,7 @@ class _FloatingBadge extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.80),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.40),
-          ),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.40)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),

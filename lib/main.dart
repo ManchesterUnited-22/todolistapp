@@ -5,7 +5,9 @@ import 'package:smart_app/core/app_theme.dart';
 import 'package:smart_app/core/app_colors.dart';
 import 'package:smart_app/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:smart_app/ai/ai_services.dart';
 import 'screens/main_dashboard_screen.dart';
+import 'screens/home_tabs.dart';
 import 'screens/splash_screen.dart';
 import 'screens/charts_screen.dart';
 import 'screens/calendar_screen.dart';
@@ -15,6 +17,7 @@ import 'screens/success_screen.dart';
 import 'services/theme_service.dart';
 import 'services/task_notification_service.dart';
 import 'services/stats_updater.dart';
+import 'ai/app_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +35,10 @@ Future<void> main() async {
   await ThemeService.initialize();
   await TaskNotificationService.instance.initialize();
   await StatsUpdater.instance.initialize();
+  AIService.instance.setApiKey(
+    const String.fromEnvironment('GOOGLE_API_KEY', defaultValue: ''),
+  );
+  await AppController.instance.init();
   runApp(const MyApp());
 }
 
@@ -70,6 +77,24 @@ class _MyAppState extends State<MyApp> {
           builder: (context, themeMode, _) {
             return MaterialApp(
               title: 'AURORA',
+              builder: (context, child) {
+                return AnimatedBuilder(
+                  animation: AppController.instance,
+                  builder: (ctx, _) {
+                    final blocking = AppController.instance.isTourActive;
+                    return Stack(
+                      children: [
+                        child ?? const SizedBox.shrink(),
+                        if (blocking)
+                          const ModalBarrier(
+                            dismissible: false,
+                            color: Colors.transparent,
+                          ),
+                      ],
+                    );
+                  },
+                );
+              },
               debugShowCheckedModeBanner: false,
               locale: locale,
               supportedLocales: AppLanguage.supportedLocales,
@@ -91,7 +116,7 @@ class _MyAppState extends State<MyApp> {
               darkTheme: AppTheme.dark(),
               themeMode: themeMode,
               routes: {
-                '/dashboard': (context) => const MainDashboardScreen(),
+                '/dashboard': (context) => const HomeTabs(),
                 '/calendar': (context) => const CalendarScreen(),
                 '/charts': (context) => const ChartsScreen(),
                 '/stats': (context) => const ChartsScreen(),

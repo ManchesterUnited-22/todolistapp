@@ -29,15 +29,23 @@ class AiService {
     required int highCompleted,
     required int mediumCompleted,
     required int lowCompleted,
-    required Map<String,int> categoryCounts,
+    required Map<String, int> categoryCounts,
     required String topCategory,
   }) {
     final buffer = StringBuffer();
-    buffer.writeln('Bạn là một chuyên gia huấn luyện năng suất (productivity coach) nói tiếng Việt.');
+    buffer.writeln(
+      'Bạn là một chuyên gia huấn luyện năng suất (productivity coach) nói tiếng Việt.',
+    );
     buffer.writeln('Dựa trên số liệu nhiệm vụ dưới đây, hãy cung cấp:');
-    buffer.writeln('A) Một nhận định ngắn (1-2 câu) theo phong cách "nhân cách" mô tả xu hướng hành vi của người dùng.');
-    buffer.writeln('B) Nếu thấy loại nhiệm vụ nào đang bị bỏ ưu tiên (ví dụ: "Cá nhân" rất thấp so với "Công việc"), hãy nêu bạn nghĩ người dùng thuộc kiểu tính cách nào (ví dụ: "ưu tiên công việc quá mức", "thiếu cân bằng"), và mô tả tác động có thể tới lối sống của họ (sức khỏe, mối quan hệ, stress, v.v.).');
-    buffer.writeln('C) Đưa ra 3 đề xuất cải thiện cụ thể, theo thứ tự ưu tiên — mỗi đề xuất kèm bước hành động dễ thực hiện (bullet points).');
+    buffer.writeln(
+      'A) Một nhận định ngắn (1-2 câu) theo phong cách "nhân cách" mô tả xu hướng hành vi của người dùng.',
+    );
+    buffer.writeln(
+      'B) Nếu thấy loại nhiệm vụ nào đang bị bỏ ưu tiên (ví dụ: "Cá nhân" rất thấp so với "Công việc"), hãy nêu bạn nghĩ người dùng thuộc kiểu tính cách nào (ví dụ: "ưu tiên công việc quá mức", "thiếu cân bằng"), và mô tả tác động có thể tới lối sống của họ (sức khỏe, mối quan hệ, stress, v.v.).',
+    );
+    buffer.writeln(
+      'C) Đưa ra 3 đề xuất cải thiện cụ thể, theo thứ tự ưu tiên — mỗi đề xuất kèm bước hành động dễ thực hiện (bullet points).',
+    );
     buffer.writeln('D) Một đoạn kết động viên ngắn (1 đoạn).');
     buffer.writeln();
     buffer.writeln('Dữ liệu (Data):');
@@ -46,15 +54,23 @@ class AiService {
     buffer.writeln('- overdueTasks: $overdueTasks');
     buffer.writeln('- onTimeCount: $onTimeCount');
     buffer.writeln('- lateCount: $lateCount');
-    buffer.writeln('- priority totals (high/medium/low): $highPriority / $mediumPriority / $lowPriority');
-    buffer.writeln('- completed by priority (high/medium/low): $highCompleted / $mediumCompleted / $lowCompleted');
-    buffer.writeln('- category counts: ${categoryCounts.entries.map((e) => '${e.key}:${e.value}').join(', ')}');
+    buffer.writeln(
+      '- priority totals (high/medium/low): $highPriority / $mediumPriority / $lowPriority',
+    );
+    buffer.writeln(
+      '- completed by priority (high/medium/low): $highCompleted / $mediumCompleted / $lowCompleted',
+    );
+    buffer.writeln(
+      '- category counts: ${categoryCounts.entries.map((e) => '${e.key}:${e.value}').join(', ')}',
+    );
     buffer.writeln('- topCategory: $topCategory');
     buffer.writeln();
     buffer.writeln();
     buffer.writeln('Ghi chú:');
     buffer.writeln('- Viết bằng tiếng Việt, ngắn gọn, thân thiện.');
-    buffer.writeln('- Sử dụng bullet cho phần đề xuất, mỗi mục có 1-2 bước cụ thể.');
+    buffer.writeln(
+      '- Sử dụng bullet cho phần đề xuất, mỗi mục có 1-2 bước cụ thể.',
+    );
     buffer.writeln('- Tránh thuật ngữ chuyên môn khó hiểu.');
 
     return buffer.toString();
@@ -77,7 +93,9 @@ class AiService {
               final model = GenerativeModel(
                 model: 'gemini-1.5-flash',
                 apiKey: legacyKey,
-                systemInstruction: Content.system('You are an expert productivity coach. Answer in Vietnamese.'),
+                systemInstruction: Content.system(
+                  'You are an expert productivity coach. Answer in Vietnamese.',
+                ),
               );
               final resp = await model.generateContent([Content.text(prompt)]);
               final text = resp.text ?? '';
@@ -101,7 +119,11 @@ class AiService {
     final payload = {
       'model': 'gpt-3.5-turbo',
       'messages': [
-        {'role': 'system', 'content': 'You are an expert productivity coach. Answer concisely in Vietnamese.'},
+        {
+          'role': 'system',
+          'content':
+              'You are an expert productivity coach. Answer concisely in Vietnamese.',
+        },
         {'role': 'user', 'content': prompt},
       ],
       'temperature': 0.7,

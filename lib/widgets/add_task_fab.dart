@@ -7,18 +7,15 @@ import 'package:smart_app/views/task_viewmodel.dart';
 class AddTaskFab extends StatelessWidget {
   final ValueChanged<String>? onTaskAdded;
 
-  const AddTaskFab({
-    super.key,
-    this.onTaskAdded,
-  });
+  const AddTaskFab({super.key, this.onTaskAdded});
 
   Future<void> _openAddTaskSheet(BuildContext context) async {
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
-    
+
     TimeOfDay selectedStartTime = TimeOfDay.now();
     DateTime selectedStartDate = DateTime.now();
-    
+
     // Hạn chót (Deadline)
     TimeOfDay? selectedDeadlineTime;
     DateTime? selectedDeadlineDate;
@@ -44,7 +41,10 @@ class AddTaskFab extends StatelessWidget {
                 children: [
                   // Header
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     child: Row(
                       children: [
                         IconButton(
@@ -99,7 +99,8 @@ class AddTaskFab extends StatelessWidget {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: const [
                                       Text(
                                         'Serene gợi ý:',
@@ -110,7 +111,10 @@ class AddTaskFab extends StatelessWidget {
                                       ),
                                       Text(
                                         'Hãy chia nhỏ công việc để hoàn thành dễ dàng hơn nhé!',
-                                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -122,7 +126,10 @@ class AddTaskFab extends StatelessWidget {
                           const SizedBox(height: 24),
 
                           // Tên công việc
-                          const Text('Tên công việc', style: TextStyle(fontWeight: FontWeight.w600)),
+                          const Text(
+                            'Tên công việc',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: titleController,
@@ -141,7 +148,10 @@ class AddTaskFab extends StatelessWidget {
                           const SizedBox(height: 20),
 
                           // Ghi chú
-                          const Text('Ghi chú', style: TextStyle(fontWeight: FontWeight.w600)),
+                          const Text(
+                            'Ghi chú',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: descriptionController,
@@ -160,7 +170,10 @@ class AddTaskFab extends StatelessWidget {
                           const SizedBox(height: 24),
 
                           // Bắt đầu
-                          const Text('Bắt đầu', style: TextStyle(fontWeight: FontWeight.w600)),
+                          const Text(
+                            'Bắt đầu',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
@@ -170,8 +183,14 @@ class AddTaskFab extends StatelessWidget {
                                   label: 'Thời gian',
                                   value: selectedStartTime.format(context),
                                   onTap: () async {
-                                    final picked = await showTimePicker(context: context, initialTime: selectedStartTime);
-                                    if (picked != null) setModalState(() => selectedStartTime = picked);
+                                    final picked = await showTimePicker(
+                                      context: context,
+                                      initialTime: selectedStartTime,
+                                    );
+                                    if (picked != null)
+                                      setModalState(
+                                        () => selectedStartTime = picked,
+                                      );
                                   },
                                 ),
                               ),
@@ -186,9 +205,14 @@ class AddTaskFab extends StatelessWidget {
                                       context: context,
                                       initialDate: selectedStartDate,
                                       firstDate: DateTime.now(),
-                                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                                      lastDate: DateTime.now().add(
+                                        const Duration(days: 365),
+                                      ),
                                     );
-                                    if (picked != null) setModalState(() => selectedStartDate = picked);
+                                    if (picked != null)
+                                      setModalState(
+                                        () => selectedStartDate = picked,
+                                      );
                                   },
                                 ),
                               ),
@@ -198,7 +222,10 @@ class AddTaskFab extends StatelessWidget {
                           const SizedBox(height: 24),
 
                           // ==================== HẠN CHỐT (MỚI) ====================
-                          const Text('Hạn chót', style: TextStyle(fontWeight: FontWeight.w600)),
+                          const Text(
+                            'Hạn chót',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
@@ -206,14 +233,20 @@ class AddTaskFab extends StatelessWidget {
                                 child: _buildTimeDateSelector(
                                   icon: Icons.schedule_rounded,
                                   label: 'Thời gian',
-                                  value: selectedDeadlineTime?.format(context) ?? 'Chọn giờ',
+                                  value:
+                                      selectedDeadlineTime?.format(context) ??
+                                      'Chọn giờ',
                                   onTap: () async {
                                     final picked = await showTimePicker(
                                       context: context,
-                                      initialTime: selectedDeadlineTime ?? TimeOfDay(hour: 17, minute: 0),
+                                      initialTime:
+                                          selectedDeadlineTime ??
+                                          TimeOfDay(hour: 17, minute: 0),
                                     );
                                     if (picked != null) {
-                                      setModalState(() => selectedDeadlineTime = picked);
+                                      setModalState(
+                                        () => selectedDeadlineTime = picked,
+                                      );
                                     }
                                   },
                                 ),
@@ -223,18 +256,26 @@ class AddTaskFab extends StatelessWidget {
                                 child: _buildTimeDateSelector(
                                   icon: Icons.calendar_today_rounded,
                                   label: 'Ngày',
-                                  value: selectedDeadlineDate != null 
-                                      ? '${selectedDeadlineDate!.day}/${selectedDeadlineDate!.month}' 
+                                  value: selectedDeadlineDate != null
+                                      ? '${selectedDeadlineDate!.day}/${selectedDeadlineDate!.month}'
                                       : 'Chọn ngày',
                                   onTap: () async {
                                     final picked = await showDatePicker(
                                       context: context,
-                                      initialDate: selectedDeadlineDate ?? DateTime.now().add(const Duration(days: 1)),
+                                      initialDate:
+                                          selectedDeadlineDate ??
+                                          DateTime.now().add(
+                                            const Duration(days: 1),
+                                          ),
                                       firstDate: DateTime.now(),
-                                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                                      lastDate: DateTime.now().add(
+                                        const Duration(days: 365),
+                                      ),
                                     );
                                     if (picked != null) {
-                                      setModalState(() => selectedDeadlineDate = picked);
+                                      setModalState(
+                                        () => selectedDeadlineDate = picked,
+                                      );
                                     }
                                   },
                                 ),
@@ -245,31 +286,87 @@ class AddTaskFab extends StatelessWidget {
                           const SizedBox(height: 24),
 
                           // Danh mục
-                          const Text('Danh mục', style: TextStyle(fontWeight: FontWeight.w600)),
+                          const Text(
+                            'Danh mục',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           const SizedBox(height: 12),
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              _buildCategoryChip('Công việc', Icons.work_rounded, selectedCategory == 'Công việc', () => setModalState(() => selectedCategory = 'Công việc')),
-                              _buildCategoryChip('Cá nhân', Icons.person_rounded, selectedCategory == 'Cá nhân', () => setModalState(() => selectedCategory = 'Cá nhân')),
-                              _buildCategoryChip('Sức khỏe', Icons.favorite_rounded, selectedCategory == 'Sức khỏe', () => setModalState(() => selectedCategory = 'Sức khỏe')),
-                              _buildCategoryChip('Khác', Icons.add_rounded, false, () {}),
+                              _buildCategoryChip(
+                                'Công việc',
+                                Icons.work_rounded,
+                                selectedCategory == 'Công việc',
+                                () => setModalState(
+                                  () => selectedCategory = 'Công việc',
+                                ),
+                              ),
+                              _buildCategoryChip(
+                                'Cá nhân',
+                                Icons.person_rounded,
+                                selectedCategory == 'Cá nhân',
+                                () => setModalState(
+                                  () => selectedCategory = 'Cá nhân',
+                                ),
+                              ),
+                              _buildCategoryChip(
+                                'Sức khỏe',
+                                Icons.favorite_rounded,
+                                selectedCategory == 'Sức khỏe',
+                                () => setModalState(
+                                  () => selectedCategory = 'Sức khỏe',
+                                ),
+                              ),
+                              _buildCategoryChip(
+                                'Khác',
+                                Icons.add_rounded,
+                                false,
+                                () {},
+                              ),
                             ],
                           ),
 
                           const SizedBox(height: 24),
 
                           // Mức độ ưu tiên
-                          const Text('Mức độ ưu tiên', style: TextStyle(fontWeight: FontWeight.w600)),
+                          const Text(
+                            'Mức độ ưu tiên',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              _buildPriorityButton('Thấp', Icons.low_priority, Colors.green, selectedPriority == 'Thấp', () => setModalState(() => selectedPriority = 'Thấp')),
+                              _buildPriorityButton(
+                                'Thấp',
+                                Icons.low_priority,
+                                Colors.green,
+                                selectedPriority == 'Thấp',
+                                () => setModalState(
+                                  () => selectedPriority = 'Thấp',
+                                ),
+                              ),
                               const SizedBox(width: 8),
-                              _buildPriorityButton('Vừa', Icons.drag_handle_rounded, const Color(0xFF4648D4), selectedPriority == 'Vừa', () => setModalState(() => selectedPriority = 'Vừa')),
+                              _buildPriorityButton(
+                                'Vừa',
+                                Icons.drag_handle_rounded,
+                                const Color(0xFF4648D4),
+                                selectedPriority == 'Vừa',
+                                () => setModalState(
+                                  () => selectedPriority = 'Vừa',
+                                ),
+                              ),
                               const SizedBox(width: 8),
-                              _buildPriorityButton('Cao', Icons.priority_high, Colors.red, selectedPriority == 'Cao', () => setModalState(() => selectedPriority = 'Cao')),
+                              _buildPriorityButton(
+                                'Cao',
+                                Icons.priority_high,
+                                Colors.red,
+                                selectedPriority == 'Cao',
+                                () => setModalState(
+                                  () => selectedPriority = 'Cao',
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -302,7 +399,9 @@ class AddTaskFab extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.brand,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           elevation: 4,
                         ),
                         child: const Row(
@@ -310,7 +409,13 @@ class AddTaskFab extends StatelessWidget {
                           children: [
                             Icon(Icons.task_alt_rounded),
                             SizedBox(width: 8),
-                            Text('Lưu công việc', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                            Text(
+                              'Lưu công việc',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -324,7 +429,9 @@ class AddTaskFab extends StatelessWidget {
       },
     );
 
-    if (didSave == true && titleController.text.trim().isNotEmpty && context.mounted) {
+    if (didSave == true &&
+        titleController.text.trim().isNotEmpty &&
+        context.mounted) {
       final currentUser = FirebaseAuth.instance.currentUser;
       final now = DateTime.now();
 
@@ -332,7 +439,13 @@ class AddTaskFab extends StatelessWidget {
       if (selectedDeadlineDate != null || selectedDeadlineTime != null) {
         final date = selectedDeadlineDate ?? now;
         final time = selectedDeadlineTime ?? TimeOfDay.now();
-        dueAtDateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+        dueAtDateTime = DateTime(
+          date.year,
+          date.month,
+          date.day,
+          time.hour,
+          time.minute,
+        );
       }
 
       final taskViewModel = TaskViewModel(
@@ -345,24 +458,25 @@ class AddTaskFab extends StatelessWidget {
         stat: 'Đang làm',
         createdAt: Timestamp.fromDate(now),
         dueAt: dueAtDateTime != null ? Timestamp.fromDate(dueAtDateTime) : null,
-        dateString: '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
+        dateString:
+            '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
         timestamp: Timestamp.fromDate(now),
         uid: currentUser?.uid ?? '',
       );
 
       try {
-        await FirebaseFirestore.instance.collection('tasks').add(
-          taskViewModel.toFirestoreMap(),
-        );
+        await FirebaseFirestore.instance
+            .collection('tasks')
+            .add(taskViewModel.toFirestoreMap());
 
         onTaskAdded?.call(taskViewModel.title);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Đã thêm task: ${taskViewModel.title}')),
         );
       } catch (error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không thể lưu task: $error')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Không thể lưu task: $error')));
       }
     }
   }
@@ -389,8 +503,14 @@ class AddTaskFab extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ],
             ),
           ],
@@ -399,7 +519,12 @@ class AddTaskFab extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryChip(String label, IconData icon, bool isSelected, VoidCallback onTap) {
+  Widget _buildCategoryChip(
+    String label,
+    IconData icon,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -411,7 +536,11 @@ class AddTaskFab extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 18, color: isSelected ? Colors.white : Colors.grey[700]),
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected ? Colors.white : Colors.grey[700],
+            ),
             const SizedBox(width: 6),
             Text(
               label,
@@ -426,7 +555,13 @@ class AddTaskFab extends StatelessWidget {
     );
   }
 
-  Widget _buildPriorityButton(String label, IconData icon, Color color, bool isSelected, VoidCallback onTap) {
+  Widget _buildPriorityButton(
+    String label,
+    IconData icon,
+    Color color,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,

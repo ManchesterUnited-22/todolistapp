@@ -19,7 +19,9 @@ Future<List<String>> inspectTasksSchema({int limit = 50}) async {
   }
 
   final fields = keys.toList()..sort();
-  print('inspectTasksSchema: fields seen in ${snapshot.docs.length} docs: $fields');
+  print(
+    'inspectTasksSchema: fields seen in ${snapshot.docs.length} docs: $fields',
+  );
   // Optional: print samples
   for (final doc in snapshot.docs) {
     print('doc(${doc.id}): ${doc.data()}');

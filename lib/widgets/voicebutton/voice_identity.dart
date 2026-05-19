@@ -21,17 +21,23 @@ Future<VoiceTaskDraft?> collectVoiceTaskDraft(
     final answer = await _askVoiceAnswer(
       context,
       prompt: prompt,
-      hintText: initialHint != null && currentState.step == VoiceTaskStep.askTitle
+      hintText:
+          initialHint != null && currentState.step == VoiceTaskStep.askTitle
           ? initialHint
           : null,
-      keyboardType: currentState.step == VoiceTaskStep.askDuration || currentState.step == VoiceTaskStep.askPriority
+      keyboardType:
+          currentState.step == VoiceTaskStep.askDuration ||
+              currentState.step == VoiceTaskStep.askPriority
           ? TextInputType.number
           : TextInputType.text,
     );
 
     if (answer == null) return null;
 
-    final reply = AIService.instance.advanceVoiceTaskConversation(answer, currentState);
+    final reply = AIService.instance.advanceVoiceTaskConversation(
+      answer,
+      currentState,
+    );
     currentState = reply.state;
 
     if (reply.isComplete && reply.draft != null) {
@@ -171,7 +177,9 @@ class _VoiceAnswerDialogState extends State<_VoiceAnswerDialog> {
           ),
           const SizedBox(height: 8),
           Text(
-            _isReady ? 'Mic đã sẵn sàng, bạn có thể nói' : 'Đang khởi tạo mic...',
+            _isReady
+                ? 'Mic đã sẵn sàng, bạn có thể nói'
+                : 'Đang khởi tạo mic...',
             style: const TextStyle(fontSize: 11, color: Color(0xFF767586)),
           ),
         ],
@@ -192,7 +200,9 @@ class _VoiceAnswerDialogState extends State<_VoiceAnswerDialog> {
               await _startListening();
             }
           },
-          icon: Icon(_isListening ? Icons.stop_rounded : Icons.mic_none_rounded),
+          icon: Icon(
+            _isListening ? Icons.stop_rounded : Icons.mic_none_rounded,
+          ),
           label: Text(_isListening ? 'Dừng ghi âm' : 'Nghe lại'),
         ),
         FilledButton.icon(
@@ -200,7 +210,8 @@ class _VoiceAnswerDialogState extends State<_VoiceAnswerDialog> {
               ? null
               : () async {
                   await _stopListening();
-                  if (context.mounted) Navigator.of(context).pop(_spokenText.trim());
+                  if (context.mounted)
+                    Navigator.of(context).pop(_spokenText.trim());
                 },
           icon: const Icon(Icons.check_rounded),
           label: const Text('Xác nhận'),
@@ -212,7 +223,11 @@ class _VoiceAnswerDialogState extends State<_VoiceAnswerDialog> {
 
 /// Hiển thị dialog nudge khi người dùng tạo task bằng giọng nói.
 /// Trả về `DateTime?` mới nếu người dùng chọn dời giờ, hoặc `null` để giữ nguyên.
-Future<DateTime?> showVoiceScheduleNudge(BuildContext context, String title, DateTime proposedDue) async {
+Future<DateTime?> showVoiceScheduleNudge(
+  BuildContext context,
+  String title,
+  DateTime proposedDue,
+) async {
   final uid = FirebaseAuth.instance.currentUser?.uid;
   if (uid == null) return null; // nếu chưa đăng nhập, cho phép tiếp tục
 
@@ -235,7 +250,9 @@ Future<DateTime?> showVoiceScheduleNudge(BuildContext context, String title, Dat
             Text(result.message),
             const SizedBox(height: 12),
             if (suggested != null)
-              Text('Gợi ý: ${suggested.hour}h ${suggested.minute.toString().padLeft(2, '0')}'),
+              Text(
+                'Gợi ý: ${suggested.hour}h ${suggested.minute.toString().padLeft(2, '0')}',
+              ),
           ],
         ),
         actions: [
@@ -252,10 +269,19 @@ Future<DateTime?> showVoiceScheduleNudge(BuildContext context, String title, Dat
             onPressed: () async {
               final t = await showTimePicker(
                 context: ctx,
-                initialTime: TimeOfDay(hour: proposedDue.hour, minute: proposedDue.minute),
+                initialTime: TimeOfDay(
+                  hour: proposedDue.hour,
+                  minute: proposedDue.minute,
+                ),
               );
               if (t != null) {
-                final newDt = DateTime(proposedDue.year, proposedDue.month, proposedDue.day, t.hour, t.minute);
+                final newDt = DateTime(
+                  proposedDue.year,
+                  proposedDue.month,
+                  proposedDue.day,
+                  t.hour,
+                  t.minute,
+                );
                 Navigator.of(ctx).pop(newDt);
               }
             },

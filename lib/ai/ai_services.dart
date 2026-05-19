@@ -56,7 +56,8 @@ class VoiceTaskConversationState {
     this.dueAt,
   });
 
-  factory VoiceTaskConversationState.initial() => const VoiceTaskConversationState(step: VoiceTaskStep.chooseWay);
+  factory VoiceTaskConversationState.initial() =>
+      const VoiceTaskConversationState(step: VoiceTaskStep.chooseWay);
 
   VoiceTaskConversationState copyWith({
     VoiceTaskStep? step,
@@ -107,13 +108,24 @@ class AiRecommendation {
 }
 
 class AIService {
-  final String _apiKey = "AIzaSyAFY1zf_yrzVvcn_0thkoqr9PwklwBzTpw";
+  // Read API key from compile-time define if provided, otherwise empty.
+  // Set a runtime key via `setApiKey` when needed. Do NOT commit keys to source control.
+  String _apiKey = const String.fromEnvironment(
+    'GOOGLE_API_KEY',
+    defaultValue: '',
+  );
   final FlutterTts _tts = FlutterTts();
   AIService._();
   static final instance = AIService._();
 
   /// Public getter to expose the configured API key for reuse by other modules.
   String get apiKey => _apiKey;
+
+  /// Set API key at runtime (e.g., from secure storage or CI secrets). Avoid
+  /// calling this with hard-coded literals in source control.
+  void setApiKey(String key) {
+    _apiKey = key.trim();
+  }
 
   Future<void> speakText(String text) async {
     try {
@@ -147,7 +159,9 @@ class AIService {
 
       // Wait for completion, but guard with a timeout to avoid hanging forever.
       try {
-        await completer.future.timeout(Duration(seconds: max(5, (text.length ~/ 15) + 1)));
+        await completer.future.timeout(
+          Duration(seconds: max(5, (text.length ~/ 15) + 1)),
+        );
       } catch (_) {
         // Timeout: proceed so UI isn't blocked indefinitely.
       }
@@ -201,7 +215,9 @@ class AIService {
       // Nếu đã nhận dạng được, chuyển sang bước xác nhận loại nhiệm vụ
       return VoiceTaskConversationReply(
         state: state.copyWith(way: way, step: VoiceTaskStep.confirmWay),
-        prompt: voicePromptForStep(state.copyWith(way: way, step: VoiceTaskStep.confirmWay)),
+        prompt: voicePromptForStep(
+          state.copyWith(way: way, step: VoiceTaskStep.confirmWay),
+        ),
         isComplete: false,
       );
     }
@@ -218,7 +234,8 @@ class AIService {
       // Không xác nhận: quay lại từ đầu
       return VoiceTaskConversationReply(
         state: VoiceTaskConversationState.initial(),
-        prompt: 'Được, mình bắt đầu lại. Bạn muốn nhiệm vụ dài hạn hay Promodoro?',
+        prompt:
+            'Được, mình bắt đầu lại. Bạn muốn nhiệm vụ dài hạn hay Promodoro?',
         isComplete: false,
       );
     }
@@ -231,7 +248,10 @@ class AIService {
           isComplete: false,
         );
       }
-      final next = state.copyWith(title: userText.trim(), step: VoiceTaskStep.askCategory);
+      final next = state.copyWith(
+        title: userText.trim(),
+        step: VoiceTaskStep.askCategory,
+      );
       return VoiceTaskConversationReply(
         state: next,
         prompt: voicePromptForStep(next),
@@ -244,11 +264,15 @@ class AIService {
       if (category == null) {
         return VoiceTaskConversationReply(
           state: state,
-          prompt: 'Mình chưa nhận ra loại task. Bạn nói Công việc, Học tập, Cá nhân hoặc Sức khỏe nhé.',
+          prompt:
+              'Mình chưa nhận ra loại task. Bạn nói Công việc, Học tập, Cá nhân hoặc Sức khỏe nhé.',
           isComplete: false,
         );
       }
-      final next = state.copyWith(category: category, step: VoiceTaskStep.askDuration);
+      final next = state.copyWith(
+        category: category,
+        step: VoiceTaskStep.askDuration,
+      );
       return VoiceTaskConversationReply(
         state: next,
         prompt: voicePromptForStep(next),
@@ -266,14 +290,21 @@ class AIService {
         );
       }
       if (state.way == 'promodoro') {
-        final next = state.copyWith(durationMinutes: duration, priority: 'Cao', step: VoiceTaskStep.askDueAt);
+        final next = state.copyWith(
+          durationMinutes: duration,
+          priority: 'Cao',
+          step: VoiceTaskStep.askDueAt,
+        );
         return VoiceTaskConversationReply(
           state: next,
           prompt: voicePromptForStep(next),
           isComplete: false,
         );
       }
-      final next = state.copyWith(durationMinutes: duration, step: VoiceTaskStep.askPriority);
+      final next = state.copyWith(
+        durationMinutes: duration,
+        step: VoiceTaskStep.askPriority,
+      );
       return VoiceTaskConversationReply(
         state: next,
         prompt: voicePromptForStep(next),
@@ -290,7 +321,10 @@ class AIService {
           isComplete: false,
         );
       }
-      final next = state.copyWith(priority: priority, step: VoiceTaskStep.askDueAt);
+      final next = state.copyWith(
+        priority: priority,
+        step: VoiceTaskStep.askDueAt,
+      );
       return VoiceTaskConversationReply(
         state: next,
         prompt: voicePromptForStep(next),
@@ -342,19 +376,55 @@ class AIService {
 
   String? _parseWay(String text) {
     // Accept many variants and common mispronunciations/spellings for Promodoro/Pomodoro
-    final t = text.replaceAll(RegExp(r"[^a-z0-9ạáàảãâấầẩẫăắằẳẵêếềếëễìíìỉĩòóỏõôốồổỗơớờởỡùúủũưứừửữỳýỷỹđ\\s]", caseSensitive: false), '');
-    if (t.contains('promodoro') || t.contains('pomodoro') || t.contains('promodor') || t.contains('promodo') || t.contains('promodo') || t.contains('pomod') || t.contains('promod') || t.contains('prodmod') || t.contains('promodoro')) return 'promodoro';
+    final t = text.replaceAll(
+      RegExp(
+        r"[^a-z0-9ạáàảãâấầẩẫăắằẳẵêếềếëễìíìỉĩòóỏõôốồổỗơớờởỡùúủũưứừửữỳýỷỹđ\\s]",
+        caseSensitive: false,
+      ),
+      '',
+    );
+    if (t.contains('promodoro') ||
+        t.contains('pomodoro') ||
+        t.contains('promodor') ||
+        t.contains('promodo') ||
+        t.contains('promodo') ||
+        t.contains('pomod') ||
+        t.contains('promod') ||
+        t.contains('prodmod') ||
+        t.contains('promodoro'))
+      return 'promodoro';
     // Vietnamese synonyms
-    if (text.contains('nhiệm vụ ngắn') || text.contains('ngắn hạn') || text.contains('nhiem vu ngan') || text.contains('ngan han')) return 'promodoro';
-    if (text.contains('dài hạn') || text.contains('dai han') || text.contains('long term') || text.contains('nhiệm vụ dài') || text.contains('nhiem vu dai')) return 'long_term_task';
+    if (text.contains('nhiệm vụ ngắn') ||
+        text.contains('ngắn hạn') ||
+        text.contains('nhiem vu ngan') ||
+        text.contains('ngan han'))
+      return 'promodoro';
+    if (text.contains('dài hạn') ||
+        text.contains('dai han') ||
+        text.contains('long term') ||
+        text.contains('nhiệm vụ dài') ||
+        text.contains('nhiem vu dai'))
+      return 'long_term_task';
     return null;
   }
 
   String? _parseCategory(String text) {
-    if (text.contains('công việc') || text.contains('cong viec') || text.contains('work')) return 'Công việc';
-    if (text.contains('học tập') || text.contains('hoc tap') || text.contains('study')) return 'Học tập';
-    if (text.contains('sức khỏe') || text.contains('suc khoe') || text.contains('health')) return 'Sức khỏe';
-    if (text.contains('cá nhân') || text.contains('ca nhan') || text.contains('personal')) return 'Cá nhân';
+    if (text.contains('công việc') ||
+        text.contains('cong viec') ||
+        text.contains('work'))
+      return 'Công việc';
+    if (text.contains('học tập') ||
+        text.contains('hoc tap') ||
+        text.contains('study'))
+      return 'Học tập';
+    if (text.contains('sức khỏe') ||
+        text.contains('suc khoe') ||
+        text.contains('health'))
+      return 'Sức khỏe';
+    if (text.contains('cá nhân') ||
+        text.contains('ca nhan') ||
+        text.contains('personal'))
+      return 'Cá nhân';
     return null;
   }
 
@@ -367,7 +437,11 @@ class AIService {
   String? _parsePriority(String text) {
     if (text.contains('cao')) return 'Cao';
     if (text.contains('thấp') || text.contains('thap')) return 'Thấp';
-    if (text.contains('vừa') || text.contains('vua') || text.contains('trung bình') || text.contains('trung binh')) return 'Vừa';
+    if (text.contains('vừa') ||
+        text.contains('vua') ||
+        text.contains('trung bình') ||
+        text.contains('trung binh'))
+      return 'Vừa';
     return null;
   }
 
@@ -382,7 +456,9 @@ class AIService {
       final time = _extractTime(text) ?? const TimeOfDay(hour: 9, minute: 0);
       return DateTime(d.year, d.month, d.day, time.hour, time.minute);
     }
-    final date = RegExp(r'(\d{1,2}[\/-]\d{1,2}(?:[\/-]\d{2,4})?)').firstMatch(text)?.group(0);
+    final date = RegExp(
+      r'(\d{1,2}[\/-]\d{1,2}(?:[\/-]\d{2,4})?)',
+    ).firstMatch(text)?.group(0);
     final time = _extractTime(text);
     if (date == null) return null;
     final parts = date.replaceAll('/', '-').split('-');
@@ -390,7 +466,9 @@ class AIService {
     final day = int.tryParse(parts[0]);
     final month = int.tryParse(parts[1]);
     if (day == null || month == null) return null;
-    final year = parts.length >= 3 ? int.tryParse(parts[2]) ?? now.year : now.year;
+    final year = parts.length >= 3
+        ? int.tryParse(parts[2]) ?? now.year
+        : now.year;
     final safeTime = time ?? const TimeOfDay(hour: 9, minute: 0);
     return DateTime(year, month, day, safeTime.hour, safeTime.minute);
   }
@@ -405,19 +483,27 @@ class AIService {
   }
 
   bool _isAffirmative(String text) {
-    return text.contains('đúng') || text.contains('ok') || text.contains('xác nhận') || text.contains('có') || text.contains('đồng ý');
+    return text.contains('đúng') ||
+        text.contains('ok') ||
+        text.contains('xác nhận') ||
+        text.contains('có') ||
+        text.contains('đồng ý');
   }
 
   String _buildSummary(VoiceTaskConversationState state) {
     final parts = <String>[];
-    parts.add('loại ${state.way == 'promodoro' ? 'Promodoro (nhiệm vụ ngắn hạn)' : 'nhiệm vụ dài hạn'}');
+    parts.add(
+      'loại ${state.way == 'promodoro' ? 'Promodoro (nhiệm vụ ngắn hạn)' : 'nhiệm vụ dài hạn'}',
+    );
     parts.add('tên ${state.title ?? ''}');
     parts.add('nhóm ${state.category ?? ''}');
     parts.add('thời lượng ${state.durationMinutes ?? 0} phút');
     if (state.priority != null) parts.add('ưu tiên ${state.priority}');
     if (state.dueAt != null) {
       final d = state.dueAt!;
-      parts.add('lịch ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')} ngày ${d.day}/${d.month}');
+      parts.add(
+        'lịch ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')} ngày ${d.day}/${d.month}',
+      );
     }
     return parts.join(', ');
   }
@@ -446,7 +532,11 @@ JSON phải có các trường: "suggested_focus_minutes" (integer), "suggested_
     final prompt = 'focusMinutes: $focusMinutes, breakMinutes: $breakMinutes';
 
     try {
-      final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey, systemInstruction: system);
+      final model = GenerativeModel(
+        model: 'gemini-1.5-flash',
+        apiKey: _apiKey,
+        systemInstruction: system,
+      );
       final response = await model.generateContent([Content.text(prompt)]);
       final text = response.text ?? '';
       final clean = text.replaceAll('```', '').replaceAll('json', '').trim();
@@ -455,7 +545,11 @@ JSON phải có các trường: "suggested_focus_minutes" (integer), "suggested_
         final sF = (map['suggested_focus_minutes'] as num).toInt();
         final sB = (map['suggested_break_minutes'] as num).toInt();
         final msg = (map['message'] as String?) ?? '';
-        return AiRecommendation(suggestedFocusMinutes: sF, suggestedBreakMinutes: sB, message: msg);
+        return AiRecommendation(
+          suggestedFocusMinutes: sF,
+          suggestedBreakMinutes: sB,
+          message: msg,
+        );
       } catch (_) {
         // continue to heuristic fallback
       }
@@ -481,8 +575,13 @@ JSON phải có các trường: "suggested_focus_minutes" (integer), "suggested_
     }
 
     final finish = now.add(Duration(minutes: suggestedFocus));
-    final message = 'Dựa trên $focusMinutes phút bạn nhập, đề xuất: tập trung $suggestedFocus phút, giải lao $suggestedBreak phút. Dự kiến hoàn thành ${df.format(now)} → ${df.format(finish)}.';
-    return AiRecommendation(suggestedFocusMinutes: suggestedFocus, suggestedBreakMinutes: suggestedBreak, message: message);
+    final message =
+        'Dựa trên $focusMinutes phút bạn nhập, đề xuất: tập trung $suggestedFocus phút, giải lao $suggestedBreak phút. Dự kiến hoàn thành ${df.format(now)} → ${df.format(finish)}.';
+    return AiRecommendation(
+      suggestedFocusMinutes: suggestedFocus,
+      suggestedBreakMinutes: suggestedBreak,
+      message: message,
+    );
   }
 
   Future<Map<String, dynamic>?> extractIntentFromText(String userText) async {
@@ -558,25 +657,30 @@ CHỈ TRẢ VỀ JSON. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀO KHÁC.
 '''),
           );
 
-          final response = await model.generateContent([Content.text(userText)]);
+          final response = await model.generateContent([
+            Content.text(userText),
+          ]);
           final jsonText = response.text;
           if (jsonText != null) {
-            final cleanJson =
-                jsonText.replaceAll('```json', '').replaceAll('```', '').trim();
+            final cleanJson = jsonText
+                .replaceAll('```json', '')
+                .replaceAll('```', '')
+                .trim();
+            try {
+              return jsonDecode(cleanJson) as Map<String, dynamic>;
+            } catch (_) {
               try {
-                return jsonDecode(cleanJson) as Map<String, dynamic>;
-              } catch (_) {
-                try {
-                  final start = cleanJson.indexOf('{');
-                  final end = cleanJson.lastIndexOf('}');
-                  if (start != -1 && end != -1 && end > start) {
-                    return jsonDecode(cleanJson.substring(start, end + 1))
-                        as Map<String, dynamic>;
-                  }
-                } catch (_) {}
-                if (kDebugMode) debugPrint('AIService: cannot parse JSON: $cleanJson');
-                return null;
-              }
+                final start = cleanJson.indexOf('{');
+                final end = cleanJson.lastIndexOf('}');
+                if (start != -1 && end != -1 && end > start) {
+                  return jsonDecode(cleanJson.substring(start, end + 1))
+                      as Map<String, dynamic>;
+                }
+              } catch (_) {}
+              if (kDebugMode)
+                debugPrint('AIService: cannot parse JSON: $cleanJson');
+              return null;
+            }
           }
         } catch (e) {
           lastException = e as Exception? ?? Exception(e.toString());
@@ -585,7 +689,8 @@ CHỈ TRẢ VỀ JSON. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀO KHÁC.
         }
       }
 
-      if (kDebugMode) debugPrint('AIService: all models failed. Last error: $lastException');
+      if (kDebugMode)
+        debugPrint('AIService: all models failed. Last error: $lastException');
       // Fallback heuristic
       final heuristic = _heuristicExtract(userText);
       if (heuristic != null) {
@@ -613,7 +718,10 @@ CHỈ TRẢ VỀ JSON. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀO KHÁC.
   void handleVoiceInput(String resultText) async {
     final intent = await extractIntentFromText(resultText);
     if (intent != null && intent['type'] == 'task') {
-      if (kDebugMode) debugPrint('Đã bóc tách: ${intent['task_name']} ngày ${intent['date']} lúc ${intent['time']}');
+      if (kDebugMode)
+        debugPrint(
+          'Đã bóc tách: ${intent['task_name']} ngày ${intent['date']} lúc ${intent['time']}',
+        );
     }
   }
 
@@ -681,8 +789,7 @@ CHỈ TRẢ VỀ JSON. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀO KHÁC.
     final timeMatch = timeRegex.firstMatch(raw);
     if (timeMatch != null) {
       final tp = timeMatch.group(0)!.split(':');
-      time =
-          '${tp[0].padLeft(2, '0')}:${tp[1].padLeft(2, '0')}';
+      time = '${tp[0].padLeft(2, '0')}:${tp[1].padLeft(2, '0')}';
     } else {
       final vnTime = RegExp(r'lúc\s*(\d{1,2})(?:\s*giờ)?(?:\s*(\d{1,2}))?');
       final vm = vnTime.firstMatch(raw);
@@ -697,8 +804,11 @@ CHỈ TRẢ VỀ JSON. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀO KHÁC.
     // Task name
     var name = raw;
     name = name.replaceAll(
-        RegExp(r'\b(thêm|tạo|nhiệm vụ|việc|cho|vào|lúc|ngày mai|hôm nay|tuần sau|vào ngày|vào lúc)\b'),
-        '');
+      RegExp(
+        r'\b(thêm|tạo|nhiệm vụ|việc|cho|vào|lúc|ngày mai|hôm nay|tuần sau|vào ngày|vào lúc)\b',
+      ),
+      '',
+    );
     if (dateMatch != null) name = name.replaceAll(dateMatch.group(0)!, '');
     if (timeMatch != null) name = name.replaceAll(timeMatch.group(0)!, '');
     name = name.replaceAll(RegExp(r'\s+'), ' ').trim();
@@ -708,7 +818,8 @@ CHỈ TRẢ VỀ JSON. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀO KHÁC.
 
     return {
       'type': 'task',
-      'task_name': name[0].toUpperCase() + (name.length > 1 ? name.substring(1) : ''),
+      'task_name':
+          name[0].toUpperCase() + (name.length > 1 ? name.substring(1) : ''),
       'date': date,
       'time': time,
       'person': null,

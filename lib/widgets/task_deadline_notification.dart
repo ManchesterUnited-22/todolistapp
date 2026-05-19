@@ -10,13 +10,11 @@ import '../views/task_viewmodel.dart';
 class TaskDeadlineNotification extends StatefulWidget {
   final String userId;
 
-  const TaskDeadlineNotification({
-    super.key,
-    required this.userId,
-  });
+  const TaskDeadlineNotification({super.key, required this.userId});
 
   @override
-  State<TaskDeadlineNotification> createState() => _TaskDeadlineNotificationState();
+  State<TaskDeadlineNotification> createState() =>
+      _TaskDeadlineNotificationState();
 }
 
 class _TaskDeadlineNotificationState extends State<TaskDeadlineNotification> {
@@ -61,7 +59,9 @@ class _TaskDeadlineNotificationState extends State<TaskDeadlineNotification> {
     return remaining > Duration.zero && remaining <= _dueSoonWindow;
   }
 
-  Future<void> _syncSystemNotifications(List<MapEntry<String, TaskViewModel>> tasks) async {
+  Future<void> _syncSystemNotifications(
+    List<MapEntry<String, TaskViewModel>> tasks,
+  ) async {
     final signature = tasks
         .where((entry) => !_isCompleted(entry.value))
         .map((entry) {
@@ -77,12 +77,16 @@ class _TaskDeadlineNotificationState extends State<TaskDeadlineNotification> {
     _lastSignature = signature;
 
     final notificationTasks = tasks
-        .where((entry) => !_isCompleted(entry.value) && entry.value.dueAt != null)
-        .map((entry) => TaskNotificationItem(
-              id: entry.key,
-              title: entry.value.title,
-              dueAt: entry.value.dueAt!.toDate(),
-            ))
+        .where(
+          (entry) => !_isCompleted(entry.value) && entry.value.dueAt != null,
+        )
+        .map(
+          (entry) => TaskNotificationItem(
+            id: entry.key,
+            title: entry.value.title,
+            dueAt: entry.value.dueAt!.toDate(),
+          ),
+        )
         .toList();
 
     if (notificationTasks.isEmpty) return;
@@ -191,7 +195,10 @@ class _TaskDeadlineNotificationState extends State<TaskDeadlineNotification> {
           }
         });
 
-        final overdueTasks = tasks.map((entry) => entry.value).where(_isOverdue).toList();
+        final overdueTasks = tasks
+            .map((entry) => entry.value)
+            .where(_isOverdue)
+            .toList();
         if (overdueTasks.isNotEmpty) {
           final count = overdueTasks.length;
           final title = _labelForCount(
@@ -210,11 +217,15 @@ class _TaskDeadlineNotificationState extends State<TaskDeadlineNotification> {
             accentColor: AppColors.high,
             backgroundColor: AppColors.high.withValues(alpha: 0.10),
             title: title,
-            message: '$taskLabel. Hãy kiểm tra lại checkbox để cập nhật trạng thái.',
+            message:
+                '$taskLabel. Hãy kiểm tra lại checkbox để cập nhật trạng thái.',
           );
         }
 
-        final dueSoonTasks = tasks.map((entry) => entry.value).where(_isDueSoon).toList();
+        final dueSoonTasks = tasks
+            .map((entry) => entry.value)
+            .where(_isDueSoon)
+            .toList();
         if (dueSoonTasks.isNotEmpty) {
           final count = dueSoonTasks.length;
           final title = _labelForCount(
@@ -233,7 +244,8 @@ class _TaskDeadlineNotificationState extends State<TaskDeadlineNotification> {
             accentColor: AppColors.medium,
             backgroundColor: AppColors.medium.withValues(alpha: 0.14),
             title: title,
-            message: 'Còn khoảng 10 phút nữa đến hạn cho $taskLabel. Đây là cảnh báo nhẹ để bạn kịp xác nhận hoàn thành.',
+            message:
+                'Còn khoảng 10 phút nữa đến hạn cho $taskLabel. Đây là cảnh báo nhẹ để bạn kịp xác nhận hoàn thành.',
           );
         }
 

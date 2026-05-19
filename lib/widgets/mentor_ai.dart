@@ -116,298 +116,334 @@ Future<DateTimeRange?> _showStyledDateRangePicker(BuildContext context) async {
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.35),
     builder: (ctx) {
-      return StatefulBuilder(builder: (ctx, setState) {
-        final daysInMonth =
-            DateUtils.getDaysInMonth(displayMonth.year, displayMonth.month);
-        // weekday of 1st: 1=Mon … 7=Sun, convert to 0-based offset Mon=0
-        final firstWeekday = DateTime(displayMonth.year, displayMonth.month, 1).weekday; // 1..7
-        final leadingBlanks = firstWeekday - 1; // Mon=0 blanks
+      return StatefulBuilder(
+        builder: (ctx, setState) {
+          final daysInMonth = DateUtils.getDaysInMonth(
+            displayMonth.year,
+            displayMonth.month,
+          );
+          // weekday of 1st: 1=Mon … 7=Sun, convert to 0-based offset Mon=0
+          final firstWeekday = DateTime(
+            displayMonth.year,
+            displayMonth.month,
+            1,
+          ).weekday; // 1..7
+          final leadingBlanks = firstWeekday - 1; // Mon=0 blanks
 
-        final monthName = _monthName(displayMonth.month);
-        final year = displayMonth.year;
+          final monthName = _monthName(displayMonth.month);
+          final year = displayMonth.year;
 
-        String summaryText = '';
-        if (rangeStart != null && rangeEnd != null) {
-          summaryText =
-              'Báo cáo sẽ tổng hợp từ ngày ${rangeStart!.day} đến ngày ${rangeEnd!.day} tháng ${rangeStart!.month}.';
-        } else if (rangeStart != null) {
-          summaryText = 'Đã chọn ngày bắt đầu: ${rangeStart!.day}/${rangeStart!.month}.';
-        }
+          String summaryText = '';
+          if (rangeStart != null && rangeEnd != null) {
+            summaryText =
+                'Báo cáo sẽ tổng hợp từ ngày ${rangeStart!.day} đến ngày ${rangeEnd!.day} tháng ${rangeStart!.month}.';
+          } else if (rangeStart != null) {
+            summaryText =
+                'Đã chọn ngày bắt đầu: ${rangeStart!.day}/${rangeStart!.month}.';
+          }
 
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.all(24),
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 40,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // ── Header ──
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: Color(0x1AC7C4D7)),
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(24),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 40,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // ── Header ──
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: Color(0x1AC7C4D7)),
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF6063EE),
-                          borderRadius: BorderRadius.circular(32),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF4648D4).withValues(alpha: 0.3),
-                              blurRadius: 16,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.analytics_rounded,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Chọn thời gian báo cáo',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF191C1E),
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // ── Calendar body ──
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      // Month nav
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF2F4F6),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '$monthName, $year',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF191C1E),
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    _NavButton(
-                                      icon: Icons.chevron_left_rounded,
-                                      onTap: () => setState(() {
-                                        displayMonth = DateTime(
-                                            displayMonth.year, displayMonth.month - 1);
-                                      }),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    _NavButton(
-                                      icon: Icons.chevron_right_rounded,
-                                      onTap: () => setState(() {
-                                        displayMonth = DateTime(
-                                            displayMonth.year, displayMonth.month + 1);
-                                      }),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            // Day-of-week header
-                            const Row(
-                              children: [
-                                _DayLabel('T2'),
-                                _DayLabel('T3'),
-                                _DayLabel('T4'),
-                                _DayLabel('T5'),
-                                _DayLabel('T6'),
-                                _DayLabel('T7'),
-                                _DayLabel('CN'),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            // Calendar grid
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 7,
-                                mainAxisSpacing: 4,
-                                crossAxisSpacing: 4,
-                                childAspectRatio: 1,
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6063EE),
+                            borderRadius: BorderRadius.circular(32),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFF4648D4,
+                                ).withValues(alpha: 0.3),
+                                blurRadius: 16,
+                                offset: const Offset(0, 4),
                               ),
-                              itemCount: leadingBlanks + daysInMonth,
-                              itemBuilder: (_, index) {
-                                if (index < leadingBlanks) {
-                                  return const SizedBox.shrink();
-                                }
-                                final day = index - leadingBlanks + 1;
-                                final date = DateTime(
-                                    displayMonth.year, displayMonth.month, day);
-                                final isStart = rangeStart != null &&
-                                    DateUtils.isSameDay(date, rangeStart);
-                                final isEnd = rangeEnd != null &&
-                                    DateUtils.isSameDay(date, rangeEnd);
-                                final inRange = rangeStart != null &&
-                                    rangeEnd != null &&
-                                    date.isAfter(rangeStart!) &&
-                                    date.isBefore(rangeEnd!);
-                                final isSelected = isStart || isEnd;
-
-                                return GestureDetector(
-                                  onTap: () => setState(() {
-                                    if (rangeStart == null ||
-                                        (rangeStart != null && rangeEnd != null)) {
-                                      rangeStart = date;
-                                      rangeEnd = null;
-                                    } else {
-                                      if (date.isBefore(rangeStart!)) {
-                                        rangeEnd = rangeStart;
-                                        rangeStart = date;
-                                      } else {
-                                        rangeEnd = date;
-                                      }
-                                    }
-                                  }),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? const Color(0xFF4648D4)
-                                          : inRange
-                                              ? const Color(0xFF4648D4)
-                                                  .withValues(alpha: 0.15)
-                                              : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(32),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      '$day',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: isSelected
-                                            ? FontWeight.w700
-                                            : FontWeight.w400,
-                                        color: isSelected
-                                            ? Colors.white
-                                            : const Color(0xFF191C1E),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.analytics_rounded,
+                            color: Colors.white,
+                            size: 32,
+                          ),
                         ),
-                      ),
-
-                      // Summary hint
-                      if (summaryText.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            const Icon(Icons.info_outline_rounded,
-                                color: Color(0xFF4648D4), size: 18),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                summaryText,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontStyle: FontStyle.italic,
-                                  color: Color(0xFF464554),
-                                ),
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Chọn thời gian báo cáo',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF191C1E),
+                            letterSpacing: -0.3,
+                          ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
-                ),
 
-                // ── Footer ──
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14)),
-                            side: const BorderSide(color: Color(0xFF767586)),
-                            foregroundColor: const Color(0xFF464554),
+                  // ── Calendar body ──
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        // Month nav
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF2F4F6),
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          onPressed: () => Navigator.of(ctx).pop(null),
-                          child: const Text('Hủy',
-                              style: TextStyle(fontWeight: FontWeight.w600)),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(48),
-                            backgroundColor: const Color(0xFF4648D4),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14)),
-                            elevation: 4,
-                            shadowColor:
-                                const Color(0xFF4648D4).withValues(alpha: 0.4),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '$monthName, $year',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF191C1E),
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      _NavButton(
+                                        icon: Icons.chevron_left_rounded,
+                                        onTap: () => setState(() {
+                                          displayMonth = DateTime(
+                                            displayMonth.year,
+                                            displayMonth.month - 1,
+                                          );
+                                        }),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _NavButton(
+                                        icon: Icons.chevron_right_rounded,
+                                        onTap: () => setState(() {
+                                          displayMonth = DateTime(
+                                            displayMonth.year,
+                                            displayMonth.month + 1,
+                                          );
+                                        }),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              // Day-of-week header
+                              const Row(
+                                children: [
+                                  _DayLabel('T2'),
+                                  _DayLabel('T3'),
+                                  _DayLabel('T4'),
+                                  _DayLabel('T5'),
+                                  _DayLabel('T6'),
+                                  _DayLabel('T7'),
+                                  _DayLabel('CN'),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              // Calendar grid
+                              GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 7,
+                                      mainAxisSpacing: 4,
+                                      crossAxisSpacing: 4,
+                                      childAspectRatio: 1,
+                                    ),
+                                itemCount: leadingBlanks + daysInMonth,
+                                itemBuilder: (_, index) {
+                                  if (index < leadingBlanks) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  final day = index - leadingBlanks + 1;
+                                  final date = DateTime(
+                                    displayMonth.year,
+                                    displayMonth.month,
+                                    day,
+                                  );
+                                  final isStart =
+                                      rangeStart != null &&
+                                      DateUtils.isSameDay(date, rangeStart);
+                                  final isEnd =
+                                      rangeEnd != null &&
+                                      DateUtils.isSameDay(date, rangeEnd);
+                                  final inRange =
+                                      rangeStart != null &&
+                                      rangeEnd != null &&
+                                      date.isAfter(rangeStart!) &&
+                                      date.isBefore(rangeEnd!);
+                                  final isSelected = isStart || isEnd;
+
+                                  return GestureDetector(
+                                    onTap: () => setState(() {
+                                      if (rangeStart == null ||
+                                          (rangeStart != null &&
+                                              rangeEnd != null)) {
+                                        rangeStart = date;
+                                        rangeEnd = null;
+                                      } else {
+                                        if (date.isBefore(rangeStart!)) {
+                                          rangeEnd = rangeStart;
+                                          rangeStart = date;
+                                        } else {
+                                          rangeEnd = date;
+                                        }
+                                      }
+                                    }),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? const Color(0xFF4648D4)
+                                            : inRange
+                                            ? const Color(
+                                                0xFF4648D4,
+                                              ).withValues(alpha: 0.15)
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(32),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        '$day',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w700
+                                              : FontWeight.w400,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : const Color(0xFF191C1E),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
-                          onPressed: rangeStart != null && rangeEnd != null
-                              ? () => Navigator.of(ctx).pop(
-                                    DateTimeRange(
-                                        start: rangeStart!, end: rangeEnd!),
-                                  )
-                              : null,
-                          child: const Text('Tạo báo cáo',
-                              style: TextStyle(fontWeight: FontWeight.w600)),
                         ),
-                      ),
-                    ],
+
+                        // Summary hint
+                        if (summaryText.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.info_outline_rounded,
+                                color: Color(0xFF4648D4),
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  summaryText,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontStyle: FontStyle.italic,
+                                    color: Color(0xFF464554),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+
+                  // ── Footer ──
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              side: const BorderSide(color: Color(0xFF767586)),
+                              foregroundColor: const Color(0xFF464554),
+                            ),
+                            onPressed: () => Navigator.of(ctx).pop(null),
+                            child: const Text(
+                              'Hủy',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                              backgroundColor: const Color(0xFF4648D4),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              elevation: 4,
+                              shadowColor: const Color(
+                                0xFF4648D4,
+                              ).withValues(alpha: 0.4),
+                            ),
+                            onPressed: rangeStart != null && rangeEnd != null
+                                ? () => Navigator.of(ctx).pop(
+                                    DateTimeRange(
+                                      start: rangeStart!,
+                                      end: rangeEnd!,
+                                    ),
+                                  )
+                                : null,
+                            child: const Text(
+                              'Tạo báo cáo',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      });
+          );
+        },
+      );
     },
   );
 }
@@ -442,9 +478,7 @@ void _showReportDialog(BuildContext context, _ReportData data) {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Color(0x1AC7C4D7)),
-                ),
+                border: Border(bottom: BorderSide(color: Color(0x1AC7C4D7))),
               ),
               child: Column(
                 children: [
@@ -577,11 +611,17 @@ void _showReportDialog(BuildContext context, _ReportData data) {
                     ListTile(
                       title: const Text('Số nhiệm vụ hoàn trễ (tổng phút)'),
                       subtitle: Text('Số / Tổng phút'),
-                      trailing: Text('${data.completedLateCount ?? 0} / ${data.completedLateTotalMinutes ?? 0}'),
+                      trailing: Text(
+                        '${data.completedLateCount ?? 0} / ${data.completedLateTotalMinutes ?? 0}',
+                      ),
                     ),
                     ListTile(
-                      title: const Text('Nhiệm vụ hoàn sớm nhất (phút trước hạn)'),
-                      subtitle: Text(data.earliestCompletionTitle ?? 'Không có'),
+                      title: const Text(
+                        'Nhiệm vụ hoàn sớm nhất (phút trước hạn)',
+                      ),
+                      subtitle: Text(
+                        data.earliestCompletionTitle ?? 'Không có',
+                      ),
                       trailing: Text('${data.earliestCompletionMinutes ?? 0}'),
                     ),
 
@@ -603,8 +643,11 @@ void _showReportDialog(BuildContext context, _ReportData data) {
                         children: [
                           const Row(
                             children: [
-                              Icon(Icons.lightbulb_outline_rounded,
-                                  color: Color(0xFF4648D4), size: 18),
+                              Icon(
+                                Icons.lightbulb_outline_rounded,
+                                color: Color(0xFF4648D4),
+                                size: 18,
+                              ),
                               SizedBox(width: 8),
                               Text(
                                 'Gợi ý từ Serene AI',
@@ -624,11 +667,14 @@ void _showReportDialog(BuildContext context, _ReportData data) {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('•',
-                                      style: TextStyle(
-                                          color: Color(0xFF4648D4),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700)),
+                                  const Text(
+                                    '•',
+                                    style: TextStyle(
+                                      color: Color(0xFF4648D4),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
@@ -661,16 +707,15 @@ void _showReportDialog(BuildContext context, _ReportData data) {
                   backgroundColor: const Color(0xFF4648D4),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   elevation: 6,
-                  shadowColor:
-                      const Color(0xFF4648D4).withValues(alpha: 0.4),
+                  shadowColor: const Color(0xFF4648D4).withValues(alpha: 0.4),
                 ),
                 onPressed: () => Navigator.of(ctx).pop(),
                 child: const Text(
                   'Đã hiểu',
-                  style: TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.w700),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
@@ -699,10 +744,19 @@ Future<void> showAiAnalysisSheet(BuildContext context) async {
   final picked = await _showStyledDateRangePicker(context);
   if (picked == null) return;
 
-  final periodStart =
-      DateTime(picked.start.year, picked.start.month, picked.start.day);
+  final periodStart = DateTime(
+    picked.start.year,
+    picked.start.month,
+    picked.start.day,
+  );
   final periodEnd = DateTime(
-      picked.end.year, picked.end.month, picked.end.day, 23, 59, 59);
+    picked.end.year,
+    picked.end.month,
+    picked.end.day,
+    23,
+    59,
+    59,
+  );
 
   // Fetch tasks from Firestore
   final tasksSnap = await FirebaseFirestore.instance
@@ -719,7 +773,9 @@ Future<void> showAiAnalysisSheet(BuildContext context) async {
     final due = dueTs?.toDate();
     final completed = completedTs?.toDate();
     final inPeriod =
-        (due != null && !due.isBefore(periodStart) && !due.isAfter(periodEnd)) ||
+        (due != null &&
+            !due.isBefore(periodStart) &&
+            !due.isAfter(periodEnd)) ||
         (completed != null &&
             !completed.isBefore(periodStart) &&
             !completed.isAfter(periodEnd));
@@ -729,8 +785,8 @@ Future<void> showAiAnalysisSheet(BuildContext context) async {
   if (periodTasks.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-          content:
-              Text('Không có báo cáo cho khoảng thời gian đã chọn.')),
+        content: Text('Không có báo cáo cho khoảng thời gian đã chọn.'),
+      ),
     );
     return;
   }
@@ -781,7 +837,8 @@ Future<void> showAiAnalysisSheet(BuildContext context) async {
     final dueTs = map['dueAt'] as Timestamp?;
     final completedTs = map['completedAt'] as Timestamp?;
 
-    final isCompleted = stat.toLowerCase().contains('hoàn') ||
+    final isCompleted =
+        stat.toLowerCase().contains('hoàn') ||
         stat.toLowerCase().contains('hoan') ||
         completedTs != null;
     if (isCompleted) completedTasks++;
@@ -816,13 +873,13 @@ Future<void> showAiAnalysisSheet(BuildContext context) async {
     }
   }
 
-  final avgDelay =
-      lateCount > 0 ? (totalDelayMinutes / lateCount).round() : 0;
-  final topCategory = categoryCounts.entries
+  final avgDelay = lateCount > 0 ? (totalDelayMinutes / lateCount).round() : 0;
+  final topCategory =
+      categoryCounts.entries
           .fold<MapEntry<String, int>?>(
-              null,
-              (prev, e) =>
-                  prev == null || e.value > prev.value ? e : prev)
+            null,
+            (prev, e) => prev == null || e.value > prev.value ? e : prev,
+          )
           ?.key ??
       'Không rõ';
 
@@ -834,8 +891,12 @@ Future<void> showAiAnalysisSheet(BuildContext context) async {
   int completedLateTotalMinutes = 0;
   String earliestCompletionTitle = 'Không có';
   int earliestCompletionMinutes = 0;
-  final Map<String,int> priorityCountsMap = {'high':0,'medium':0,'low':0};
-  final Map<String,int> completedByPriorityMap = {'high':0,'medium':0,'low':0};
+  final Map<String, int> priorityCountsMap = {'high': 0, 'medium': 0, 'low': 0};
+  final Map<String, int> completedByPriorityMap = {
+    'high': 0,
+    'medium': 0,
+    'low': 0,
+  };
 
   for (final map in periodTasks) {
     final title = (map['title'] as String?) ?? 'Untitled';
@@ -843,8 +904,12 @@ Future<void> showAiAnalysisSheet(BuildContext context) async {
     final categoryRaw = ((map['category'] as String?) ?? '').toLowerCase();
 
     String pKey = 'medium';
-    if (priorityRaw.contains('cao') || priorityRaw.contains('high')) pKey = 'high';
-    else if (priorityRaw.contains('thấp') || priorityRaw.contains('thap') || priorityRaw.contains('low')) pKey = 'low';
+    if (priorityRaw.contains('cao') || priorityRaw.contains('high'))
+      pKey = 'high';
+    else if (priorityRaw.contains('thấp') ||
+        priorityRaw.contains('thap') ||
+        priorityRaw.contains('low'))
+      pKey = 'low';
     priorityCountsMap[pKey] = (priorityCountsMap[pKey] ?? 0) + 1;
 
     final dueTs = map['dueAt'] as Timestamp?;
@@ -852,7 +917,9 @@ Future<void> showAiAnalysisSheet(BuildContext context) async {
     final due = dueTs?.toDate();
     final completed = completedTs?.toDate();
 
-    final isCompleted = ((map['stat'] as String?) ?? '').toLowerCase().contains('hoàn') || completed != null;
+    final isCompleted =
+        ((map['stat'] as String?) ?? '').toLowerCase().contains('hoàn') ||
+        completed != null;
     if (isCompleted) {
       completedByPriorityMap[pKey] = (completedByPriorityMap[pKey] ?? 0) + 1;
     }
@@ -908,7 +975,7 @@ Future<void> showAiAnalysisSheet(BuildContext context) async {
     priorityCountsMap: priorityCountsMap,
     completedByPriorityMap: completedByPriorityMap,
   );
-  
+
   // Try to fetch existing report for this user & period from Firestore
   String? aiNotes;
   Map<String, dynamic>? matchedReport;
@@ -941,30 +1008,72 @@ Future<void> showAiAnalysisSheet(BuildContext context) async {
   // If we found a report document, prefer its stored metrics; otherwise use computed data.
   final finalData = matchedReport != null
       ? _ReportData(
-          totalTasks: (matchedReport['totalTasks'] as num?)?.toInt() ?? data.totalTasks,
-          completedTasks: (matchedReport['completedTasks'] as num?)?.toInt() ?? data.completedTasks,
-          overdueTasks: (matchedReport['overdueTasks'] as num?)?.toInt() ?? data.overdueTasks,
-          onTimeCount: (matchedReport['onTimeCount'] as num?)?.toInt() ?? data.onTimeCount,
-          lateCount: (matchedReport['lateCount'] as num?)?.toInt() ?? data.lateCount,
-          avgDelayMinutes: (matchedReport['avgDelayMinutes'] as num?)?.toInt() ?? data.avgDelayMinutes,
-          highPriority: (matchedReport['priorityCounts'] as Map?)?.cast<String, dynamic>()['high'] is int
-              ? ((matchedReport['priorityCounts'] as Map).cast<String, dynamic>()['high'] as num).toInt()
-              : (matchedReport['priorityCounts'] as Map?)?.cast<String, dynamic>()['high']?.toInt() ?? data.highPriority,
-          mediumPriority: (matchedReport['priorityCounts'] as Map?)?.cast<String, dynamic>()['medium']?.toInt() ?? data.mediumPriority,
-          lowPriority: (matchedReport['priorityCounts'] as Map?)?.cast<String, dynamic>()['low']?.toInt() ?? data.lowPriority,
-          highCompleted: (matchedReport['completedByPriority'] as Map?)?.cast<String, dynamic>()['high']?.toInt() ?? data.highCompleted,
-          mediumCompleted: (matchedReport['completedByPriority'] as Map?)?.cast<String, dynamic>()['medium']?.toInt() ?? data.mediumCompleted,
-          lowCompleted: (matchedReport['completedByPriority'] as Map?)?.cast<String, dynamic>()['low']?.toInt() ?? data.lowCompleted,
-          categoryCounts: (matchedReport['categoryCounts'] as Map?)?.cast<String, dynamic>().map((k, v) => MapEntry(k, (v as num).toInt())) ?? data.categoryCounts,
-          topCategory: (matchedReport['topCategory'] as String?) ?? data.topCategory,
+          totalTasks:
+              (matchedReport['totalTasks'] as num?)?.toInt() ?? data.totalTasks,
+          completedTasks:
+              (matchedReport['completedTasks'] as num?)?.toInt() ??
+              data.completedTasks,
+          overdueTasks:
+              (matchedReport['overdueTasks'] as num?)?.toInt() ??
+              data.overdueTasks,
+          onTimeCount:
+              (matchedReport['onTimeCount'] as num?)?.toInt() ??
+              data.onTimeCount,
+          lateCount:
+              (matchedReport['lateCount'] as num?)?.toInt() ?? data.lateCount,
+          avgDelayMinutes:
+              (matchedReport['avgDelayMinutes'] as num?)?.toInt() ??
+              data.avgDelayMinutes,
+          highPriority:
+              (matchedReport['priorityCounts'] as Map?)
+                      ?.cast<String, dynamic>()['high']
+                  is int
+              ? ((matchedReport['priorityCounts'] as Map)
+                            .cast<String, dynamic>()['high']
+                        as num)
+                    .toInt()
+              : (matchedReport['priorityCounts'] as Map?)
+                        ?.cast<String, dynamic>()['high']
+                        ?.toInt() ??
+                    data.highPriority,
+          mediumPriority:
+              (matchedReport['priorityCounts'] as Map?)
+                  ?.cast<String, dynamic>()['medium']
+                  ?.toInt() ??
+              data.mediumPriority,
+          lowPriority:
+              (matchedReport['priorityCounts'] as Map?)
+                  ?.cast<String, dynamic>()['low']
+                  ?.toInt() ??
+              data.lowPriority,
+          highCompleted:
+              (matchedReport['completedByPriority'] as Map?)
+                  ?.cast<String, dynamic>()['high']
+                  ?.toInt() ??
+              data.highCompleted,
+          mediumCompleted:
+              (matchedReport['completedByPriority'] as Map?)
+                  ?.cast<String, dynamic>()['medium']
+                  ?.toInt() ??
+              data.mediumCompleted,
+          lowCompleted:
+              (matchedReport['completedByPriority'] as Map?)
+                  ?.cast<String, dynamic>()['low']
+                  ?.toInt() ??
+              data.lowCompleted,
+          categoryCounts:
+              (matchedReport['categoryCounts'] as Map?)
+                  ?.cast<String, dynamic>()
+                  .map((k, v) => MapEntry(k, (v as num).toInt())) ??
+              data.categoryCounts,
+          topCategory:
+              (matchedReport['topCategory'] as String?) ?? data.topCategory,
           aiNotes: aiNotes,
         )
       : data.copyWith(aiNotes: aiNotes);
 
   _showReportDialog(context, finalData);
 }
-
-
 
 // ─────────────────────────────────────────────
 // DATA MODEL
@@ -988,8 +1097,8 @@ class _ReportData {
   final int? completedLateTotalMinutes;
   final String? earliestCompletionTitle;
   final int? earliestCompletionMinutes;
-  final Map<String,int>? priorityCountsMap;
-  final Map<String,int>? completedByPriorityMap;
+  final Map<String, int>? priorityCountsMap;
+  final Map<String, int>? completedByPriorityMap;
 
   const _ReportData({
     required this.totalTasks,
@@ -1054,7 +1163,12 @@ class _ReportData {
 List<String> _buildSuggestions(_ReportData d) {
   // If Firestore provided aiNotes, prefer them (split into lines)
   if (d.aiNotes != null && d.aiNotes!.trim().isNotEmpty) {
-    return d.aiNotes!.trim().split('\n').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    return d.aiNotes!
+        .trim()
+        .split('\n')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
   }
   final pct = d.totalTasks > 0
       ? ((d.completedTasks / d.totalTasks) * 100).round()
@@ -1062,16 +1176,19 @@ List<String> _buildSuggestions(_ReportData d) {
   final suggestions = <String>[];
 
   suggestions.add(
-      'Tỷ lệ hoàn thành đạt $pct%. ${pct >= 70 ? "Bạn đang duy trì tiến độ khá tốt!" : "Hãy cố gắng hoàn thành thêm nhiệm vụ."}');
+    'Tỷ lệ hoàn thành đạt $pct%. ${pct >= 70 ? "Bạn đang duy trì tiến độ khá tốt!" : "Hãy cố gắng hoàn thành thêm nhiệm vụ."}',
+  );
 
   if (d.overdueTasks > 0) {
-    suggestions
-        .add('Xu hướng trễ hạn xuất hiện ở nhóm ${d.topCategory}. Cần ưu tiên xử lý ${ d.overdueTasks} nhiệm vụ quá hạn.');
+    suggestions.add(
+      'Xu hướng trễ hạn xuất hiện ở nhóm ${d.topCategory}. Cần ưu tiên xử lý ${d.overdueTasks} nhiệm vụ quá hạn.',
+    );
   }
 
   suggestions.add(_categoryComment(d.topCategory));
   suggestions.add(
-      'Hãy ưu tiên các nhiệm vụ quan trọng vào buổi sáng để tối ưu sự tập trung.');
+    'Hãy ưu tiên các nhiệm vụ quan trọng vào buổi sáng để tối ưu sự tập trung.',
+  );
 
   return suggestions;
 }
@@ -1091,9 +1208,19 @@ String _categoryComment(String topCategory) {
 
 String _monthName(int month) {
   const names = [
-    '', 'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4',
-    'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8',
-    'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12',
+    '',
+    'Tháng 1',
+    'Tháng 2',
+    'Tháng 3',
+    'Tháng 4',
+    'Tháng 5',
+    'Tháng 6',
+    'Tháng 7',
+    'Tháng 8',
+    'Tháng 9',
+    'Tháng 10',
+    'Tháng 11',
+    'Tháng 12',
   ];
   return names[month];
 }
@@ -1108,9 +1235,9 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Icon(icon, color: const Color(0xFF464554), size: 22),
-      );
+    onTap: onTap,
+    child: Icon(icon, color: const Color(0xFF464554), size: 22),
+  );
 }
 
 class _DayLabel extends StatelessWidget {
@@ -1119,17 +1246,17 @@ class _DayLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Expanded(
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF464554),
-            ),
-          ),
+    child: Center(
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF464554),
         ),
-      );
+      ),
+    ),
+  );
 }
 
 class _SectionHeader extends StatelessWidget {
@@ -1138,48 +1265,51 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        text.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: Color(0xFF464554),
-          letterSpacing: 0.8,
-        ),
-      );
+    text.toUpperCase(),
+    style: const TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+      color: Color(0xFF464554),
+      letterSpacing: 0.8,
+    ),
+  );
 }
 
 class _LegendItem extends StatelessWidget {
   final Color color;
   final String label;
   final int count;
-  const _LegendItem(
-      {required this.color, required this.label, required this.count});
+  const _LegendItem({
+    required this.color,
+    required this.label,
+    required this.count,
+  });
 
   @override
   Widget build(BuildContext context) => Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF464554)),
-            ),
-          ),
-          Text(
-            '$count',
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF191C1E),
-            ),
-          ),
-        ],
-      );
+    children: [
+      Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: Color(0xFF464554)),
+        ),
+      ),
+      Text(
+        '$count',
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF191C1E),
+        ),
+      ),
+    ],
+  );
 }
 
 class _StatCard extends StatelessWidget {
@@ -1187,39 +1317,46 @@ class _StatCard extends StatelessWidget {
   final String value;
   final Color bg;
   final Color fg;
-  const _StatCard(
-      {required this.label,
-      required this.value,
-      required this.bg,
-      required this.fg});
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.bg,
+    required this.fg,
+  });
 
   @override
   Widget build(BuildContext context) => Expanded(
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-          decoration:
-              BoxDecoration(color: bg, borderRadius: BorderRadius.circular(16)),
-          child: Column(
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                    fontSize: 24, fontWeight: FontWeight.w700, color: fg),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: const TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF464554),
-                    letterSpacing: 0.5),
-                textAlign: TextAlign.center,
-              ),
-            ],
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: fg,
+            ),
           ),
-        ),
-      );
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF464554),
+              letterSpacing: 0.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _DonutChart extends StatelessWidget {
@@ -1227,11 +1364,12 @@ class _DonutChart extends StatelessWidget {
   final int work;
   final int personal;
   final int health;
-  const _DonutChart(
-      {required this.total,
-      required this.work,
-      required this.personal,
-      required this.health});
+  const _DonutChart({
+    required this.total,
+    required this.work,
+    required this.personal,
+    required this.health,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -219,7 +219,9 @@ class TaskNotificationBellButton extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   color: entry.overdue
                                       ? AppColors.high.withValues(alpha: 0.14)
-                                      : AppColors.medium.withValues(alpha: 0.14),
+                                      : AppColors.medium.withValues(
+                                          alpha: 0.14,
+                                        ),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
@@ -319,8 +321,11 @@ class TaskNotificationBellButton extends StatelessWidget {
         final now = DateTime.now();
         final entries = snapshot.hasData
             ? snapshot.data!.docs
-                .map((doc) => MapEntry(doc.id, TaskViewModel.fromMap(doc.data())))
-                .toList()
+                  .map(
+                    (doc) =>
+                        MapEntry(doc.id, TaskViewModel.fromMap(doc.data())),
+                  )
+                  .toList()
             : <MapEntry<String, TaskViewModel>>[];
         final urgentEntries = _buildUrgentEntries(entries, now);
 
@@ -357,7 +362,9 @@ class TaskNotificationBellButton extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      urgentEntries.length > 9 ? '9+' : '${urgentEntries.length}',
+                      urgentEntries.length > 9
+                          ? '9+'
+                          : '${urgentEntries.length}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11,

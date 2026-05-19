@@ -53,10 +53,18 @@ class TaskViewModel extends ViewModel {
       createdAt: map['createdAt'] as Timestamp?,
       dueAt: map['dueAt'] as Timestamp?,
       completedAt: map['completedAt'] as Timestamp?,
-      totalFocusTime: (map['total_focus_time'] as num?)?.toInt() ?? (map['totalFocusTime'] as num?)?.toInt(),
-      totalBreakTime: (map['total_break_time'] as num?)?.toInt() ?? (map['totalBreakTime'] as num?)?.toInt(),
-      breakDuration: (map['break_duration'] as num?)?.toInt() ?? (map['breakDuration'] as num?)?.toInt(),
-      focusDuration: (map['focus_duration'] as num?)?.toInt() ?? (map['focusDuration'] as num?)?.toInt(),
+      totalFocusTime:
+          (map['total_focus_time'] as num?)?.toInt() ??
+          (map['totalFocusTime'] as num?)?.toInt(),
+      totalBreakTime:
+          (map['total_break_time'] as num?)?.toInt() ??
+          (map['totalBreakTime'] as num?)?.toInt(),
+      breakDuration:
+          (map['break_duration'] as num?)?.toInt() ??
+          (map['breakDuration'] as num?)?.toInt(),
+      focusDuration:
+          (map['focus_duration'] as num?)?.toInt() ??
+          (map['focusDuration'] as num?)?.toInt(),
       dateString: map['date_string'] as String? ?? map['dateString'] as String?,
       timestamp: map['timestamp'] as Timestamp?,
       uid: map['uid'] as String? ?? '',
@@ -91,7 +99,9 @@ class TaskViewModel extends ViewModel {
     };
   }
 
-  Map<String, dynamic> toFirestoreMap({bool useServerTimestampForCreatedAt = false}) {
+  Map<String, dynamic> toFirestoreMap({
+    bool useServerTimestampForCreatedAt = false,
+  }) {
     final Map<String, dynamic> m = {
       'title': title,
       'detail': detail,
@@ -164,5 +174,6 @@ class TaskViewModel extends ViewModel {
   }
 
   @override
-  String toString() => 'TaskViewModel(id: $id, title: $title, priority: $priority, way: $way, category: $category, stat: $stat)';
+  String toString() =>
+      'TaskViewModel(id: $id, title: $title, priority: $priority, way: $way, category: $category, stat: $stat)';
 }

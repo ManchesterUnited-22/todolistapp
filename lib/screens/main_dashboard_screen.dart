@@ -2,30 +2,34 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../widgets/floating_bottom_navbar.dart';
+import 'package:smart_app/ai/app_controller.dart';
+import 'package:smart_app/ai/tour_keys.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/task_notification_bell.dart';
 import '../widgets/voicebutton/voice_button.dart';
 import '../widgets/voicebutton/voice_handler.dart';
+import 'package:smart_app/ai/tour_engine.dart';
+import 'package:smart_app/ai/comic_assistant.dart';
 import '../views/task_viewmodel.dart';
 
 // ── Colour tokens ─────────────────────────────────────────────────────────────
 class _C {
-  static const background          = Color(0xFFF7F9FB);
-  static const surface             = Color(0xFFFFFFFF);
-  static const surfaceContainer    = Color(0xFFECEEF0);
+  static const background = Color(0xFFF7F9FB);
+  static const surface = Color(0xFFFFFFFF);
+  static const surfaceContainer = Color(0xFFECEEF0);
   static const surfaceContainerLow = Color(0xFFF2F4F6);
-  static const primary             = Color(0xFF4648D4);
-  static const primaryFixed        = Color(0xFFE1E0FF);
-  static const tertiary            = Color(0xFF006C49);
-  static const onSurface           = Color(0xFF191C1E);
-  static const outline             = Color(0xFF767586);
-  static const outlineVariant      = Color(0xFFC7C4D7);
-  static const onSurfaceVariant    = Color(0xFF464554);
-  static const error               = Color(0xFFEF4444);
-  static const errorContainer      = Color(0xFFFFDAD6);
-  static const surfaceVariant      = Color(0xFFE0E3E5);
-  static const secondary           = Color(0xFF0060AC);
-  static const secondaryContainer  = Color(0xFF64A8FE);
+  static const primary = Color(0xFF4648D4);
+  static const primaryFixed = Color(0xFFE1E0FF);
+  static const tertiary = Color(0xFF006C49);
+  static const onSurface = Color(0xFF191C1E);
+  static const outline = Color(0xFF767586);
+  static const outlineVariant = Color(0xFFC7C4D7);
+  static const onSurfaceVariant = Color(0xFF464554);
+  static const error = Color(0xFFEF4444);
+  static const errorContainer = Color(0xFFFFDAD6);
+  static const surfaceVariant = Color(0xFFE0E3E5);
+  static const secondary = Color(0xFF0060AC);
+  static const secondaryContainer = Color(0xFF64A8FE);
 }
 
 class MainDashboardScreen extends StatefulWidget {
@@ -44,6 +48,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (AppController.instance.isTourActive && mounted) {
+        AppController.instance.startTour(context);
+      }
+    });
   }
 
   void _toggleSidebar() => setState(() => _showSidebar = !_showSidebar);
@@ -59,7 +68,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   }
 
   Future<void> _toggleTaskStatus(
-      String docId, TaskViewModel task, bool checked) async {
+    String docId,
+    TaskViewModel task,
+    bool checked,
+  ) async {
     final stat = checked
         ? 'Hoàn thành'
         : (_isTaskOverdue(task) ? 'Quá hạn' : 'Đang làm');
@@ -104,8 +116,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: const Icon(Icons.menu_rounded,
-                  color: _C.onSurface, size: 24),
+              child: const Icon(
+                Icons.menu_rounded,
+                color: _C.onSurface,
+                size: 24,
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -144,17 +159,16 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                 stream: _currentUserUid.isEmpty
                     ? null
                     : FirebaseFirestore.instance
-                        .collection('register')
-                        .doc(_currentUserUid)
-                        .snapshots(),
+                          .collection('register')
+                          .doc(_currentUserUid)
+                          .snapshots(),
                 builder: (context, snapshot) {
-                  final data =
-                      snapshot.data?.data() as Map<String, dynamic>?;
+                  final data = snapshot.data?.data() as Map<String, dynamic>?;
                   final displayName =
                       (data?['displayName'] as String?)?.trim().isNotEmpty ==
-                              true
-                          ? data!['displayName'] as String
-                          : 'User';
+                          true
+                      ? data!['displayName'] as String
+                      : 'User';
 
                   return RichText(
                     text: TextSpan(
@@ -201,9 +215,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.70),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.50),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.50)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -235,8 +247,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
         final docs = snapshot.data?.docs ?? [];
         final total = docs.length;
         final completed = docs
-            .where((d) =>
-                (d.data() as Map<String, dynamic>)['stat'] == 'Hoàn thành')
+            .where(
+              (d) => (d.data() as Map<String, dynamic>)['stat'] == 'Hoàn thành',
+            )
             .length;
         final double pct = total == 0 ? 0.0 : completed / total;
         final String pctStr = '${(pct * 100).toInt()}%';
@@ -262,7 +275,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
             color: _C.surface,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-                color: _C.surfaceVariant.withValues(alpha: 0.20)),
+              color: _C.surfaceVariant.withValues(alpha: 0.20),
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -292,8 +306,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                         value: pct,
                         strokeWidth: 10,
                         backgroundColor: _C.surfaceContainer,
-                        valueColor:
-                            const AlwaysStoppedAnimation(_C.primary),
+                        valueColor: const AlwaysStoppedAnimation(_C.primary),
                         strokeCap: StrokeCap.round,
                       ),
                     ),
@@ -391,27 +404,31 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
           );
         }
 
-        return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: docs.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final doc = docs[index];
-            final task =
-                TaskViewModel.fromMap(doc.data() as Map<String, dynamic>);
-            final isCompleted = _isTaskCompleted(task);
-            final isOverdue = _isTaskOverdue(task);
+        return Container(
+          key: TourKeys.neoThanhTask,
+          child: ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: docs.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final doc = docs[index];
+              final task = TaskViewModel.fromMap(
+                doc.data() as Map<String, dynamic>,
+              );
+              final isCompleted = _isTaskCompleted(task);
+              final isOverdue = _isTaskOverdue(task);
 
-            return _TaskCard(
-              task: task,
-              isCompleted: isCompleted,
-              isOverdue: isOverdue,
-              onToggle: (val) =>
-                  _toggleTaskStatus(doc.id, task, val ?? false),
-              onDelete: () => _deleteTask(doc.id),
-            );
-          },
+              return _TaskCard(
+                task: task,
+                isCompleted: isCompleted,
+                isOverdue: isOverdue,
+                onToggle: (val) =>
+                    _toggleTaskStatus(doc.id, task, val ?? false),
+                onDelete: () => _deleteTask(doc.id),
+              );
+            },
+          ),
         );
       },
     );
@@ -458,7 +475,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
@@ -537,7 +556,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
             },
             onEditProfile: () {},
             onLanguage: () => Navigator.of(context).pushNamed('/language'),
-            
           ),
         ),
 
@@ -584,7 +602,27 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _C.background,
-      body: SafeArea(child: _buildBody()),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            _buildBody(),
+            // Comic assistant driven by tour engine speech stream
+            StreamBuilder<String>(
+              stream: TourEngine.instance.speechStream,
+              builder: (context, snap) {
+                final text = snap.data ?? '';
+                if (!AppController.instance.isTourActive || text.isEmpty)
+                  return const SizedBox.shrink();
+                return ComicAssistant(
+                  text: text,
+                  charDelay: const Duration(milliseconds: 40),
+                  alignment: Alignment.bottomLeft,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -661,8 +699,10 @@ class _TaskCard extends StatelessWidget {
           color: const Color(0xFFEF4444).withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(16),
         ),
-        child:
-            const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444)),
+        child: const Icon(
+          Icons.delete_outline_rounded,
+          color: Color(0xFFEF4444),
+        ),
       ),
       confirmDismiss: (_) async {
         onDelete();
@@ -682,8 +722,8 @@ class _TaskCard extends StatelessWidget {
               color: isCompleted
                   ? _C.outlineVariant.withValues(alpha: 0.30)
                   : isOverdue
-                      ? const Color(0xFFEF4444).withValues(alpha: 0.25)
-                      : _C.surfaceVariant.withValues(alpha: 0.20),
+                  ? const Color(0xFFEF4444).withValues(alpha: 0.25)
+                  : _C.surfaceVariant.withValues(alpha: 0.20),
             ),
             boxShadow: isCompleted
                 ? []
@@ -716,8 +756,11 @@ class _TaskCard extends StatelessWidget {
                             color: _C.primary.withValues(alpha: 0.20),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.check_rounded,
-                              color: _C.primary, size: 18),
+                          child: const Icon(
+                            Icons.check_rounded,
+                            color: _C.primary,
+                            size: 18,
+                          ),
                         )
                       : Container(
                           width: 28,
@@ -749,9 +792,7 @@ class _TaskCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
-                              color: isCompleted
-                                  ? _C.outline
-                                  : _C.onSurface,
+                              color: isCompleted ? _C.outline : _C.onSurface,
                               decoration: isCompleted
                                   ? TextDecoration.lineThrough
                                   : null,
@@ -765,8 +806,11 @@ class _TaskCard extends StatelessWidget {
                             onTap: () => _showTaskMenu(context),
                             child: Padding(
                               padding: const EdgeInsets.only(left: 4),
-                              child: Icon(Icons.more_horiz_rounded,
-                                  color: _C.outlineVariant, size: 20),
+                              child: Icon(
+                                Icons.more_horiz_rounded,
+                                color: _C.outlineVariant,
+                                size: 20,
+                              ),
                             ),
                           ),
                       ],
@@ -782,13 +826,18 @@ class _TaskCard extends StatelessWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.schedule_outlined,
-                                size: 15, color: _C.outline),
+                            const Icon(
+                              Icons.schedule_outlined,
+                              size: 15,
+                              color: _C.outline,
+                            ),
                             const SizedBox(width: 5),
                             Text(
                               _formatTs(task.createdAt),
                               style: const TextStyle(
-                                  fontSize: 12, color: _C.outline),
+                                fontSize: 12,
+                                color: _C.outline,
+                              ),
                             ),
                           ],
                         ),
@@ -830,7 +879,9 @@ class _TaskCard extends StatelessWidget {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: chip.bg,
                             borderRadius: BorderRadius.circular(999),
@@ -849,7 +900,9 @@ class _TaskCard extends StatelessWidget {
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: _C.error.withValues(alpha: 0.10),
                               borderRadius: BorderRadius.circular(6),
@@ -882,7 +935,8 @@ class _TaskCard extends StatelessWidget {
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (_) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -892,8 +946,9 @@ class _TaskCard extends StatelessWidget {
               height: 4,
               margin: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                  color: _C.outlineVariant,
-                  borderRadius: BorderRadius.circular(2)),
+                color: _C.outlineVariant,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.edit_outlined, color: _C.primary),
@@ -901,10 +956,14 @@ class _TaskCard extends StatelessWidget {
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: const Icon(Icons.delete_outline_rounded,
-                  color: Color(0xFFEF4444)),
-              title: const Text('Xoá',
-                  style: TextStyle(color: Color(0xFFEF4444))),
+              leading: const Icon(
+                Icons.delete_outline_rounded,
+                color: Color(0xFFEF4444),
+              ),
+              title: const Text(
+                'Xoá',
+                style: TextStyle(color: Color(0xFFEF4444)),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 onDelete();

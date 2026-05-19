@@ -10,25 +10,25 @@ import '../widgets/task_notification_bell.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 class _C {
-  static const primary            = Color(0xFF4648D4);
-  static const primaryContainer   = Color(0xFF6063EE);
-  static const onPrimary          = Color(0xFFFFFFFF);
-  static const primaryFixed       = Color(0xFFE1E0FF);
-  static const secondary          = Color(0xFF0060AC);
+  static const primary = Color(0xFF4648D4);
+  static const primaryContainer = Color(0xFF6063EE);
+  static const onPrimary = Color(0xFFFFFFFF);
+  static const primaryFixed = Color(0xFFE1E0FF);
+  static const secondary = Color(0xFF0060AC);
   static const secondaryContainer = Color(0xFF64A8FE);
-  static const tertiary           = Color(0xFF006C49);
-  static const tertiaryContainer  = Color(0xFF00885D);
-  static const surface            = Color(0xFFF7F9FB);
-  static const surfaceContainer   = Color(0xFFECEEF0);
+  static const tertiary = Color(0xFF006C49);
+  static const tertiaryContainer = Color(0xFF00885D);
+  static const surface = Color(0xFFF7F9FB);
+  static const surfaceContainer = Color(0xFFECEEF0);
   static const surfaceContainerHigh = Color(0xFFE6E8EA);
-  static const surfaceVariant     = Color(0xFFE0E3E5);
-  static const onSurface          = Color(0xFF191C1E);
-  static const onSurfaceVariant   = Color(0xFF464554);
-  static const outline            = Color(0xFF767586);
-  static const outlineVariant     = Color(0xFFC7C4D7);
-  static const error              = Color(0xFFBA1A1A);
-  static const errorContainer     = Color(0xFFFFDAD6);
-  static const onErrorContainer   = Color(0xFF93000A);
+  static const surfaceVariant = Color(0xFFE0E3E5);
+  static const onSurface = Color(0xFF191C1E);
+  static const onSurfaceVariant = Color(0xFF464554);
+  static const outline = Color(0xFF767586);
+  static const outlineVariant = Color(0xFFC7C4D7);
+  static const error = Color(0xFFBA1A1A);
+  static const errorContainer = Color(0xFFFFDAD6);
+  static const onErrorContainer = Color(0xFF93000A);
 }
 
 // ── Glass card decoration ─────────────────────────────────────────────────────
@@ -40,9 +40,7 @@ BoxDecoration _buildGlassCard(BuildContext context) {
         : Colors.white.withOpacity(0.40),
     borderRadius: BorderRadius.circular(16),
     border: Border.all(
-      color: isDark
-          ? Colors.white.withOpacity(0.05)
-          : Colors.white,
+      color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
       width: 1,
     ),
     boxShadow: [
@@ -201,22 +199,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 32),
             _AchievementsSection(userId: _currentUserUid),
             const SizedBox(height: 32),
-            _SettingsSection(
-              onLogoutTap: () => _handleLogout(context),
-            ),
+            _SettingsSection(onLogoutTap: () => _handleLogout(context)),
             const SizedBox(height: 80),
           ],
         ),
       ),
-      bottomNavigationBar:
-          const FloatingBottomNavBar(currentIndex: 3, showFab: false),
+      bottomNavigationBar: const FloatingBottomNavBar(
+        currentIndex: 3,
+        showFab: false,
+      ),
     );
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor:
-          Theme.of(context).colorScheme.surface.withOpacity(0.80),
+      backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.80),
       elevation: 0,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
@@ -250,9 +247,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await FirebaseAuth.instance.signOut();
     } catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Đăng xuất thất bại: $error')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Đăng xuất thất bại: $error')));
       }
       return;
     }
@@ -313,20 +310,21 @@ class _ProfileHeader extends StatelessWidget {
                     .doc(FirebaseAuth.instance.currentUser?.uid ?? '')
                     .snapshots(),
                 builder: (context, snap) {
-                  final data =
-                      snap.data?.data() as Map<String, dynamic>?;
+                  final data = snap.data?.data() as Map<String, dynamic>?;
                   final avatarUrl =
                       (data?['avatarUrl'] as String?)?.trim() ?? '';
                   if (avatarUrl.isNotEmpty) {
                     return Image.network(
                       avatarUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          _DefaultAvatar(uid: FirebaseAuth.instance.currentUser?.uid ?? ''),
+                      errorBuilder: (_, __, ___) => _DefaultAvatar(
+                        uid: FirebaseAuth.instance.currentUser?.uid ?? '',
+                      ),
                     );
                   }
                   return _DefaultAvatar(
-                      uid: FirebaseAuth.instance.currentUser?.uid ?? '');
+                    uid: FirebaseAuth.instance.currentUser?.uid ?? '',
+                  );
                 },
               ),
             ),
@@ -344,13 +342,17 @@ class _ProfileHeader extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 6,
-                          offset: Offset(0, 2)),
+                        color: Colors.black26,
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
                     ],
                   ),
-                  child: const Icon(Icons.photo_camera,
-                      color: _C.onPrimary, size: 18),
+                  child: const Icon(
+                    Icons.photo_camera,
+                    color: _C.onPrimary,
+                    size: 18,
+                  ),
                 ),
               ),
             ),
@@ -363,18 +365,16 @@ class _ProfileHeader extends StatelessWidget {
               .doc(FirebaseAuth.instance.currentUser?.uid ?? '')
               .snapshots(),
           builder: (context, snapshot) {
-            final data =
-                snapshot.data?.data() as Map<String, dynamic>?;
+            final data = snapshot.data?.data() as Map<String, dynamic>?;
             final displayName =
                 (data?['fullName'] as String?)?.trim().isNotEmpty == true
-                    ? data!['fullName'] as String
-                    : (FirebaseAuth.instance.currentUser?.displayName ??
-                        'Tên người dùng');
-            final email =
-                (data?['email'] as String?)?.trim().isNotEmpty == true
-                    ? data!['email'] as String
-                    : (FirebaseAuth.instance.currentUser?.email ??
-                        'email@example.com');
+                ? data!['fullName'] as String
+                : (FirebaseAuth.instance.currentUser?.displayName ??
+                      'Tên người dùng');
+            final email = (data?['email'] as String?)?.trim().isNotEmpty == true
+                ? data!['email'] as String
+                : (FirebaseAuth.instance.currentUser?.email ??
+                      'email@example.com');
 
             return Column(
               children: [
@@ -417,7 +417,13 @@ class _DefaultAvatar extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     final name = user?.displayName ?? '';
     final initials = name.isNotEmpty
-        ? name.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+        ? name
+              .trim()
+              .split(' ')
+              .map((w) => w.isNotEmpty ? w[0] : '')
+              .take(2)
+              .join()
+              .toUpperCase()
         : 'AN';
     return Container(
       color: _C.primaryFixed,
@@ -462,9 +468,9 @@ class _AchievementsSection extends StatelessWidget {
         StreamBuilder<DocumentSnapshot>(
           stream: userId.isNotEmpty
               ? FirebaseFirestore.instance
-                  .collection('achievements')
-                  .doc(userId)
-                  .snapshots()
+                    .collection('achievements')
+                    .doc(userId)
+                    .snapshots()
               : null,
           builder: (context, snap) {
             final data = snap.data?.data() as Map<String, dynamic>? ?? {};
@@ -476,12 +482,11 @@ class _AchievementsSection extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               children: _badges.map((badge) {
                 // Determine unlocked status from Firestore data
-                final fieldVal = (data[badge.unlockField] as num?)?.toInt() ?? 0;
-                final isUnlocked = !badge.locked || fieldVal >= badge.unlockThreshold;
-                return _BadgeTile(
-                  badge: badge,
-                  isUnlocked: isUnlocked,
-                );
+                final fieldVal =
+                    (data[badge.unlockField] as num?)?.toInt() ?? 0;
+                final isUnlocked =
+                    !badge.locked || fieldVal >= badge.unlockThreshold;
+                return _BadgeTile(badge: badge, isUnlocked: isUnlocked);
               }).toList(),
             );
           },
@@ -509,9 +514,7 @@ class _BadgeTile extends StatelessWidget {
             color: Colors.white.withOpacity(isUnlocked ? 0.50 : 0.0),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isUnlocked
-                  ? Colors.white
-                  : Colors.white.withOpacity(0.50),
+              color: isUnlocked ? Colors.white : Colors.white.withOpacity(0.50),
             ),
             boxShadow: isUnlocked
                 ? [
@@ -519,7 +522,7 @@ class _BadgeTile extends StatelessWidget {
                       color: Colors.black.withOpacity(0.04),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
-                    )
+                    ),
                   ]
                 : null,
           ),
@@ -537,8 +540,11 @@ class _BadgeTile extends StatelessWidget {
                 ),
                 child: isUnlocked
                     ? Icon(badge.icon, color: badge.iconColor, size: 24)
-                    : const Icon(Icons.lock_outline_rounded,
-                        color: _C.outline, size: 20),
+                    : const Icon(
+                        Icons.lock_outline_rounded,
+                        color: _C.outline,
+                        size: 20,
+                      ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -580,8 +586,7 @@ class _BadgeTile extends StatelessWidget {
               ),
               child: isUnlocked
                   ? Icon(badge.icon, color: badge.iconColor, size: 36)
-                  : const Icon(Icons.lock_rounded,
-                      color: _C.outline, size: 32),
+                  : const Icon(Icons.lock_rounded, color: _C.outline, size: 32),
             ),
             const SizedBox(height: 16),
             Text(
@@ -611,11 +616,14 @@ class _BadgeTile extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Đóng',
-                style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w600,
-                    color: _C.primary)),
+            child: const Text(
+              'Đóng',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w600,
+                color: _C.primary,
+              ),
+            ),
           ),
         ],
       ),
@@ -645,9 +653,7 @@ class _BadgeTile extends StatelessWidget {
 class _SettingsSection extends StatelessWidget {
   final VoidCallback onLogoutTap;
 
-  const _SettingsSection({
-    required this.onLogoutTap,
-  });
+  const _SettingsSection({required this.onLogoutTap});
 
   @override
   Widget build(BuildContext context) {
@@ -696,8 +702,14 @@ class _SettingsSection extends StatelessWidget {
                   final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
                   if (uid.isEmpty) return;
                   final results = await Future.wait([
-                    FirebaseFirestore.instance.collection('register').doc(uid).get(),
-                    FirebaseFirestore.instance.collection('users').doc(uid).get(),
+                    FirebaseFirestore.instance
+                        .collection('register')
+                        .doc(uid)
+                        .get(),
+                    FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(uid)
+                        .get(),
                   ]);
                   final merged = {
                     ...results[0].data() ?? {},
@@ -741,8 +753,7 @@ class _SettingsSection extends StatelessWidget {
               decoration: BoxDecoration(
                 color: _C.errorContainer.withOpacity(0.20),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                    color: _C.error.withOpacity(0.10)),
+                border: Border.all(color: _C.error.withOpacity(0.10)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -809,9 +820,7 @@ class _SettingsSection extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: _C.outline),
+            Icon(Icons.arrow_forward_ios_rounded, size: 16, color: _C.outline),
           ],
         ),
       ),
@@ -841,9 +850,7 @@ class _ThemeSettingRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
-                  isDark
-                      ? Icons.dark_mode_rounded
-                      : Icons.light_mode_rounded,
+                  isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
                   color: _C.onSurface,
                   size: 22,
                 ),
@@ -877,7 +884,8 @@ class _ThemeSettingRow extends StatelessWidget {
               // Toggle pill giống HTML
               GestureDetector(
                 onTap: () => ThemeService.setMode(
-                    isDark ? ThemeMode.light : ThemeMode.dark),
+                  isDark ? ThemeMode.light : ThemeMode.dark,
+                ),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   width: 44,

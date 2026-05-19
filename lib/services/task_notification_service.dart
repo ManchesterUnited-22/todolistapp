@@ -23,7 +23,8 @@ class TaskNotificationService {
   static const String _shownKeysPrefsKey = 'task_notification_shown_keys';
   static const String _enabledPrefsKey = 'task_notification_enabled';
 
-  final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
   bool _initialized = false;
   bool _enabled = true;
 
@@ -74,13 +75,15 @@ class TaskNotificationService {
     if (!_enabled) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final shownKeys = prefs.getStringList(_shownKeysPrefsKey)?.toSet() ?? <String>{};
+    final shownKeys =
+        prefs.getStringList(_shownKeysPrefsKey)?.toSet() ?? <String>{};
     bool changed = false;
 
     for (final task in tasks) {
       final remaining = task.dueAt.difference(now);
       if (remaining <= Duration.zero) {
-        final notificationKey = 'overdue:${task.id}:${task.dueAt.millisecondsSinceEpoch}';
+        final notificationKey =
+            'overdue:${task.id}:${task.dueAt.millisecondsSinceEpoch}';
         if (shownKeys.add(notificationKey)) {
           changed = true;
           await _showNotification(
@@ -94,7 +97,8 @@ class TaskNotificationService {
       }
 
       if (remaining <= dueSoonWindow) {
-        final notificationKey = 'dueSoon:${task.id}:${task.dueAt.millisecondsSinceEpoch}';
+        final notificationKey =
+            'dueSoon:${task.id}:${task.dueAt.millisecondsSinceEpoch}';
         if (shownKeys.add(notificationKey)) {
           changed = true;
           await _showNotification(
@@ -135,12 +139,7 @@ class TaskNotificationService {
     );
 
     try {
-      await _plugin.show(
-        id,
-        title,
-        '$body\n$details',
-        notificationDetails,
-      );
+      await _plugin.show(id, title, '$body\n$details', notificationDetails);
     } catch (error) {
       debugPrint('Task notification failed: $error');
     }

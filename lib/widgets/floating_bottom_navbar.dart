@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smart_app/core/app_colors.dart';
+import 'package:smart_app/ai/app_controller.dart';
+import 'package:smart_app/ai/tour_keys.dart';
 
 class FloatingBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -16,6 +18,7 @@ class FloatingBottomNavBar extends StatelessWidget {
   });
 
   void _handleTap(BuildContext context, int index) {
+    if (AppController.instance.isTourActive) return;
     if (onTap != null) {
       onTap!(index);
       return;
@@ -24,8 +27,8 @@ class FloatingBottomNavBar extends StatelessWidget {
     // Default navigation using named routes
     final routeMap = {
       0: '/dashboard',
-      1: '/calendar',
-      2: '/stats',
+      1: '/stats',
+      2: '/calendar',
       3: '/profile',
     };
 
@@ -43,9 +46,8 @@ class FloatingBottomNavBar extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => const Center(
-        child: Text('Add Task Sheet - Implement here'),
-      ),
+      builder: (context) =>
+          const Center(child: Text('Add Task Sheet - Implement here')),
     );
   }
 
@@ -75,6 +77,7 @@ class FloatingBottomNavBar extends StatelessWidget {
                 ? [
                     Expanded(
                       child: _NavItem(
+                        key: TourKeys.neoTabHome,
                         icon: _items[0].icon,
                         label: _items[0].label,
                         selected: currentIndex == 0,
@@ -83,6 +86,7 @@ class FloatingBottomNavBar extends StatelessWidget {
                     ),
                     Expanded(
                       child: _NavItem(
+                        key: TourKeys.neoTabStats,
                         icon: _items[1].icon,
                         label: _items[1].label,
                         selected: currentIndex == 1,
@@ -92,6 +96,7 @@ class FloatingBottomNavBar extends StatelessWidget {
                     const SizedBox(width: 54), // Space for FAB
                     Expanded(
                       child: _NavItem(
+                        key: TourKeys.neoTabCalendar,
                         icon: _items[2].icon,
                         label: _items[2].label,
                         selected: currentIndex == 2,
@@ -100,6 +105,7 @@ class FloatingBottomNavBar extends StatelessWidget {
                     ),
                     Expanded(
                       child: _NavItem(
+                        key: TourKeys.neoTabProfile,
                         icon: _items[3].icon,
                         label: _items[3].label,
                         selected: currentIndex == 3,
@@ -111,6 +117,7 @@ class FloatingBottomNavBar extends StatelessWidget {
                     // Full 4 items without FAB space
                     Expanded(
                       child: _NavItem(
+                        key: TourKeys.neoTabHome,
                         icon: _items[0].icon,
                         label: _items[0].label,
                         selected: currentIndex == 0,
@@ -119,6 +126,7 @@ class FloatingBottomNavBar extends StatelessWidget {
                     ),
                     Expanded(
                       child: _NavItem(
+                        key: TourKeys.neoTabStats,
                         icon: _items[1].icon,
                         label: _items[1].label,
                         selected: currentIndex == 1,
@@ -127,6 +135,7 @@ class FloatingBottomNavBar extends StatelessWidget {
                     ),
                     Expanded(
                       child: _NavItem(
+                        key: TourKeys.neoTabCalendar,
                         icon: _items[2].icon,
                         label: _items[2].label,
                         selected: currentIndex == 2,
@@ -135,6 +144,7 @@ class FloatingBottomNavBar extends StatelessWidget {
                     ),
                     Expanded(
                       child: _NavItem(
+                        key: TourKeys.neoTabProfile,
                         icon: _items[3].icon,
                         label: _items[3].label,
                         selected: currentIndex == 3,
@@ -153,7 +163,9 @@ class FloatingBottomNavBar extends StatelessWidget {
                   right: 24,
                   child: FloatingActionButton(
                     heroTag: 'floating_bottom_nav_add',
-                    onPressed: () => _openAddTaskSheet(context),
+                    onPressed: AppController.instance.isTourActive
+                        ? null
+                        : () => _openAddTaskSheet(context),
                     backgroundColor: AppColors.brand,
                     foregroundColor: Colors.white,
                     elevation: 8,
@@ -164,7 +176,9 @@ class FloatingBottomNavBar extends StatelessWidget {
                   bottom: 20,
                   child: FloatingActionButton(
                     heroTag: 'floating_bottom_nav_add',
-                    onPressed: () => _openAddTaskSheet(context),
+                    onPressed: AppController.instance.isTourActive
+                        ? null
+                        : () => _openAddTaskSheet(context),
                     backgroundColor: AppColors.brand,
                     foregroundColor: Colors.white,
                     elevation: 8,
@@ -185,6 +199,7 @@ class _NavItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const _NavItem({
+    super.key,
     required this.icon,
     required this.label,
     required this.selected,
@@ -211,11 +226,7 @@ class _NavItem extends StatelessWidget {
                   : Colors.transparent,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: selected ? 22 : 20,
-            ),
+            child: Icon(icon, color: color, size: selected ? 22 : 20),
           ),
           const SizedBox(height: 6),
           Text(
@@ -240,7 +251,7 @@ class _NavEntry {
 
 const List<_NavEntry> _items = [
   _NavEntry(Icons.home_filled, 'Trang chủ'),
-  _NavEntry(Icons.calendar_month_outlined, 'Lịch của tôi'),
   _NavEntry(Icons.bar_chart_outlined, 'Thống kê'),
+  _NavEntry(Icons.calendar_month_outlined, 'Lịch của tôi'),
   _NavEntry(Icons.person_outline, 'Hồ sơ'),
 ];

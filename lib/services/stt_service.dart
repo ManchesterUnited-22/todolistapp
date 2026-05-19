@@ -4,7 +4,6 @@
 ///stop listening and expose the latest transcript.
 library;
 
-
 import 'dart:async';
 
 class SttService {

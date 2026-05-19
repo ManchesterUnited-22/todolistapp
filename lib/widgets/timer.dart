@@ -42,7 +42,8 @@ class _TimerCardState extends State<TimerCard> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       // user left app -> pause session and persist
       _svc.pauseSession();
       if (mounted) {
@@ -88,33 +89,55 @@ class _TimerCardState extends State<TimerCard> with WidgetsBindingObserver {
       centerChild = Text(
         'Bắt đầu sau\n${_formatClockFromSeconds(remaining)}',
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF4648D4)),
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF4648D4),
+        ),
       );
     } else if (phase == TimerPhase.focusing) {
       centerChild = Text(
         _formatClockFromSeconds(remaining),
-        style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w800, color: Color(0xFF4648D4)),
+        style: const TextStyle(
+          fontSize: 38,
+          fontWeight: FontWeight.w800,
+          color: Color(0xFF4648D4),
+        ),
       );
     } else if (phase == TimerPhase.overtime) {
       final over = _svc.overrunSeconds;
       centerChild = Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('Quá giờ', style: TextStyle(fontSize: 14, color: Colors.red)),
+          const Text(
+            'Quá giờ',
+            style: TextStyle(fontSize: 14, color: Colors.red),
+          ),
           const SizedBox(height: 4),
           Text(
             _formatClockFromSeconds(over),
-            style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.red),
+            style: const TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.w800,
+              color: Colors.red,
+            ),
           ),
         ],
       );
     } else if (phase == TimerPhase.breaking) {
       centerChild = Text(
         _formatClockFromSeconds(remaining),
-        style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w800, color: Color(0xFF0060AC)),
+        style: const TextStyle(
+          fontSize: 38,
+          fontWeight: FontWeight.w800,
+          color: Color(0xFF0060AC),
+        ),
       );
     } else if (phase == TimerPhase.paused) {
-      centerChild = const Text('Tạm dừng', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700));
+      centerChild = const Text(
+        'Tạm dừng',
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+      );
     } else {
       centerChild = const Text('...');
     }
@@ -177,9 +200,7 @@ class _TimerCardState extends State<TimerCard> with WidgetsBindingObserver {
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    centerChild,
-                  ],
+                  children: [centerChild],
                 ),
               ),
             ],
@@ -215,16 +236,24 @@ class _TimerCardState extends State<TimerCard> with WidgetsBindingObserver {
                         decoration: InputDecoration(
                           hintText: 'Số phút cần hoàn thành task này',
                           hintMaxLines: 2,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 14,
+                          ),
                           filled: true,
-                          fillColor: const Color(0xFFE1E0FF).withValues(alpha: 0.20),
+                          fillColor: const Color(
+                            0xFFE1E0FF,
+                          ).withValues(alpha: 0.20),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
                             borderSide: BorderSide.none,
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(color: Color(0xFF4648D4), width: 1.2),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF4648D4),
+                              width: 1.2,
+                            ),
                           ),
                         ),
                       ),
@@ -262,16 +291,24 @@ class _TimerCardState extends State<TimerCard> with WidgetsBindingObserver {
                         decoration: InputDecoration(
                           hintText: 'Khoảng time nhỏ giải lao trong phút đó',
                           hintMaxLines: 2,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 14,
+                          ),
                           filled: true,
-                          fillColor: const Color(0xFF0060AC).withValues(alpha: 0.16),
+                          fillColor: const Color(
+                            0xFF0060AC,
+                          ).withValues(alpha: 0.16),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
                             borderSide: BorderSide.none,
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(color: Color(0xFF0060AC), width: 1.2),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF0060AC),
+                              width: 1.2,
+                            ),
                           ),
                         ),
                       ),
@@ -324,22 +361,30 @@ class _TimerCardState extends State<TimerCard> with WidgetsBindingObserver {
                         _svc.pauseSession();
                       }
                     },
-                    child: Text(_svc.phase == TimerPhase.paused ? 'Resume' : 'Pause'),
+                    child: Text(
+                      _svc.phase == TimerPhase.paused ? 'Resume' : 'Pause',
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
                     onPressed: () {
                       _svc.stopSession(markCompleted: true);
-                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã dừng phiên.')));
+                      if (mounted)
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Đã dừng phiên.')),
+                        );
                     },
                     child: const Text('Stop'),
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (_svc.phase == TimerPhase.focusing || _svc.phase == TimerPhase.overtime)
+                if (_svc.phase == TimerPhase.focusing ||
+                    _svc.phase == TimerPhase.overtime)
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
@@ -350,8 +395,8 @@ class _TimerCardState extends State<TimerCard> with WidgetsBindingObserver {
                   ),
               ],
             ),
-           ],
-         ),
-       );
-     }
-   }
+        ],
+      ),
+    );
+  }
+}

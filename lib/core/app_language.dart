@@ -18,7 +18,7 @@ class AppLanguage {
     Locale('ko'),
     Locale('ja'),
   ];
- 
+
   static const List<String> supportedLanguageCodes = <String>[
     'en',
     'vi',

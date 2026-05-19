@@ -15,7 +15,9 @@ Future<void> handlePromodoroAiPress(
 
   if (focusMinutes == null || breakMinutes == null) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Nhập số phút hợp lệ cho cả tập trung và giải lao.')),
+      const SnackBar(
+        content: Text('Nhập số phút hợp lệ cho cả tập trung và giải lao.'),
+      ),
     );
     return;
   }
@@ -29,12 +31,22 @@ Future<void> handlePromodoroAiPress(
     context: context,
     builder: (ctx) => AlertDialog(
       title: const Center(
-        child: Icon(Icons.auto_awesome_rounded, size: 36, color: Color(0xFF4648D4)),
+        child: Icon(
+          Icons.auto_awesome_rounded,
+          size: 36,
+          color: Color(0xFF4648D4),
+        ),
       ),
       content: Text(rec.message),
       actions: [
-        TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Hủy bỏ')),
-        ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Đồng ý')),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: const Text('Hủy bỏ'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: const Text('Đồng ý'),
+        ),
       ],
     ),
   );
@@ -50,7 +62,9 @@ Future<void> handlePromodoroAiPress(
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Vui lòng đăng nhập trước khi bắt đầu phiên.')),
+      const SnackBar(
+        content: Text('Vui lòng đăng nhập trước khi bắt đầu phiên.'),
+      ),
     );
     return;
   }
@@ -68,8 +82,12 @@ Future<void> showPromodoroQuickDialog(
   int? initialFocusMinutes,
   int? initialBreakMinutes,
 }) async {
-  final focusController = TextEditingController(text: (initialFocusMinutes ?? 25).toString());
-  final breakController = TextEditingController(text: (initialBreakMinutes ?? 5).toString());
+  final focusController = TextEditingController(
+    text: (initialFocusMinutes ?? 25).toString(),
+  );
+  final breakController = TextEditingController(
+    text: (initialBreakMinutes ?? 5).toString(),
+  );
 
   await showDialog<void>(
     context: context,
@@ -98,7 +116,11 @@ Future<void> showPromodoroQuickDialog(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Center(
-                    child: Icon(Icons.timer_outlined, size: 42, color: Color(0xFF4648D4)),
+                    child: Icon(
+                      Icons.timer_outlined,
+                      size: 42,
+                      color: Color(0xFF4648D4),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   const Text(
@@ -111,29 +133,48 @@ Future<void> showPromodoroQuickDialog(
                     Text(
                       taskTitle,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 14, color: Color(0xFF464554)),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF464554),
+                      ),
                     ),
                   ],
                   const SizedBox(height: 18),
-                  _NumberField(label: 'Tập trung (phút)', controller: focusController),
+                  _NumberField(
+                    label: 'Tập trung (phút)',
+                    controller: focusController,
+                  ),
                   const SizedBox(height: 12),
-                  _NumberField(label: 'Giải lao (phút)', controller: breakController),
+                  _NumberField(
+                    label: 'Giải lao (phút)',
+                    controller: breakController,
+                  ),
                   const SizedBox(height: 14),
                   const Text(
                     'AI sẽ xem xét thời gian bạn nhập và gợi ý cấu hình phù hợp.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, color: Color(0xFF464554), height: 1.4),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF464554),
+                      height: 1.4,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
-                    onPressed: () => handlePromodoroAiPress(ctx, focusController, breakController),
+                    onPressed: () => handlePromodoroAiPress(
+                      ctx,
+                      focusController,
+                      breakController,
+                    ),
                     icon: const Icon(Icons.auto_awesome_rounded),
                     label: const Text('Tư vấn AI'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF4648D4),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
