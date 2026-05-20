@@ -26,7 +26,9 @@ class _C {
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({super.key});
+  final bool showBottomNav;
+
+  const CalendarScreen({super.key, this.showBottomNav = true});
 
   @override
   State<CalendarScreen> createState() => _CalendarScreenState();
@@ -126,10 +128,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const FloatingBottomNavBar(
-        currentIndex: 1,
-        showFab: false,
-      ),
+        bottomNavigationBar: widget.showBottomNav
+          ? const FloatingBottomNavBar(currentIndex: 1, showFab: false)
+          : null,
     );
   }
 

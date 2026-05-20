@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 class VoiceTaskDraft {
   final String way;
   final String title;
@@ -107,9 +107,10 @@ class AiRecommendation {
   });
 }
 
+
+
 class AIService {
-  // Read API key from compile-time define if provided, otherwise empty.
-  // Set a runtime key via `setApiKey` when needed. Do NOT commit keys to source control.
+  // Always get API key from dotenv if available, fallback to compile-time define.
   String _apiKey = const String.fromEnvironment(
     'GOOGLE_API_KEY',
     defaultValue: '',
@@ -621,26 +622,36 @@ Bạn là trợ lý trích xuất ý định từ câu nói cho ứng dụng Tod
 - Giờ hiện tại: ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}
 =====================================
 
-Khi người dùng nói "ngày mai" → date = "$tomorrowStr"
-Khi người dùng nói "hôm nay" → date = "$todayStr"
-Khi người dùng nói "tuần sau" → cộng thêm 7 ngày từ hôm nay.
-Trường "date" LUÔN theo định dạng YYYY-MM-DD hoặc null.
-Trường "time" LUÔN theo định dạng HH:mm (24h) hoặc null.
+Ghi chú về ngày/giờ:
+- Khi người dùng nói "ngày mai" → date = "$tomorrowStr"
+- Khi người dùng nói "hôm nay" → date = "$todayStr"
+- Khi người dùng nói "tuần sau" → cộng thêm 7 ngày từ hôm nay.
+- Trường "date" LUÔN theo định dạng YYYY-MM-DD hoặc null.
+- Trường "time" LUÔN theo định dạng HH:mm (24h) hoặc null.
 
-Có ba kiểu JSON hợp lệ:
+Hãy phân loại ý định thành một trong các kiểu JSON sau (chỉ chọn 1 kiểu):
 
-1) Task:
+1) Promodoro (nhanh):
+{
+  "type": "promodoro",
+  "task_name": "Tiêu đề công việc",
+  "duration_minutes": 25,         // số phút tập trung (int)
+  "category": "Công việc" | "Học tập" | "Cá nhân" | "Sức khỏe" | null,
+  "priority": "Cao" | "Vừa" | "Thấp" | null
+}
+
+2) Task dài hạn:
 {
   "type": "task",
-  "way": "long_term_task" | "promodoro" hoặc null,
+  "way": "long_term_task",
   "task_name": "Tiêu đề công việc",
   "date": "YYYY-MM-DD" hoặc null,
   "time": "HH:mm" hoặc null,
-  "person": "Tên người" hoặc null,
-  "category": "Công việc" | "Học tập" | "Cá nhân" hoặc null
+  "category": "Công việc" | "Học tập" | "Cá nhân" | "Sức khỏe" | null,
+  "priority": "Cao" | "Vừa" | "Thấp" | null
 }
 
-2) Command (điều hướng):
+3) Command (điều hướng):
 {
   "type": "command",
   "action": "navigate",
@@ -648,12 +659,16 @@ Có ba kiểu JSON hợp lệ:
   "params": {}
 }
 
-3) Không hiểu:
+4) Không hiểu / noop:
 {
   "type": "noop"
 }
 
-CHỈ TRẢ VỀ JSON. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀO KHÁC.
+Hướng dẫn quan trọng:
+- Nếu câu nói chứa từ khoá "pomodoro" hoặc "promodoro" hoặc đề cập rõ ràng đến thời lượng phút, trả kiểu "promodoro".
+- Nếu người dùng rõ ràng nói muốn tạo lịch/hẹn ngày giờ, trả kiểu "task" với trường date/time.
+- Trả giá trị null cho các trường không có dữ liệu.
+- CHỈ TRẢ VỀ JSON. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀO KHÁC.
 '''),
           );
 

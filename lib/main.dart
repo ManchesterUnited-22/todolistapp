@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:smart_app/core/app_language.dart';
 import 'package:smart_app/core/app_theme.dart';
@@ -17,29 +18,57 @@ import 'screens/success_screen.dart';
 import 'services/theme_service.dart';
 import 'services/task_notification_service.dart';
 import 'services/stats_updater.dart';
-import 'ai/app_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint('==> main: WidgetsFlutterBinding initialized');
+
+  // Load environment variables
+  try {
+    await dotenv.load();
+    debugPrint('==> main: dotenv loaded, GOOGLE_API_KEY = \'${dotenv.env['GOOGLE_API_KEY']}\'');
+  } catch (e) {
+    debugPrint('==> main: dotenv load error: $e');
+  }
 
   try {
     final firebaseInit = Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
     await firebaseInit.timeout(const Duration(seconds: 5));
-    debugPrint('✓ Firebase initialized');
+    debugPrint('==> main: Firebase initialized');
   } catch (e) {
-    debugPrint('⚠ Firebase init error: $e');
+    debugPrint('==> main: Firebase init error: $e');
   }
 
-  await ThemeService.initialize();
-  await TaskNotificationService.instance.initialize();
-  await StatsUpdater.instance.initialize();
-  AIService.instance.setApiKey(
-    const String.fromEnvironment('GOOGLE_API_KEY', defaultValue: ''),
-  );
-  await AppController.instance.init();
+  try {
+    await ThemeService.initialize();
+    debugPrint('==> main: ThemeService initialized');
+  } catch (e) {
+    debugPrint('==> main: ThemeService init error: $e');
+  }
+  try {
+    await TaskNotificationService.instance.initialize();
+    debugPrint('==> main: TaskNotificationService initialized');
+  } catch (e) {
+    debugPrint('==> main: TaskNotificationService init error: $e');
+  }
+  try {
+    await StatsUpdater.instance.initialize();
+    debugPrint('==> main: StatsUpdater initialized');
+  } catch (e) {
+    debugPrint('==> main: StatsUpdater init error: $e');
+  }
+  try {
+    AIService.instance.setApiKey(
+      dotenv.env['GOOGLE_API_KEY'] ?? '',
+    );
+    debugPrint('==> main: AIService API key set');
+  } catch (e) {
+    debugPrint('==> main: AIService setApiKey error: $e');
+  }
   runApp(const MyApp());
+  debugPrint('==> main: runApp called');
 }
 
 Future<void> _bootstrapApp() async {
@@ -78,22 +107,7 @@ class _MyAppState extends State<MyApp> {
             return MaterialApp(
               title: 'AURORA',
               builder: (context, child) {
-                return AnimatedBuilder(
-                  animation: AppController.instance,
-                  builder: (ctx, _) {
-                    final blocking = AppController.instance.isTourActive;
-                    return Stack(
-                      children: [
-                        child ?? const SizedBox.shrink(),
-                        if (blocking)
-                          const ModalBarrier(
-                            dismissible: false,
-                            color: Colors.transparent,
-                          ),
-                      ],
-                    );
-                  },
-                );
+                return child ?? const SizedBox.shrink();
               },
               debugShowCheckedModeBanner: false,
               locale: locale,

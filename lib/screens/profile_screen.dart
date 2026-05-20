@@ -152,7 +152,9 @@ const _badges = [
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final bool showBottomNav;
+
+  const ProfileScreen({super.key, this.showBottomNav = true});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -204,10 +206,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const FloatingBottomNavBar(
-        currentIndex: 3,
-        showFab: false,
-      ),
+        bottomNavigationBar: widget.showBottomNav
+          ? const FloatingBottomNavBar(currentIndex: 3, showFab: false)
+          : null,
     );
   }
 

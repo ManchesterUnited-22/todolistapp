@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:smart_app/ai/tour_keys.dart';
 
 class VoiceTaskButton extends StatefulWidget {
   final Future<void> Function(String) onVoiceResult;
@@ -85,9 +84,7 @@ class _VoiceTaskButtonState extends State<VoiceTaskButton>
               ),
             ),
           ),
-        // attach global key for tour highlight
         FloatingActionButton(
-          key: TourKeys.neoNutMic,
           onPressed: _openVoiceAssistant,
           backgroundColor: _isProcessing ? Colors.red : Colors.blue,
           child: Icon(_isProcessing ? Icons.hourglass_top : Icons.mic_none),

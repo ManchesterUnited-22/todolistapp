@@ -1,7 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:smart_app/core/app_colors.dart';
-import 'package:smart_app/ai/app_controller.dart';
-import 'package:smart_app/ai/tour_keys.dart';
+
+// ─── Data model ───────────────────────────────────────────────────────────────
+
+class _NavItemData {
+  final IconData icon;
+  final String label;
+  const _NavItemData(this.icon, this.label);
+}
+
+const List<_NavItemData> _items = [
+    _NavItemData(Icons.home_rounded, 'Trang chủ'),
+    _NavItemData(Icons.calendar_today_rounded, 'Lịch của tôi'),
+    _NavItemData(Icons.bar_chart_rounded, 'Thống kê'),
+    _NavItemData(Icons.person_rounded, 'Hồ sơ'),
+];
+
+// ─── Main widget ──────────────────────────────────────────────────────────────
 
 class FloatingBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -18,17 +33,15 @@ class FloatingBottomNavBar extends StatelessWidget {
   });
 
   void _handleTap(BuildContext context, int index) {
-    if (AppController.instance.isTourActive) return;
     if (onTap != null) {
       onTap!(index);
       return;
     }
 
-    // Default navigation using named routes
-    final routeMap = {
+    const routeMap = {
       0: '/dashboard',
-      1: '/stats',
-      2: '/calendar',
+      1: '/calendar',
+      2: '/stats',
       3: '/profile',
     };
 
@@ -38,159 +51,63 @@ class FloatingBottomNavBar extends StatelessWidget {
     }
   }
 
-  void _openAddTaskSheet(BuildContext context) {
-    // TODO: Implement your add task bottom sheet here
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) =>
-          const Center(child: Text('Add Task Sheet - Implement here')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.bottomCenter,
-      children: [
-        // Bottom Navigation Bar
-        Container(
-          height: 72,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.zero,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
-                blurRadius: 20,
-                offset: const Offset(0, 6),
-              ),
-            ],
+    return Container(
+      height: 72,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.zero,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 20,
+            offset: const Offset(0, -6),
           ),
-          child: Row(
-            children: showFab && !fabAtCorner
-                ? [
-                    Expanded(
-                      child: _NavItem(
-                        key: TourKeys.neoTabHome,
-                        icon: _items[0].icon,
-                        label: _items[0].label,
-                        selected: currentIndex == 0,
-                        onTap: () => _handleTap(context, 0),
-                      ),
-                    ),
-                    Expanded(
-                      child: _NavItem(
-                        key: TourKeys.neoTabStats,
-                        icon: _items[1].icon,
-                        label: _items[1].label,
-                        selected: currentIndex == 1,
-                        onTap: () => _handleTap(context, 1),
-                      ),
-                    ),
-                    const SizedBox(width: 54), // Space for FAB
-                    Expanded(
-                      child: _NavItem(
-                        key: TourKeys.neoTabCalendar,
-                        icon: _items[2].icon,
-                        label: _items[2].label,
-                        selected: currentIndex == 2,
-                        onTap: () => _handleTap(context, 2),
-                      ),
-                    ),
-                    Expanded(
-                      child: _NavItem(
-                        key: TourKeys.neoTabProfile,
-                        icon: _items[3].icon,
-                        label: _items[3].label,
-                        selected: currentIndex == 3,
-                        onTap: () => _handleTap(context, 3),
-                      ),
-                    ),
-                  ]
-                : [
-                    // Full 4 items without FAB space
-                    Expanded(
-                      child: _NavItem(
-                        key: TourKeys.neoTabHome,
-                        icon: _items[0].icon,
-                        label: _items[0].label,
-                        selected: currentIndex == 0,
-                        onTap: () => _handleTap(context, 0),
-                      ),
-                    ),
-                    Expanded(
-                      child: _NavItem(
-                        key: TourKeys.neoTabStats,
-                        icon: _items[1].icon,
-                        label: _items[1].label,
-                        selected: currentIndex == 1,
-                        onTap: () => _handleTap(context, 1),
-                      ),
-                    ),
-                    Expanded(
-                      child: _NavItem(
-                        key: TourKeys.neoTabCalendar,
-                        icon: _items[2].icon,
-                        label: _items[2].label,
-                        selected: currentIndex == 2,
-                        onTap: () => _handleTap(context, 2),
-                      ),
-                    ),
-                    Expanded(
-                      child: _NavItem(
-                        key: TourKeys.neoTabProfile,
-                        icon: _items[3].icon,
-                        label: _items[3].label,
-                        selected: currentIndex == 3,
-                        onTap: () => _handleTap(context, 3),
-                      ),
-                    ),
-                  ],
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _NavItem(
+              icon: _items[0].icon,
+              label: _items[0].label,
+              selected: currentIndex == 0,
+              onTap: () => _handleTap(context, 0),
+            ),
           ),
-        ),
-
-        // Floating Action Button
-        if (showFab)
-          fabAtCorner
-              ? Positioned(
-                  bottom: 96,
-                  right: 24,
-                  child: FloatingActionButton(
-                    heroTag: 'floating_bottom_nav_add',
-                    onPressed: AppController.instance.isTourActive
-                        ? null
-                        : () => _openAddTaskSheet(context),
-                    backgroundColor: AppColors.brand,
-                    foregroundColor: Colors.white,
-                    elevation: 8,
-                    child: const Icon(Icons.add_rounded, size: 30),
-                  ),
-                )
-              : Positioned(
-                  bottom: 20,
-                  child: FloatingActionButton(
-                    heroTag: 'floating_bottom_nav_add',
-                    onPressed: AppController.instance.isTourActive
-                        ? null
-                        : () => _openAddTaskSheet(context),
-                    backgroundColor: AppColors.brand,
-                    foregroundColor: Colors.white,
-                    elevation: 8,
-                    child: const Icon(Icons.add_rounded, size: 30),
-                  ),
-                ),
-      ],
+          Expanded(
+            child: _NavItem(
+              icon: _items[1].icon,
+              label: _items[1].label,
+              selected: currentIndex == 1,
+              onTap: () => _handleTap(context, 1),
+            ),
+          ),
+          Expanded(
+            child: _NavItem(
+              icon: _items[2].icon,
+              label: _items[2].label,
+              selected: currentIndex == 2,
+              onTap: () => _handleTap(context, 2),
+            ),
+          ),
+          Expanded(
+            child: _NavItem(
+              icon: _items[3].icon,
+              label: _items[3].label,
+              selected: currentIndex == 3,
+              onTap: () => _handleTap(context, 3),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-// ==================== Private Widgets ====================
+// ─── Nav item widget ──────────────────────────────────────────────────────────
 
 class _NavItem extends StatelessWidget {
   final IconData icon;
@@ -242,16 +159,3 @@ class _NavItem extends StatelessWidget {
     );
   }
 }
-
-class _NavEntry {
-  final IconData icon;
-  final String label;
-  const _NavEntry(this.icon, this.label);
-}
-
-const List<_NavEntry> _items = [
-  _NavEntry(Icons.home_filled, 'Trang chủ'),
-  _NavEntry(Icons.bar_chart_outlined, 'Thống kê'),
-  _NavEntry(Icons.calendar_month_outlined, 'Lịch của tôi'),
-  _NavEntry(Icons.person_outline, 'Hồ sơ'),
-];

@@ -7,10 +7,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // --- Cloudinary configuration (replace with your values) ---
 const String _cloudinaryCloudName = 'dsbfrianm';
 const String _cloudinaryUploadPreset = 'todolist_preset';
+
+// Lấy Google API key từ dotenv khi cần. Tránh đọc ở top-level
+String? get googleApiKey {
+  try {
+    return dotenv.env['GOOGLE_API_KEY'];
+  } catch (_) {
+    // Nếu dotenv chưa được load, trả về null an toàn
+    return null;
+  }
+}
 
 /// AvatarService: pick image, upload to Cloudinary, optimize URL, save to Firestore.
 class AvatarService {

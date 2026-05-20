@@ -44,7 +44,9 @@ BoxDecoration get _glassCard => BoxDecoration(
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 class ChartsScreen extends StatefulWidget {
-  const ChartsScreen({super.key});
+  final bool showBottomNav;
+
+  const ChartsScreen({super.key, this.showBottomNav = true});
 
   @override
   State<ChartsScreen> createState() => _ChartsScreenState();
@@ -86,10 +88,9 @@ class _ChartsScreenState extends State<ChartsScreen> {
       ),
       appBar: _buildAppBar(),
       body: _buildBody(),
-      bottomNavigationBar: const FloatingBottomNavBar(
-        currentIndex: 2,
-        showFab: false,
-      ),
+        bottomNavigationBar: widget.showBottomNav
+          ? const FloatingBottomNavBar(currentIndex: 2, showFab: false)
+          : null,
     );
   }
 

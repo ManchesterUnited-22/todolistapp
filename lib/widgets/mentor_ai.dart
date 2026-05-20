@@ -272,84 +272,87 @@ Future<DateTimeRange?> _showStyledDateRangePicker(BuildContext context) async {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              // Calendar grid
-                              GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 7,
-                                      mainAxisSpacing: 4,
-                                      crossAxisSpacing: 4,
-                                      childAspectRatio: 1,
-                                    ),
-                                itemCount: leadingBlanks + daysInMonth,
-                                itemBuilder: (_, index) {
-                                  if (index < leadingBlanks) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  final day = index - leadingBlanks + 1;
-                                  final date = DateTime(
-                                    displayMonth.year,
-                                    displayMonth.month,
-                                    day,
-                                  );
-                                  final isStart =
-                                      rangeStart != null &&
-                                      DateUtils.isSameDay(date, rangeStart);
-                                  final isEnd =
-                                      rangeEnd != null &&
-                                      DateUtils.isSameDay(date, rangeEnd);
-                                  final inRange =
-                                      rangeStart != null &&
-                                      rangeEnd != null &&
-                                      date.isAfter(rangeStart!) &&
-                                      date.isBefore(rangeEnd!);
-                                  final isSelected = isStart || isEnd;
+                              // Calendar grid (constrained to avoid dialog overflow)
+                              SizedBox(
+                                height: MediaQuery.of(ctx).size.height * 0.38,
+                                child: GridView.builder(
+                                  padding: EdgeInsets.zero,
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 7,
+                                    mainAxisSpacing: 4,
+                                    crossAxisSpacing: 4,
+                                    childAspectRatio: 1,
+                                  ),
+                                  itemCount: leadingBlanks + daysInMonth,
+                                  itemBuilder: (_, index) {
+                                    if (index < leadingBlanks) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    final day = index - leadingBlanks + 1;
+                                    final date = DateTime(
+                                      displayMonth.year,
+                                      displayMonth.month,
+                                      day,
+                                    );
+                                    final isStart =
+                                        rangeStart != null &&
+                                        DateUtils.isSameDay(date, rangeStart);
+                                    final isEnd =
+                                        rangeEnd != null &&
+                                        DateUtils.isSameDay(date, rangeEnd);
+                                    final inRange =
+                                        rangeStart != null &&
+                                        rangeEnd != null &&
+                                        date.isAfter(rangeStart!) &&
+                                        date.isBefore(rangeEnd!);
+                                    final isSelected = isStart || isEnd;
 
-                                  return GestureDetector(
-                                    onTap: () => setState(() {
-                                      if (rangeStart == null ||
-                                          (rangeStart != null &&
-                                              rangeEnd != null)) {
-                                        rangeStart = date;
-                                        rangeEnd = null;
-                                      } else {
-                                        if (date.isBefore(rangeStart!)) {
-                                          rangeEnd = rangeStart;
+                                    return GestureDetector(
+                                      onTap: () => setState(() {
+                                        if (rangeStart == null ||
+                                            (rangeStart != null &&
+                                                rangeEnd != null)) {
                                           rangeStart = date;
+                                          rangeEnd = null;
                                         } else {
-                                          rangeEnd = date;
+                                          if (date.isBefore(rangeStart!)) {
+                                            rangeEnd = rangeStart;
+                                            rangeStart = date;
+                                          } else {
+                                            rangeEnd = date;
+                                          }
                                         }
-                                      }
-                                    }),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? const Color(0xFF4648D4)
-                                            : inRange
-                                            ? const Color(
-                                                0xFF4648D4,
-                                              ).withValues(alpha: 0.15)
-                                            : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(32),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        '$day',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w700
-                                              : FontWeight.w400,
+                                      }),
+                                      child: Container(
+                                        decoration: BoxDecoration(
                                           color: isSelected
-                                              ? Colors.white
-                                              : const Color(0xFF191C1E),
+                                              ? const Color(0xFF4648D4)
+                                              : inRange
+                                                  ? const Color(
+                                                      0xFF4648D4,
+                                                    ).withValues(alpha: 0.15)
+                                                  : Colors.transparent,
+                                          borderRadius:
+                                              BorderRadius.circular(32),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          '$day',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w700
+                                                : FontWeight.w400,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : const Color(0xFF191C1E),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  );
-                                },
+                                    );
+                                  },
+                                ),
                               ),
                             ],
                           ),
@@ -518,7 +521,10 @@ void _showReportDialog(BuildContext context, _ReportData data) {
 
             // ── Scrollable body ──
             ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 420),
+              constraints: BoxConstraints(
+                // Use a fraction of the screen height so the dialog fits on small devices
+                maxHeight: MediaQuery.of(ctx).size.height * 0.6,
+              ),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(

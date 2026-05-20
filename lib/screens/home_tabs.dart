@@ -4,7 +4,6 @@ import 'calendar_screen.dart';
 import 'charts_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/floating_bottom_navbar.dart';
-import 'package:smart_app/ai/app_controller.dart';
 
 class HomeTabs extends StatefulWidget {
   const HomeTabs({super.key});
@@ -20,7 +19,6 @@ class _HomeTabsState extends State<HomeTabs> {
   @override
   void initState() {
     super.initState();
-    AppController.instance.registerPageController(_pc);
   }
 
   @override
@@ -33,7 +31,6 @@ class _HomeTabsState extends State<HomeTabs> {
   }
 
   void _onTap(int idx) {
-    if (AppController.instance.isTourActive) return;
     setState(() => _current = idx);
     _pc.animateToPage(
       idx,
@@ -47,21 +44,19 @@ class _HomeTabsState extends State<HomeTabs> {
     return Scaffold(
       body: PageView(
         controller: _pc,
-        physics: AppController.instance.isTourActive
-            ? const NeverScrollableScrollPhysics()
-            : const BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         onPageChanged: (i) => setState(() => _current = i),
         children: const [
-          MainDashboardScreen(),
-          ChartsScreen(),
-          CalendarScreen(),
-          ProfileScreen(),
+          MainDashboardScreen(showBottomNav: false),
+          ChartsScreen(showBottomNav: false),
+          CalendarScreen(showBottomNav: false),
+          ProfileScreen(showBottomNav: false),
         ],
       ),
       bottomNavigationBar: FloatingBottomNavBar(
         currentIndex: _current,
         onTap: _onTap,
-        showFab: true,
+        showFab: _current == 0 ? false : false, // Luôn ẩn FAB ở mọi tab (nếu muốn chỉ hiện ở tab khác, đổi điều kiện)
       ),
     );
   }

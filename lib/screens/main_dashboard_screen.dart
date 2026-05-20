@@ -2,14 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../widgets/floating_bottom_navbar.dart';
-import 'package:smart_app/ai/app_controller.dart';
-import 'package:smart_app/ai/tour_keys.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/task_notification_bell.dart';
 import '../widgets/voicebutton/voice_button.dart';
 import '../widgets/voicebutton/voice_handler.dart';
-import 'package:smart_app/ai/tour_engine.dart';
-import 'package:smart_app/ai/comic_assistant.dart';
 import '../views/task_viewmodel.dart';
 
 // ── Colour tokens ─────────────────────────────────────────────────────────────
@@ -33,7 +29,9 @@ class _C {
 }
 
 class MainDashboardScreen extends StatefulWidget {
-  const MainDashboardScreen({super.key});
+  final bool showBottomNav;
+
+  const MainDashboardScreen({super.key, this.showBottomNav = true});
 
   @override
   State<MainDashboardScreen> createState() => _MainDashboardScreenState();
@@ -48,11 +46,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (AppController.instance.isTourActive && mounted) {
-        AppController.instance.startTour(context);
-      }
-    });
   }
 
   void _toggleSidebar() => setState(() => _showSidebar = !_showSidebar);
@@ -404,31 +397,28 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
           );
         }
 
-        return Container(
-          key: TourKeys.neoThanhTask,
-          child: ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: docs.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final doc = docs[index];
-              final task = TaskViewModel.fromMap(
-                doc.data() as Map<String, dynamic>,
-              );
-              final isCompleted = _isTaskCompleted(task);
-              final isOverdue = _isTaskOverdue(task);
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: docs.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            final doc = docs[index];
+            final task = TaskViewModel.fromMap(
+              doc.data() as Map<String, dynamic>,
+            );
+            final isCompleted = _isTaskCompleted(task);
+            final isOverdue = _isTaskOverdue(task);
 
-              return _TaskCard(
-                task: task,
-                isCompleted: isCompleted,
-                isOverdue: isOverdue,
-                onToggle: (val) =>
-                    _toggleTaskStatus(doc.id, task, val ?? false),
-                onDelete: () => _deleteTask(doc.id),
-              );
-            },
-          ),
+            return _TaskCard(
+              task: task,
+              isCompleted: isCompleted,
+              isOverdue: isOverdue,
+              onToggle: (val) =>
+                  _toggleTaskStatus(doc.id, task, val ?? false),
+              onDelete: () => _deleteTask(doc.id),
+            );
+          },
         );
       },
     );
@@ -559,13 +549,13 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
           ),
         ),
 
-        // Bottom nav — from code 1 (FloatingBottomNavBar widget)
-        const Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: FloatingBottomNavBar(currentIndex: 0, showFab: false),
-        ),
+        if (widget.showBottomNav)
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: FloatingBottomNavBar(currentIndex: 0, showFab: false),
+          ),
 
         // FAB — premium gradient style from code 2
         Positioned(
@@ -606,20 +596,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
         child: Stack(
           children: [
             _buildBody(),
-            // Comic assistant driven by tour engine speech stream
-            StreamBuilder<String>(
-              stream: TourEngine.instance.speechStream,
-              builder: (context, snap) {
-                final text = snap.data ?? '';
-                if (!AppController.instance.isTourActive || text.isEmpty)
-                  return const SizedBox.shrink();
-                return ComicAssistant(
-                  text: text,
-                  charDelay: const Duration(milliseconds: 40),
-                  alignment: Alignment.bottomLeft,
-                );
-              },
-            ),
           ],
         ),
       ),
