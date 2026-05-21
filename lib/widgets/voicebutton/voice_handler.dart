@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../ai/ai_services.dart';
+import '../../ai/voice_ai_service.dart';
 import 'promodoro_flow.dart';
 import 'sequential_flow.dart';
 
@@ -11,7 +11,7 @@ class VoiceHandler {
     );
 
     try {
-      final ai = AIService.instance;
+      final ai = VoiceAiService.instance;
       final Map<String, dynamic>? intent = await ai.extractIntentFromText(transcript);
 
       final extractedIntent = intent ?? <String, dynamic>{};

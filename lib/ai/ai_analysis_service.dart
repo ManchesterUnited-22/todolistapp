@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:google_generative_ai/google_generative_ai.dart';
-import '../ai/ai_services.dart' as legacy_ai;
+import '../ai/voice_ai_service.dart' as legacy_ai;
 
-class AiService {
-  AiService._();
+class AiAnalysisService {
+  AiAnalysisService._();
 
   static String? _apiKey;
 
@@ -82,7 +82,7 @@ class AiService {
     // If not explicitly configured with an OpenAI key, try to reuse the legacy in-repo key
     if (!isConfigured) {
       try {
-        final legacyKey = legacy_ai.AIService.instance.apiKey;
+        final legacyKey = legacy_ai.VoiceAiService.instance.apiKey;
         if (legacyKey.isNotEmpty) {
           // If it's an OpenAI key, prefer that for the OpenAI HTTP path
           if (legacyKey.startsWith('sk-')) {
@@ -112,7 +112,7 @@ class AiService {
     }
 
     if (!isConfigured) {
-      return 'AI chưa được cấu hình hoặc API key không phù hợp. Nếu bạn có OpenAI key (bắt đầu bằng "sk-"), gọi AiService.setApiKey(<your_sk_key>) trước khi phân tích, hoặc cấu hình app để dùng Google Generative API.';
+      return 'AI chưa được cấu hình hoặc API key không phù hợp. Nếu bạn có OpenAI key (bắt đầu bằng "sk-"), gọi AiAnalysisService.setApiKey(<your_sk_key>) trước khi phân tích, hoặc cấu hình app để dùng Google Generative API.';
     }
 
     final url = Uri.parse('https://api.openai.com/v1/chat/completions');

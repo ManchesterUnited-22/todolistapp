@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../ai/ai_services.dart';
+import '../../ai/voice_ai_service.dart';
 import '../../services/timer_service.dart';
 
 Future<void> handlePromodoroAiPress(
@@ -22,7 +22,7 @@ Future<void> handlePromodoroAiPress(
     return;
   }
 
-  final rec = await AIService.instance.recommendFocusBreak(
+  final rec = await VoiceAiService.instance.recommendFocusBreak(
     focusMinutes: focusMinutes,
     breakMinutes: breakMinutes,
   );

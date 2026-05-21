@@ -48,8 +48,8 @@ class _HomeTabsState extends State<HomeTabs> {
         onPageChanged: (i) => setState(() => _current = i),
         children: const [
           MainDashboardScreen(showBottomNav: false),
-          ChartsScreen(showBottomNav: false),
           CalendarScreen(showBottomNav: false),
+          ChartsScreen(showBottomNav: false),
           ProfileScreen(showBottomNav: false),
         ],
       ),

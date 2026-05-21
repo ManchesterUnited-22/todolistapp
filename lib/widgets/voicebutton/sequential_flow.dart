@@ -2,14 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../ai/ai_services.dart';
+import '../../ai/voice_ai_service.dart';
 import '../../views/task_viewmodel.dart';
 import 'voice_input_dialog.dart';
 
 Future<void> collectVoiceTaskSequential(BuildContext context, {String? initialTranscript}) async {
   final scaffold = ScaffoldMessenger.of(context);
   try {
-    final ai = AIService.instance;
+    final ai = VoiceAiService.instance;
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       scaffold.showSnackBar(const SnackBar(content: Text('Vui lòng đăng nhập để lưu nhiệm vụ')));
@@ -164,9 +164,9 @@ Timestamp _parseDueAtToTimestamp(String input) {
         final suff = hmatch.group(3);
         if (suff != null) {
           if (suff.contains('chiều') || suff.contains('tối')) {
-            if (hour! < 12) hour = hour! + 12;
+            if (hour < 12) hour = hour + 12;
           } else if (suff.contains('trưa')) {
-            if (hour! < 11) hour = hour! + 12;
+            if (hour < 11) hour = hour + 12;
           } else if (suff.contains('sáng')) {
             if (hour == 12) hour = 0;
           }

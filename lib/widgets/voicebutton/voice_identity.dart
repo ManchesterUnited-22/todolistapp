@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../../services/voice_nudge_service.dart';
-import 'package:smart_app/ai/ai_services.dart';
+import 'package:smart_app/ai/voice_ai_service.dart';
 Future<VoiceTaskDraft?> collectVoiceTaskDraft(
   BuildContext context, {
   String transcript = '',
@@ -14,8 +14,8 @@ Future<VoiceTaskDraft?> collectVoiceTaskDraft(
   final initialHint = (intent?['task_name'] as String?)?.trim();
 
   while (true) {
-    final prompt = AIService.instance.voicePromptForStep(currentState);
-    await AIService.instance.speakText(prompt);
+    final prompt = VoiceAiService.instance.voicePromptForStep(currentState);
+    await VoiceAiService.instance.speakText(prompt);
 
     final answer = await _askVoiceAnswer(
       context,
@@ -33,7 +33,7 @@ Future<VoiceTaskDraft?> collectVoiceTaskDraft(
 
     if (answer == null) return null;
 
-    final reply = AIService.instance.advanceVoiceTaskConversation(
+    final reply = VoiceAiService.instance.advanceVoiceTaskConversation(
       answer,
       currentState,
     );

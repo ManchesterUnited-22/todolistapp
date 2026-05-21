@@ -6,7 +6,7 @@ import 'package:smart_app/core/app_theme.dart';
 import 'package:smart_app/core/app_colors.dart';
 import 'package:smart_app/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:smart_app/ai/ai_services.dart';
+import 'package:smart_app/ai/voice_ai_service.dart';
 import 'screens/main_dashboard_screen.dart';
 import 'screens/home_tabs.dart';
 import 'screens/splash_screen.dart';
@@ -24,8 +24,10 @@ Future<void> main() async {
   debugPrint('==> main: WidgetsFlutterBinding initialized');
 
   // Load environment variables
+  var dotenvLoaded = false;
   try {
     await dotenv.load();
+    dotenvLoaded = true;
     debugPrint('==> main: dotenv loaded, GOOGLE_API_KEY = \'${dotenv.env['GOOGLE_API_KEY']}\'');
   } catch (e) {
     debugPrint('==> main: dotenv load error: $e');
@@ -60,12 +62,15 @@ Future<void> main() async {
     debugPrint('==> main: StatsUpdater init error: $e');
   }
   try {
-    AIService.instance.setApiKey(
-      dotenv.env['GOOGLE_API_KEY'] ?? '',
-    );
-    debugPrint('==> main: AIService API key set');
+    final apiKey = dotenvLoaded ? (dotenv.env['GOOGLE_API_KEY'] ?? '') : '';
+    if (apiKey.isNotEmpty) {
+      VoiceAiService.instance.setApiKey(apiKey);
+      debugPrint('==> main: VoiceAiService API key set');
+    } else {
+      debugPrint('==> main: VoiceAiService API key skipped because dotenv was not loaded');
+    }
   } catch (e) {
-    debugPrint('==> main: AIService setApiKey error: $e');
+    debugPrint('==> main: VoiceAiService setApiKey error: $e');
   }
   runApp(const MyApp());
   debugPrint('==> main: runApp called');

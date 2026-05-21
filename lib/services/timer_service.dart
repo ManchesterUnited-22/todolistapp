@@ -32,6 +32,7 @@ class TimerService extends ChangeNotifier {
   Timer? _ticker;
   TimerPhase _phase = TimerPhase.idle;
   TimerPhase get phase => _phase;
+  TimerPhase _lastActivePhase = TimerPhase.idle;
 
   int _remainingSeconds = 0;
   int get remainingSeconds => _remainingSeconds;
@@ -52,6 +53,9 @@ class TimerService extends ChangeNotifier {
 
   void _setPhase(TimerPhase p) {
     _phase = p;
+    if (p != TimerPhase.paused && p != TimerPhase.stopped) {
+      _lastActivePhase = p;
+    }
     notifyListeners();
   }
 
@@ -93,6 +97,38 @@ class TimerService extends ChangeNotifier {
     return taskDocId;
   }
 
+  Future<String?> startExistingTaskSession({
+    required String taskDocId,
+    required int focusMinutes,
+    required int breakMinutes,
+    required String uid,
+  }) async {
+    await initialize();
+    this.taskDocId = taskDocId;
+    focusDurationMinutes = focusMinutes;
+    breakDurationMinutes = breakMinutes;
+    accumulatedFocusSeconds = 0;
+    accumulatedBreakSeconds = 0;
+    isOverrun = false;
+    overrunSeconds = 0;
+
+    try {
+      await _db.collection('tasks').doc(taskDocId).set({
+        'stat': 'Đang làm',
+        'way': 'promodoro',
+        'focus_duration': focusMinutes,
+        'break_duration': breakMinutes,
+        'uid': uid,
+        'timestamp': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      if (kDebugMode) print('Error preparing existing task session: $e');
+    }
+
+    _startPreStart();
+    return this.taskDocId;
+  }
+
   void _startPreStart() {
     _ticker?.cancel();
     _remainingSeconds = 5;
@@ -117,10 +153,14 @@ class TimerService extends ChangeNotifier {
       // save periodically
       if (accumulatedFocusSeconds % 5 == 0) await _saveState();
       if (_remainingSeconds <= 0) {
-        // Enter overtime behavior: notify user, then keep counting overtime until user stops or moves to break
+        // Automatically switch to break when focus time is done.
         t.cancel();
         await _persistAccumulatedTimes();
-        _enterOverrun();
+        if (breakDurationMinutes > 0) {
+          _startBreaking();
+        } else {
+          _enterOverrun();
+        }
       }
       notifyListeners();
     });
@@ -137,7 +177,11 @@ class TimerService extends ChangeNotifier {
         t.cancel();
         _persistAccumulatedTimes();
         // after break, start a new focus session automatically
-        _startFocusing();
+        if (focusDurationMinutes > 0) {
+          _startFocusing();
+        } else {
+          stopSession(markCompleted: false);
+        }
       }
       notifyListeners();
     });
@@ -174,6 +218,7 @@ class TimerService extends ChangeNotifier {
 
   void pauseSession() {
     if (_phase == TimerPhase.idle || _phase == TimerPhase.stopped) return;
+    _lastActivePhase = _phase;
     _ticker?.cancel();
     _setPhase(TimerPhase.paused);
     // persist partial times
@@ -183,9 +228,32 @@ class TimerService extends ChangeNotifier {
 
   void resumeSession() {
     if (_phase != TimerPhase.paused) return;
-    // resume last known phase
-    // For simplicity, resume focusing if remaining>0, else resume overtime
-    if (_remainingSeconds > 0) {
+    // resume the phase that was active before pause
+    if (_lastActivePhase == TimerPhase.breaking) {
+      _setPhase(TimerPhase.breaking);
+      _ticker = Timer.periodic(const Duration(seconds: 1), (t) {
+        _remainingSeconds -= 1;
+        accumulatedBreakSeconds += 1;
+        if (_remainingSeconds <= 0) {
+          t.cancel();
+          _persistAccumulatedTimes();
+          if (focusDurationMinutes > 0) {
+            _startFocusing();
+          } else {
+            stopSession(markCompleted: false);
+          }
+        }
+        notifyListeners();
+      });
+    } else if (_lastActivePhase == TimerPhase.overtime || isOverrun) {
+      _setPhase(TimerPhase.overtime);
+      _ticker = Timer.periodic(const Duration(seconds: 1), (t) async {
+        overrunSeconds += 1;
+        accumulatedFocusSeconds += 1;
+        if (overrunSeconds % 60 == 0) await _saveState();
+        notifyListeners();
+      });
+    } else {
       _setPhase(TimerPhase.focusing);
       _ticker = Timer.periodic(const Duration(seconds: 1), (t) async {
         _remainingSeconds -= 1;
@@ -194,16 +262,12 @@ class TimerService extends ChangeNotifier {
         if (_remainingSeconds <= 0) {
           t.cancel();
           _persistAccumulatedTimes();
-          _enterOverrun();
+          if (breakDurationMinutes > 0) {
+            _startBreaking();
+          } else {
+            _enterOverrun();
+          }
         }
-        notifyListeners();
-      });
-    } else if (isOverrun) {
-      _setPhase(TimerPhase.overtime);
-      _ticker = Timer.periodic(const Duration(seconds: 1), (t) async {
-        overrunSeconds += 1;
-        accumulatedFocusSeconds += 1;
-        if (overrunSeconds % 60 == 0) await _saveState();
         notifyListeners();
       });
     }

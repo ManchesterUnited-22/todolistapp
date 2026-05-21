@@ -109,15 +109,15 @@ class AiRecommendation {
 
 
 
-class AIService {
+class VoiceAiService {
   // Always get API key from dotenv if available, fallback to compile-time define.
   String _apiKey = const String.fromEnvironment(
     'GOOGLE_API_KEY',
     defaultValue: '',
   );
   final FlutterTts _tts = FlutterTts();
-  AIService._();
-  static final instance = AIService._();
+  VoiceAiService._();
+  static final instance = VoiceAiService._();
 
   /// Public getter to expose the configured API key for reuse by other modules.
   String get apiKey => _apiKey;

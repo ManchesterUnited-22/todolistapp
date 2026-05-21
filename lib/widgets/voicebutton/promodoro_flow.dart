@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../ai/ai_services.dart';
+import '../../ai/voice_ai_service.dart';
 import '../../views/task_viewmodel.dart';
 import 'voice_input_dialog.dart';
 
@@ -9,7 +9,7 @@ import 'voice_input_dialog.dart';
 Future<void> collectPromodoroFlow(BuildContext context, {String? initialTranscript}) async {
   final scaffold = ScaffoldMessenger.of(context);
   try {
-    final ai = AIService.instance;
+    final ai = VoiceAiService.instance;
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       scaffold.showSnackBar(
@@ -35,11 +35,28 @@ Future<void> collectPromodoroFlow(BuildContext context, {String? initialTranscri
 
     // Duration
     await ai.speakText('Thời lượng tập trung tính bằng phút, ví dụ 25 phút.');
-    final durationInput = await showDialog<String>(context: context, barrierDismissible: false, builder: (_) => VoiceInputDialog(prompt: 'Thời lượng (phút)? Ví dụ 25'));
+    final durationInput = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => VoiceInputDialog(prompt: 'Thời lượng (phút)? Ví dụ 25'),
+    );
     int focusMinutes = 25;
     if (durationInput != null) {
       final m = RegExp(r'(\d{1,3})').firstMatch(durationInput);
       if (m != null) focusMinutes = int.tryParse(m.group(1) ?? '25') ?? 25;
+    }
+
+    // Break duration
+    await ai.speakText('Thời gian giải lao bao nhiêu phút?');
+    final breakInput = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => VoiceInputDialog(prompt: 'Thời gian giải lao? Ví dụ 25'),
+    );
+    int breakMinutes = 5;
+    if (breakInput != null) {
+      final m = RegExp(r'(\d{1,3})').firstMatch(breakInput);
+      if (m != null) breakMinutes = int.tryParse(m.group(1) ?? '5') ?? 5;
     }
 
     // Category
@@ -60,11 +77,13 @@ Future<void> collectPromodoroFlow(BuildContext context, {String? initialTranscri
       stat: 'Đang làm',
       createdAt: null,
       dueAt: null,
+      focusDuration: focusMinutes,
+      breakDuration: breakMinutes,
       uid: currentUser.uid,
     );
 
     // AI readback and confirm
-    final summary = 'Promodoro: "${task.title}", thời lượng $focusMinutes phút, loại ${task.category}. Lưu không?';
+    final summary = 'Promodoro: "${task.title}", thời lượng làm $focusMinutes phút, nghỉ $breakMinutes phút, loại ${task.category}. Lưu không?';
     await ai.speakText(summary);
     final confirmed = await showDialog<bool>(
       context: context,
@@ -85,8 +104,6 @@ Future<void> collectPromodoroFlow(BuildContext context, {String? initialTranscri
 
     // Save to Firestore with promodoro fields
     final doc = task.toFirestoreMap(useServerTimestampForCreatedAt: true);
-    doc['focus_duration'] = focusMinutes;
-    doc['break_duration'] = 5;
     await FirebaseFirestore.instance.collection('tasks').add(doc);
 
     scaffold.showSnackBar(SnackBar(content: Text('✓ Đã lưu Promodoro: ${task.title}')));

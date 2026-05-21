@@ -1,3 +1,4 @@
+export 'profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -78,7 +79,7 @@ class _Badge {
 const _badges = [
   _Badge(
     icon: Icons.workspace_premium_rounded,
-    label: 'Sớm Mai',
+    label: 'Bình Minh',
     iconColor: _C.tertiary,
     bgColor: Color(0x1A006C49),
     locked: true,
@@ -87,7 +88,7 @@ const _badges = [
   ),
   _Badge(
     icon: Icons.bolt_rounded,
-    label: 'Bứt Phá',
+    label: 'Tự tại',
     iconColor: _C.secondary,
     bgColor: Color(0x1A0060AC),
     locked: true,
@@ -105,7 +106,7 @@ const _badges = [
   ),
   _Badge(
     icon: Icons.local_fire_department_rounded,
-    label: 'Kiên Trì',
+    label: 'Bền Bỉ',
     iconColor: Color(0xFFE65100),
     bgColor: Color(0x1AE65100),
     locked: true,
@@ -114,7 +115,7 @@ const _badges = [
   ),
   _Badge(
     icon: Icons.military_tech_rounded,
-    label: 'Chiến Binh',
+    label: 'Trưởng Thành',
     iconColor: Color(0xFFB8860B),
     bgColor: Color(0x1AB8860B),
     locked: true,
@@ -123,7 +124,7 @@ const _badges = [
   ),
   _Badge(
     icon: Icons.diamond_rounded,
-    label: 'Tinh Hoa',
+    label: 'Thông tuệ',
     iconColor: Color(0xFF7B1FA2),
     bgColor: Color(0x1A7B1FA2),
     locked: true,
@@ -132,7 +133,7 @@ const _badges = [
   ),
   _Badge(
     icon: Icons.nights_stay_rounded,
-    label: 'Đêm Thâu',
+    label: 'Đêm Thâu Tĩnh Lặng',
     iconColor: Color(0xFF1565C0),
     bgColor: Color(0x1A1565C0),
     locked: true,
@@ -141,7 +142,7 @@ const _badges = [
   ),
   _Badge(
     icon: Icons.emoji_events_rounded,
-    label: 'Quán Quân',
+    label: 'Trọn vẹn',
     iconColor: Color(0xFFAD1457),
     bgColor: Color(0x1AAD1457),
     locked: true,

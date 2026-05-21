@@ -1,8 +1,11 @@
+export 'dashboard/dashboard_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../widgets/floating_bottom_navbar.dart';
 import '../widgets/sidebar.dart';
+import '../services/timer_service.dart';
+import '../widgets/promodoro_timer_sheet.dart';
 import '../widgets/task_notification_bell.dart';
 import '../widgets/voicebutton/voice_button.dart';
 import '../widgets/voicebutton/voice_handler.dart';
@@ -411,12 +414,20 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
             final isOverdue = _isTaskOverdue(task);
 
             return _TaskCard(
+              docId: doc.id,
               task: task,
               isCompleted: isCompleted,
               isOverdue: isOverdue,
               onToggle: (val) =>
                   _toggleTaskStatus(doc.id, task, val ?? false),
               onDelete: () => _deleteTask(doc.id),
+              onTimerTap: task.way == 'promodoro'
+                  ? () => showPromodoroTimerSheet(
+                        context,
+                        taskDocId: doc.id,
+                        task: task,
+                      )
+                  : null,
             );
           },
         );
@@ -607,18 +618,22 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
 // TASK CARD WIDGET — premium style from code 2, data/logic from code 1
 // ════════════════════════════════════════════════════════════════════════════
 class _TaskCard extends StatelessWidget {
+  final String docId;
   final TaskViewModel task;
   final bool isCompleted;
   final bool isOverdue;
   final ValueChanged<bool?> onToggle;
   final VoidCallback onDelete;
+  final VoidCallback? onTimerTap;
 
   const _TaskCard({
+    required this.docId,
     required this.task,
     required this.isCompleted,
     required this.isOverdue,
     required this.onToggle,
     required this.onDelete,
+    this.onTimerTap,
   });
 
   String _formatTs(Timestamp? ts) {
@@ -777,6 +792,43 @@ class _TaskCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        if (task.way == 'promodoro')
+                          AnimatedBuilder(
+                            animation: TimerService.instance,
+                            builder: (context, _) {
+                              final svc = TimerService.instance;
+                              final isCurrentRunning =
+                                  svc.taskDocId == docId &&
+                                  svc.phase != TimerPhase.idle &&
+                                  svc.phase != TimerPhase.stopped;
+                              final icon = isCurrentRunning
+                                  ? Icons.notifications_active_rounded
+                                  : Icons.alarm_rounded;
+                              final bgColor = isCurrentRunning
+                                  ? const Color(0xFFD1FAE5)
+                                  : const Color(0xFFE1E0FF);
+                              final fgColor = isCurrentRunning
+                                  ? const Color(0xFF059669)
+                                  : const Color(0xFF4648D4);
+
+                              return GestureDetector(
+                                onTap: onTimerTap,
+                                child: Container(
+                                  margin: const EdgeInsets.only(left: 8),
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: bgColor,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    icon,
+                                    size: 18,
+                                    color: fgColor,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         if (!isCompleted)
                           GestureDetector(
                             onTap: () => _showTaskMenu(context),
@@ -793,6 +845,20 @@ class _TaskCard extends StatelessWidget {
                     ),
 
                     const SizedBox(height: 12),
+
+                    if (task.way == 'promodoro' &&
+                        (task.focusDuration != null || task.breakDuration != null))
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          'Làm ${task.focusDuration ?? 25} phút • Nghỉ ${task.breakDuration ?? 5} phút',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: _C.secondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
 
                     // Timestamps row
                     Wrap(
