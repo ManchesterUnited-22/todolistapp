@@ -74,6 +74,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
     final updates = <String, dynamic>{'stat': stat};
     if (checked) {
       updates['completedAt'] = FieldValue.serverTimestamp();
+      updates['timestamp'] = FieldValue.serverTimestamp();
     } else {
       updates['completedAt'] = FieldValue.delete();
     }

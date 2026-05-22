@@ -27,6 +27,7 @@ class TaskNotificationBellButton extends StatelessWidget {
   });
 
   static const Duration _dueSoonWindow = Duration(minutes: 10);
+  static const Duration _recentCompletionWindow = Duration(hours: 24);
 
   bool _isCompleted(TaskViewModel task) => task.stat == 'Hoàn thành';
 
@@ -69,8 +70,9 @@ class TaskNotificationBellButton extends StatelessWidget {
         _NotificationEntry(
           taskId: entry.key,
           title: task.title,
-          dueAt: dueAt,
+          timestamp: dueAt,
           overdue: overdue,
+          kind: overdue ? _NotificationKind.urgentOverdue : _NotificationKind.dueSoon,
         ),
       );
     }
@@ -79,9 +81,39 @@ class TaskNotificationBellButton extends StatelessWidget {
       if (left.overdue != right.overdue) {
         return left.overdue ? -1 : 1;
       }
-      return left.dueAt.compareTo(right.dueAt);
+      return left.timestamp.compareTo(right.timestamp);
     });
 
+    return entries;
+  }
+
+  List<_NotificationEntry> _buildCompletionEntries(
+    List<MapEntry<String, TaskViewModel>> tasks,
+    DateTime now,
+  ) {
+    final entries = <_NotificationEntry>[];
+
+    for (final entry in tasks) {
+      final task = entry.value;
+      if (!_isCompleted(task)) continue;
+
+      final completedAt =
+          task.completedAt?.toDate() ?? task.timestamp?.toDate() ?? task.createdAt?.toDate();
+      if (completedAt == null) continue;
+      if (now.difference(completedAt) > _recentCompletionWindow) continue;
+
+      entries.add(
+        _NotificationEntry(
+          taskId: entry.key,
+          title: task.title,
+          timestamp: completedAt,
+          overdue: false,
+          kind: _NotificationKind.completed,
+        ),
+      );
+    }
+
+    entries.sort((left, right) => right.timestamp.compareTo(left.timestamp));
     return entries;
   }
 
@@ -96,12 +128,14 @@ class TaskNotificationBellButton extends StatelessWidget {
 
   Future<void> _openUrgentTasksSheet(
     BuildContext context,
-    List<_NotificationEntry> entries,
+    List<_NotificationEntry> urgentEntries,
+    List<_NotificationEntry> completionEntries,
   ) async {
-    await showUrgentTasksSheet(
+    await showTaskNotificationsSheet(
       context,
       badgeColor: badgeColor,
-      entries: entries,
+      urgentEntries: urgentEntries,
+      completionEntries: completionEntries,
     );
   }
 
@@ -136,6 +170,8 @@ class TaskNotificationBellButton extends StatelessWidget {
                   .toList()
             : <MapEntry<String, TaskViewModel>>[];
         final urgentEntries = _buildUrgentEntries(entries, now);
+        final completionEntries = _buildCompletionEntries(entries, now);
+        final totalCount = urgentEntries.length + completionEntries.length;
 
         return Stack(
           alignment: Alignment.topRight,
@@ -148,9 +184,13 @@ class TaskNotificationBellButton extends StatelessWidget {
                 color: iconColor,
                 size: iconSize,
               ),
-              onPressed: () => _openUrgentTasksSheet(context, urgentEntries),
+              onPressed: () => _openUrgentTasksSheet(
+                context,
+                urgentEntries,
+                completionEntries,
+              ),
             ),
-            if (urgentEntries.isNotEmpty)
+            if (totalCount > 0)
               Positioned(
                 right: 8,
                 top: 8,
@@ -170,9 +210,9 @@ class TaskNotificationBellButton extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      urgentEntries.length > 9
+                      totalCount > 9
                           ? '9+'
-                          : '${urgentEntries.length}',
+                          : '$totalCount',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11,

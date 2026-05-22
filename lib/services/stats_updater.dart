@@ -2,16 +2,21 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../views/stats_viewmodel.dart';
 import '../views/task_viewmodel.dart';
 import '../views/report_viewmodel.dart';
 import 'stats_service.dart';
 import 'report_service.dart';
+import 'notification_service.dart';
 
 class StatsUpdater {
   StatsUpdater._();
   static final StatsUpdater instance = StatsUpdater._();
+
+  static const String _achievementUnlockPrefsPrefix =
+      'achievement_unlocked_keys_';
 
   StreamSubscription<User?>? _authSub;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _taskSub;
@@ -57,6 +62,8 @@ class StatsUpdater {
                   .toList();
               final stats = StatsViewModel.fromTasks(uid: uid, tasks: tasks);
               StatsService.instance.saveUserStats(stats);
+              await _syncAchievements(uid: uid, tasks: tasks, stats: stats);
+
               // Build and save a report document for this user (period = last 7 days)
               try {
                 final now = DateTime.now();
@@ -131,7 +138,6 @@ class StatsUpdater {
                       task.stat.toLowerCase().contains('hoan') ||
                       completed != null;
                   if (isCompleted) {
-                    // Completed by priority
                     completedByPriority[pKey] =
                         (completedByPriority[pKey] ?? 0) + 1;
                   }
@@ -140,7 +146,6 @@ class StatsUpdater {
                     final diff = completed.difference(due).inMinutes;
                     if (diff <= 0) {
                       onTimeCount++;
-                      // early completion
                       final earlyMins = due.difference(completed).inMinutes;
                       if (earlyMins > 0 &&
                           earlyMins > earliestCompletionMinutes) {
@@ -152,7 +157,6 @@ class StatsUpdater {
                       totalDelayMinutes += diff;
                       completedLateCount++;
                       completedLateTotalMinutes += diff;
-                      // update category stats
                       final cs = categoryStats[categoryRaw]!;
                       categoryStats[categoryRaw] = ReportCategoryStat(
                         name: cs.name,
@@ -167,7 +171,6 @@ class StatsUpdater {
                       }
                     }
                   } else if (!isCompleted && due != null && due.isBefore(now)) {
-                    // incomplete overdue
                     final overdueMins = now.difference(due).inMinutes;
                     incompleteOverdueCount++;
                     final cs = categoryStats[categoryRaw]!;
@@ -235,8 +238,180 @@ class StatsUpdater {
         );
   }
 
+  Future<void> _syncAchievements({
+    required String uid,
+    required List<TaskViewModel> tasks,
+    required StatsViewModel stats,
+  }) async {
+    if (uid.isEmpty) return;
+
+    final now = DateTime.now();
+    final achievements = _buildAchievementMap(
+      tasks: tasks,
+      stats: stats,
+      now: now,
+    );
+
+    await FirebaseFirestore.instance
+        .collection('achievements')
+        .doc(uid)
+        .set({
+          'uid': uid,
+          ...achievements,
+          'updatedAt': Timestamp.fromDate(now),
+        }, SetOptions(merge: true));
+
+    await _notifyUnlockedAchievements(uid: uid, achievements: achievements);
+  }
+
+  Map<String, dynamic> _buildAchievementMap({
+    required List<TaskViewModel> tasks,
+    required StatsViewModel stats,
+    required DateTime now,
+  }) {
+    int earlyMorningSessions = 0;
+    int lateNightSessions = 0;
+
+    for (final task in tasks) {
+      if (task.stat != 'Hoàn thành') continue;
+
+      final completedAt =
+          task.completedAt?.toDate() ??
+          task.timestamp?.toDate() ??
+          task.createdAt?.toDate();
+      if (completedAt == null) continue;
+
+      if (completedAt.hour < 8) {
+        earlyMorningSessions += 1;
+      }
+
+      if (completedAt.hour >= 22) {
+        lateNightSessions += 1;
+      }
+    }
+
+    return {
+      'earlyMorningSessions': earlyMorningSessions,
+      'focusStreakDays': stats.streakDays,
+      'totalFocusMinutes': stats.totalFocusTime,
+      'tasksCompleted': stats.completedTasks,
+      'lateNightSessions': lateNightSessions,
+      'computedAt': Timestamp.fromDate(now),
+    };
+  }
+
+  Future<void> _notifyUnlockedAchievements({
+    required String uid,
+    required Map<String, dynamic> achievements,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final prefKey = '$_achievementUnlockPrefsPrefix$uid';
+    final knownKeys = prefs.getStringList(prefKey)?.toSet() ?? <String>{};
+    final currentKeys = <String>{};
+    final unlockedBadges = <_AchievementNotification>[];
+
+    for (final definition in _achievementDefinitions) {
+      final value = (achievements[definition.field] as num?)?.toInt() ?? 0;
+      if (value >= definition.threshold) {
+        currentKeys.add(definition.id);
+        if (!knownKeys.contains(definition.id)) {
+          unlockedBadges.add(definition);
+        }
+      }
+    }
+
+    await prefs.setStringList(prefKey, currentKeys.toList());
+
+    if (knownKeys.isEmpty || unlockedBadges.isEmpty) {
+      return;
+    }
+
+    for (final badge in unlockedBadges) {
+      await NotificationService.instance.showSimpleNotification(
+        id: badge.id.hashCode & 0x7fffffff,
+        title: 'Huy hiệu mới: ${badge.label}',
+        body: badge.message,
+      );
+    }
+  }
+
   Future<void> dispose() async {
     await _taskSub?.cancel();
     await _authSub?.cancel();
   }
 }
+
+class _AchievementNotification {
+  final String id;
+  final String label;
+  final String field;
+  final int threshold;
+  final String message;
+
+  const _AchievementNotification({
+    required this.id,
+    required this.label,
+    required this.field,
+    required this.threshold,
+    required this.message,
+  });
+}
+
+const List<_AchievementNotification> _achievementDefinitions = [
+  _AchievementNotification(
+    id: 'earlyMorningSessions',
+    label: 'Bình Minh',
+    field: 'earlyMorningSessions',
+    threshold: 1,
+    message: 'Bạn đã mở khóa huy hiệu Bình Minh. Một khởi đầu rất đẹp.',
+  ),
+  _AchievementNotification(
+    id: 'focusStreakDays_3',
+    label: 'Tự tại',
+    field: 'focusStreakDays',
+    threshold: 3,
+    message: 'Bạn đã mở khóa huy hiệu Tự tại nhờ streak tập trung ấn tượng.',
+  ),
+  _AchievementNotification(
+    id: 'totalFocusMinutes_60',
+    label: 'Tập Trung',
+    field: 'totalFocusMinutes',
+    threshold: 60,
+    message: 'Bạn đã mở khóa huy hiệu Tập Trung sau khi tích lũy đủ thời gian.',
+  ),
+  _AchievementNotification(
+    id: 'focusStreakDays_7',
+    label: 'Bền Bỉ',
+    field: 'focusStreakDays',
+    threshold: 7,
+    message: 'Bạn đã mở khóa huy hiệu Bền Bỉ. Sự kiên trì đang được đền đáp.',
+  ),
+  _AchievementNotification(
+    id: 'tasksCompleted_20',
+    label: 'Trưởng Thành',
+    field: 'tasksCompleted',
+    threshold: 20,
+    message: 'Bạn đã mở khóa huy hiệu Trưởng Thành sau nhiều nhiệm vụ hoàn tất.',
+  ),
+  _AchievementNotification(
+    id: 'totalFocusMinutes_600',
+    label: 'Thông tuệ',
+    field: 'totalFocusMinutes',
+    threshold: 600,
+    message: 'Bạn đã mở khóa huy hiệu Thông tuệ. Thành quả của sự bền bỉ.',
+  ),
+  _AchievementNotification(
+    id: 'lateNightSessions',
+    label: 'Đêm Thâu Tĩnh Lặng',
+    field: 'lateNightSessions',
+    threshold: 5,
+    message: 'Bạn đã mở khóa huy hiệu Đêm Thâu Tĩnh Lặng.',
+  ),
+  _AchievementNotification(
+    id: 'tasksCompleted_100',
+    label: 'Trọn vẹn',
+    field: 'tasksCompleted',
+    threshold: 100,
+    message: 'Bạn đã mở khóa huy hiệu Trọn vẹn. Một cột mốc rất đáng nhớ.',
+  ),
+];

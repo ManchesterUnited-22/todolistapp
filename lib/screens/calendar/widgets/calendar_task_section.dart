@@ -107,6 +107,7 @@ class CalendarTaskSection extends StatelessWidget {
                       final updates = <String, dynamic>{'stat': stat};
                       if (val == true) {
                         updates['completedAt'] = FieldValue.serverTimestamp();
+                        updates['timestamp'] = FieldValue.serverTimestamp();
                       } else {
                         updates['completedAt'] = FieldValue.delete();
                       }

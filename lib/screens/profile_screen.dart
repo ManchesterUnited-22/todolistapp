@@ -2,6 +2,8 @@ export 'profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lottie/lottie.dart';
+import 'dart:math' as math;
 import '../widgets/floating_bottom_navbar.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/edit_profile_form.dart';
@@ -78,7 +80,7 @@ class _Badge {
 
 const _badges = [
   _Badge(
-    icon: Icons.workspace_premium_rounded,
+    icon: Icons.wb_sunny_rounded,
     label: 'Bình Minh',
     iconColor: _C.tertiary,
     bgColor: Color(0x1A006C49),
@@ -87,7 +89,7 @@ const _badges = [
     unlockThreshold: 1,
   ),
   _Badge(
-    icon: Icons.bolt_rounded,
+    icon: Icons.self_improvement_rounded,
     label: 'Tự tại',
     iconColor: _C.secondary,
     bgColor: Color(0x1A0060AC),
@@ -96,7 +98,7 @@ const _badges = [
     unlockThreshold: 3,
   ),
   _Badge(
-    icon: Icons.auto_awesome_rounded,
+    icon: Icons.center_focus_strong_rounded,
     label: 'Tập Trung',
     iconColor: _C.primary,
     bgColor: Color(0x1A4648D4),
@@ -123,7 +125,7 @@ const _badges = [
     unlockThreshold: 20,
   ),
   _Badge(
-    icon: Icons.diamond_rounded,
+    icon: Icons.psychology_rounded,
     label: 'Thông tuệ',
     iconColor: Color(0xFF7B1FA2),
     bgColor: Color(0x1A7B1FA2),
@@ -498,122 +500,258 @@ class _AchievementsSection extends StatelessWidget {
   }
 }
 
-class _BadgeTile extends StatelessWidget {
+class _BadgeTile extends StatefulWidget {
   final _Badge badge;
   final bool isUnlocked;
 
   const _BadgeTile({required this.badge, required this.isUnlocked});
 
   @override
+  State<_BadgeTile> createState() => _BadgeTileState();
+}
+
+class _BadgeTileState extends State<_BadgeTile>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _unlockController;
+
+  _Badge get badge => widget.badge;
+
+  @override
+  void initState() {
+    super.initState();
+    _unlockController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    if (widget.isUnlocked) {
+      _unlockController.value = 1;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _BadgeTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.isUnlocked && widget.isUnlocked) {
+      _unlockController.forward(from: 0);
+    } else if (!widget.isUnlocked) {
+      _unlockController.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _unlockController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => _showBadgeInfo(context),
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 300),
-        opacity: isUnlocked ? 1.0 : 0.50,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(isUnlocked ? 0.50 : 0.0),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isUnlocked ? Colors.white : Colors.white.withOpacity(0.50),
-            ),
-            boxShadow: isUnlocked
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: isUnlocked
-                      ? badge.bgColor
-                      : _C.surfaceVariant.withOpacity(0.20),
-                  borderRadius: BorderRadius.circular(10),
+      child: AnimatedBuilder(
+        animation: _unlockController,
+        builder: (context, _) {
+          final t = _unlockController.value;
+          final unlockProgress = Curves.easeOutCubic.transform(t);
+          final shake = math.sin(t * math.pi * 14) * (1 - t) * 4.0;
+          final rotate = math.sin(t * math.pi * 10) * (1 - t) * 0.12;
+          final iconFade = Curves.easeIn.transform(t.clamp(0.0, 1.0));
+          final lockFade = 1 - Curves.easeOut.transform(t.clamp(0.0, 1.0));
+
+          return AnimatedScale(
+            duration: const Duration(milliseconds: 180),
+            scale: widget.isUnlocked ? 1.0 : 0.98,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: widget.isUnlocked
+                    ? LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withOpacity(0.80),
+                          badge.bgColor.withOpacity(0.30),
+                        ],
+                      )
+                    : null,
+                color: widget.isUnlocked ? null : Colors.white.withOpacity(0.24),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: widget.isUnlocked
+                      ? badge.bgColor.withOpacity(0.30)
+                      : Colors.white.withOpacity(0.44),
                 ),
-                child: isUnlocked
-                    ? Icon(badge.icon, color: badge.iconColor, size: 24)
-                    : const Icon(
-                        Icons.lock_outline_rounded,
-                        color: _C.outline,
-                        size: 20,
+                boxShadow: widget.isUnlocked
+                    ? [
+                        BoxShadow(
+                          color: badge.iconColor.withOpacity(0.18),
+                          blurRadius: 16,
+                          offset: const Offset(0, 5),
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Transform.translate(
+                    offset: Offset(shake, 0),
+                    child: Transform.rotate(
+                      angle: rotate,
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: widget.isUnlocked
+                              ? badge.iconColor.withOpacity(0.12 + 0.12 * unlockProgress)
+                              : _C.surfaceVariant.withOpacity(0.18),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: widget.isUnlocked
+                                ? badge.iconColor.withOpacity(0.18)
+                                : Colors.transparent,
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (widget.isUnlocked && t < 1)
+                              Opacity(
+                                opacity:
+                                    (0.85 * (1 - iconFade)).clamp(0.0, 1.0),
+                                child: CustomPaint(
+                                  size: const Size(42, 42),
+                                  painter: _CrackPainter(
+                                    color: badge.iconColor.withOpacity(0.92),
+                                    progress: unlockProgress,
+                                  ),
+                                ),
+                              ),
+                            Opacity(
+                              opacity: widget.isUnlocked ? lockFade : 1.0,
+                              child: Icon(
+                                Icons.lock_outline_rounded,
+                                color: _C.outline,
+                                size: widget.isUnlocked ? 18 : 20,
+                              ),
+                            ),
+                            Opacity(
+                              opacity: widget.isUnlocked ? iconFade : 0.0,
+                              child: Transform.scale(
+                                scale: 0.82 + 0.18 * unlockProgress,
+                                child: Icon(
+                                  badge.icon,
+                                  color: badge.iconColor,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    badge.label,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                      color: widget.isUnlocked ? badge.iconColor : _C.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                badge.label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.3,
-                  color: _C.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
   void _showBadgeInfo(BuildContext context) {
     final String conditionText = _unlockConditionText();
+    final isUnlocked = widget.isUnlocked;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: isUnlocked
-                    ? badge.bgColor
-                    : _C.surfaceVariant.withOpacity(0.30),
-                borderRadius: BorderRadius.circular(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+        actionsAlignment: MainAxisAlignment.center,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isUnlocked)
+                Lottie.asset(
+                  'assets/animations/success.json',
+                  width: 132,
+                  height: 132,
+                  repeat: false,
+                )
+              else
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: _C.surfaceVariant.withOpacity(0.30),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.lock_rounded,
+                    color: _C.outline,
+                    size: 36,
+                  ),
+                ),
+              const SizedBox(height: 14),
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: isUnlocked
+                      ? badge.bgColor
+                      : _C.surfaceVariant.withOpacity(0.30),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Icon(
+                  badge.icon,
+                  color: isUnlocked ? badge.iconColor : _C.outline,
+                  size: 34,
+                ),
               ),
-              child: isUnlocked
-                  ? Icon(badge.icon, color: badge.iconColor, size: 36)
-                  : const Icon(Icons.lock_rounded, color: _C.outline, size: 32),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              badge.label,
-              style: const TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: _C.onSurface,
+              const SizedBox(height: 16),
+              Text(
+                badge.label,
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  color: _C.onSurface,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              isUnlocked
-                  ? '✅ Bạn đã đạt được huy hiệu này!'
-                  : '🔒 Điều kiện mở khoá:\n$conditionText',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                color: isUnlocked ? _C.tertiary : _C.onSurfaceVariant,
-                height: 1.5,
+              const SizedBox(height: 8),
+              Text(
+                isUnlocked
+                    ? 'Chúc mừng, bạn đã đạt được huy hiệu này!'
+                    : 'Điều kiện mở khoá:\n$conditionText',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 14,
+                  color: isUnlocked ? _C.tertiary : _C.onSurfaceVariant,
+                  height: 1.5,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -648,6 +786,47 @@ class _BadgeTile extends StatelessWidget {
       default:
         return 'Hoàn thành ${badge.unlockThreshold} ${badge.unlockField}';
     }
+  }
+}
+
+class _CrackPainter extends CustomPainter {
+  final Color color;
+  final double progress;
+
+  const _CrackPainter({required this.color, required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final opacity = Curves.easeOut.transform((progress - 0.12).clamp(0.0, 1.0));
+    if (opacity <= 0) return;
+
+    final paint = Paint()
+      ..color = color.withOpacity(opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.7
+      ..strokeCap = StrokeCap.round;
+
+    final path1 = Path()
+      ..moveTo(size.width * 0.25, size.height * 0.22)
+      ..lineTo(size.width * 0.42, size.height * 0.36)
+      ..lineTo(size.width * 0.34, size.height * 0.52)
+      ..lineTo(size.width * 0.50, size.height * 0.63)
+      ..lineTo(size.width * 0.58, size.height * 0.82);
+
+    final path2 = Path()
+      ..moveTo(size.width * 0.76, size.height * 0.22)
+      ..lineTo(size.width * 0.60, size.height * 0.36)
+      ..lineTo(size.width * 0.68, size.height * 0.52)
+      ..lineTo(size.width * 0.50, size.height * 0.63)
+      ..lineTo(size.width * 0.42, size.height * 0.82);
+
+    canvas.drawPath(path1, paint);
+    canvas.drawPath(path2, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CrackPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.progress != progress;
   }
 }
 

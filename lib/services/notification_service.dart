@@ -15,6 +15,7 @@ class NotificationService {
   }
 
   Future<void> showSimpleNotification({
+    int id = 0,
     required String title,
     required String body,
   }) async {
@@ -27,6 +28,6 @@ class NotificationService {
     );
     const ios = DarwinNotificationDetails();
     const details = NotificationDetails(android: android, iOS: ios);
-    await _plugin.show(0, title, body, details, payload: null);
+    await _plugin.show(id, title, body, details, payload: null);
   }
 }
