@@ -9,7 +9,7 @@ import '../views/task_viewmodel.dart';
 import '../views/report_viewmodel.dart';
 import 'stats_service.dart';
 import 'report_service.dart';
-import 'notification_service.dart';
+import '../notifications/notification_service.dart';
 
 class StatsUpdater {
   StatsUpdater._();

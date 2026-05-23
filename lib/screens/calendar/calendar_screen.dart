@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/floating_bottom_navbar.dart';
 import '../../widgets/sidebar.dart';
-import '../../widgets/task_notification_bell.dart';
+import '../../notifications/task_notification_bell.dart';
 import 'calendar_colors.dart';
 import 'calendar_card.dart';
 import 'widgets/calendar_header.dart';

@@ -208,24 +208,11 @@ class TaskNotificationBellButton extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Center(
-                    child: Text(
-                      totalCount > 9
-                          ? '9+'
-                          : '$totalCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        height: 1,
-                      ),
-                    ),
-                  ),
                 ),
-              ),
-          ],
+              )],
         );
       },
     );
   }
+
 }

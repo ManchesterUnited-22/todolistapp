@@ -16,7 +16,7 @@ import 'screens/profile_screen.dart';
 import 'screens/success_screen.dart';
 // AI removed: ai_subagents, ai_config, ai_provider
 import 'services/theme_service.dart';
-import 'services/task_notification_service.dart';
+import 'notifications/task_notification_service.dart';
 import 'services/stats_updater.dart';
 
 Future<void> main() async {

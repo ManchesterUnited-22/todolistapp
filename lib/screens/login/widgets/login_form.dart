@@ -181,9 +181,9 @@ class _LoginFormState extends State<LoginForm> {
               const SizedBox(width: 12),
               Expanded(
                 child: LoginSocialButton(
-                  text: 'Apple',
-                  icon: const Icon(Icons.apple, size: 18, color: AppColors.textPrimary),
-                  onPressed: () {},
+                  text: 'Email',
+                  icon: const Icon(Icons.mail_outline_rounded, size: 18, color: AppColors.textPrimary),
+                  onPressed: _handleEmailLogin,
                 ),
               ),
             ],

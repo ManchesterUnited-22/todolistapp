@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/task_notification_bell.dart';
+import '../../../notifications/task_notification_bell.dart';
 import '../dashboard_colors.dart';
 
 class DashboardTopBar extends StatelessWidget {

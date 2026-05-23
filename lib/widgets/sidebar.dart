@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/avatar_service.dart';
-import '../services/task_notification_service.dart';
+import '../notifications/task_notification_service.dart';
 
 part 'sidebar/sidebar_parts.dart';
 

@@ -9,7 +9,7 @@ import '../widgets/sidebar.dart';
 import '../widgets/edit_profile_form.dart';
 import '../screens/login_screen.dart';
 import '../services/theme_service.dart';
-import '../widgets/task_notification_bell.dart';
+import '../notifications/task_notification_bell.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 class _C {

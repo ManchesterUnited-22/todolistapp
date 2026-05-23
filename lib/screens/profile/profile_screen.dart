@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/floating_bottom_navbar.dart';
 import '../../widgets/sidebar.dart';
-import '../../widgets/task_notification_bell.dart';
+import '../../notifications/task_notification_bell.dart';
 import '../login_screen.dart';
 import 'widgets/profile_achievements_section.dart';
 import 'widgets/profile_header.dart';

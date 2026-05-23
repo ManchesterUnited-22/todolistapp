@@ -4,8 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../core/app_colors.dart';
-import '../services/task_notification_service.dart';
 import '../views/task_viewmodel.dart';
+import 'task_notification_service.dart';
 
 class TaskDeadlineNotification extends StatefulWidget {
   final String userId;

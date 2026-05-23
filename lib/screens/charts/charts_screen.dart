@@ -7,7 +7,7 @@ import '../../views/task_viewmodel.dart';
 import '../../widgets/floating_bottom_navbar.dart';
 import '../../widgets/mentor_ai.dart';
 import '../../widgets/sidebar.dart';
-import '../../widgets/task_notification_bell.dart';
+import '../../notifications/task_notification_bell.dart';
 import 'charts_colors.dart';
 import 'widgets/charts_distribution_section.dart';
 import 'widgets/charts_focus_section.dart';
