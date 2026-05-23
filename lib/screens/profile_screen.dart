@@ -209,7 +209,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
-        bottomNavigationBar: widget.showBottomNav
+      bottomNavigationBar: widget.showBottomNav
           ? const FloatingBottomNavBar(currentIndex: 3, showFab: false)
           : null,
     );
@@ -573,7 +573,9 @@ class _BadgeTileState extends State<_BadgeTile>
                         ],
                       )
                     : null,
-                color: widget.isUnlocked ? null : Colors.white.withOpacity(0.24),
+                color: widget.isUnlocked
+                    ? null
+                    : Colors.white.withOpacity(0.24),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: widget.isUnlocked
@@ -607,7 +609,9 @@ class _BadgeTileState extends State<_BadgeTile>
                         height: 42,
                         decoration: BoxDecoration(
                           color: widget.isUnlocked
-                              ? badge.iconColor.withOpacity(0.12 + 0.12 * unlockProgress)
+                              ? badge.iconColor.withOpacity(
+                                  0.12 + 0.12 * unlockProgress,
+                                )
                               : _C.surfaceVariant.withOpacity(0.18),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
@@ -622,8 +626,10 @@ class _BadgeTileState extends State<_BadgeTile>
                           children: [
                             if (widget.isUnlocked && t < 1)
                               Opacity(
-                                opacity:
-                                    (0.85 * (1 - iconFade)).clamp(0.0, 1.0),
+                                opacity: (0.85 * (1 - iconFade)).clamp(
+                                  0.0,
+                                  1.0,
+                                ),
                                 child: CustomPaint(
                                   size: const Size(42, 42),
                                   painter: _CrackPainter(
@@ -665,7 +671,9 @@ class _BadgeTileState extends State<_BadgeTile>
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.3,
-                      color: widget.isUnlocked ? badge.iconColor : _C.onSurfaceVariant,
+                      color: widget.isUnlocked
+                          ? badge.iconColor
+                          : _C.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -908,51 +916,18 @@ class _SettingsSection extends StatelessWidget {
               // Giao diện — theme toggle
               const _ThemeSettingRow(),
               Divider(height: 1, color: _C.surfaceContainerHigh),
-              // Bảo mật
+              // Đăng xuất
               _buildSettingRow(
                 context: context,
-                icon: Icons.security_outlined,
-                iconBg: _C.tertiaryContainer,
-                iconColor: Colors.white,
-                label: 'Bảo mật',
+                icon: Icons.logout_rounded,
+                iconBg: _C.errorContainer,
+                iconColor: _C.error,
+                label: 'Đăng xuất tài khoản',
                 isFirst: false,
                 isLast: true,
-                onTap: () {},
+                onTap: onLogoutTap,
               ),
             ],
-          ),
-        ),
-        const SizedBox(height: 32),
-        // Logout button
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: onLogoutTap,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: _C.errorContainer.withOpacity(0.20),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _C.error.withOpacity(0.10)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.logout_rounded, color: _C.error),
-                  SizedBox(width: 8),
-                  Text(
-                    'Đăng xuất tài khoản',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: _C.error,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
         ),
       ],

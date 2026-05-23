@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../ai/voice_ai_service.dart';
+import 'package:smart_app/ai/voice_ai_service.dart';
+import 'package:smart_app/widgets/mentor_ai.dart';
 import 'promodoro_flow.dart';
 import 'sequential_flow.dart';
 
@@ -9,7 +10,6 @@ class VoiceHandler {
     scaffold.showSnackBar(
       const SnackBar(content: Text('Đang xử lý giọng nói...')),
     );
-
     try {
       final ai = VoiceAiService.instance;
       final Map<String, dynamic>? intent = await ai.extractIntentFromText(transcript);
@@ -46,16 +46,17 @@ class VoiceHandler {
         }
       }
 
-      // Nếu không phải lệnh, hỏi user muốn tạo loại nhiệm vụ nào (Promodoro / Dài hạn)
+      // Nếu không phải lệnh, hỏi user muốn tạo loại nhiệm vụ nào (Promodoro / Dài hạn / Phân tích)
       final choice = await showDialog<String>(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
           title: const Text('Tạo nhiệm vụ'),
-          content: const Text('Bạn muốn tạo nhiệm vụ dạng nào?\n\n- Promodoro: tạo nhanh nhiệm vụ tập trung (ưu tiên mặc định là Cao).\n- Dài hạn: quy trình thu thập đầy đủ thông tin.'),
+          content: const Text('Bạn muốn tạo nhiệm vụ dạng nào?\n\n- Promodoro: tạo nhanh nhiệm vụ tập trung (ưu tiên mặc định là Cao).\n- Dài hạn: quy trình thu thập đầy đủ thông tin.\n- Phân tích: chạy phân tích báo cáo (như nút Phân tích).'),
           actions: [
             TextButton(onPressed: () => Navigator.of(ctx).pop('long'), child: const Text('Dài hạn')),
             FilledButton(onPressed: () => Navigator.of(ctx).pop('promodoro'), child: const Text('Promodoro')),
+            TextButton(onPressed: () => Navigator.of(ctx).pop('analyze'), child: const Text('Phân tích')),
             TextButton(onPressed: () => Navigator.of(ctx).pop(null), child: const Text('Hủy')),
           ],
         ),
@@ -65,11 +66,16 @@ class VoiceHandler {
         await collectPromodoroFlow(context, initialTranscript: transcript);
       } else if (choice == 'long') {
         await collectVoiceTaskSequential(context, initialTranscript: transcript);
+      } else if (choice == 'analyze') {
+        // reuse existing Mentor AI analysis sheet
+        await showAiAnalysisSheet(context);
       }
       // else: user canceled, do nothing
-
     } catch (e) {
       scaffold.showSnackBar(SnackBar(content: Text('Lỗi khi xử lý giọng nói: $e')));
     }
   }
+
 }
+  
+

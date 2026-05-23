@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../ai/voice_ai_service.dart';
-import '../../services/timer_service.dart';
+import 'package:smart_app/ai/voice_ai_service.dart';
+import 'package:smart_app/services/timer_service.dart';
 
 Future<void> handlePromodoroAiPress(
   BuildContext context,

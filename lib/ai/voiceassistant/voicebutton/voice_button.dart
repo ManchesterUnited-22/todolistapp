@@ -34,7 +34,6 @@ class _VoiceTaskButtonState extends State<VoiceTaskButton>
     _pulseController.repeat(reverse: true);
 
     try {
-      // Mở luôn luồng hội thoại voice; AI sẽ hỏi câu đầu tiên ngay trong dialog.
       await widget.onVoiceResult('');
       if (mounted) {
         ScaffoldMessenger.of(

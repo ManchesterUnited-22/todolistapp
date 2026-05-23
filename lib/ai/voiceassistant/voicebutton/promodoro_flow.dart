@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../ai/voice_ai_service.dart';
-import '../../views/task_viewmodel.dart';
+import 'package:smart_app/ai/voice_ai_service.dart';
+import 'package:smart_app/views/task_viewmodel.dart';
 import 'voice_input_dialog.dart';
 
 /// Promodoro flow: title, duration, category. Priority fixed to 'Cao'.
@@ -126,7 +126,7 @@ Future<bool?> _confirmUseTranscript(BuildContext context, String transcript) {
     barrierDismissible: false,
     builder: (ctx) => AlertDialog(
       title: const Text('Sử dụng nội dung phát hiện'),
-      content: Text('Phát hiện: "$transcript"\nBạn có muốn sử dụng làm tiêu đề không?'),
+      content: Text('Phát hiện: "${transcript}"\nBạn có muốn sử dụng làm tiêu đề không?'),
       actions: [
         TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Không')),
         FilledButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Có')),

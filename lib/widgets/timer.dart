@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../services/timer_service.dart';
-import 'voicebutton/promodoro_process.dart';
+import 'package:smart_app/ai/voiceassistant/voicebutton/promodoro_process.dart';
 
 part 'timer/timer_view.dart';
 part 'timer/timer_controls.dart';

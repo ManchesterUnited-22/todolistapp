@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
-import '../../services/voice_nudge_service.dart';
+import '../../../services/voice_nudge_service.dart';
 import 'package:smart_app/ai/voice_ai_service.dart';
+
 Future<VoiceTaskDraft?> collectVoiceTaskDraft(
   BuildContext context, {
   String transcript = '',

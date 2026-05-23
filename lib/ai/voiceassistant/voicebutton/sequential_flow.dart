@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../ai/voice_ai_service.dart';
-import '../../views/task_viewmodel.dart';
+import 'package:smart_app/ai/voice_ai_service.dart';
+import 'package:smart_app/views/task_viewmodel.dart';
 import 'voice_input_dialog.dart';
 
 Future<void> collectVoiceTaskSequential(BuildContext context, {String? initialTranscript}) async {

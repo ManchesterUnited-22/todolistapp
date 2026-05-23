@@ -7,8 +7,8 @@ import '../widgets/sidebar.dart';
 import '../services/timer_service.dart';
 import '../widgets/promodoro_timer_sheet.dart';
 import '../notifications/task_notification_bell.dart';
-import '../widgets/voicebutton/voice_button.dart';
-import '../widgets/voicebutton/voice_handler.dart';
+import 'package:smart_app/ai/voiceassistant/voicebutton/voice_button.dart';
+import 'package:smart_app/ai/voiceassistant/voicebutton/voice_handler.dart';
 import '../views/task_viewmodel.dart';
 
 // ── Colour tokens ─────────────────────────────────────────────────────────────

@@ -55,8 +55,14 @@ class ProfileSettingsSection extends StatelessWidget {
                   final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
                   if (uid.isEmpty) return;
                   final results = await Future.wait([
-                    FirebaseFirestore.instance.collection('register').doc(uid).get(),
-                    FirebaseFirestore.instance.collection('users').doc(uid).get(),
+                    FirebaseFirestore.instance
+                        .collection('register')
+                        .doc(uid)
+                        .get(),
+                    FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(uid)
+                        .get(),
                   ]);
                   final merged = {
                     ...results[0].data() ?? {},
@@ -75,47 +81,15 @@ class ProfileSettingsSection extends StatelessWidget {
               Divider(height: 1, color: ProfileColors.surfaceContainerHigh),
               _buildSettingRow(
                 context: context,
-                icon: Icons.security_outlined,
-                iconBg: ProfileColors.tertiaryContainer,
-                iconColor: Colors.white,
-                label: 'Bảo mật',
+                icon: Icons.logout_rounded,
+                iconBg: ProfileColors.errorContainer,
+                iconColor: ProfileColors.error,
+                label: 'Đăng xuất tài khoản',
                 isFirst: false,
                 isLast: true,
-                onTap: () {},
+                onTap: onLogoutTap,
               ),
             ],
-          ),
-        ),
-        const SizedBox(height: 32),
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: onLogoutTap,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: ProfileColors.errorContainer.withOpacity(0.20),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: ProfileColors.error.withOpacity(0.10)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.logout_rounded, color: ProfileColors.error),
-                  SizedBox(width: 8),
-                  Text(
-                    'Đăng xuất tài khoản',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: ProfileColors.error,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
         ),
       ],
@@ -164,7 +138,11 @@ class ProfileSettingsSection extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded, size: 16, color: ProfileColors.outline),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: ProfileColors.outline,
+            ),
           ],
         ),
       ),

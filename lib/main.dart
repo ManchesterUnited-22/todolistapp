@@ -28,7 +28,7 @@ Future<void> main() async {
   try {
     await dotenv.load();
     dotenvLoaded = true;
-    debugPrint('==> main: dotenv loaded, GOOGLE_API_KEY = \'${dotenv.env['GOOGLE_API_KEY']}\'');
+    debugPrint('==> main: dotenv loaded');
   } catch (e) {
     debugPrint('==> main: dotenv load error: $e');
   }

@@ -6,11 +6,12 @@ import '../../views/stats_viewmodel.dart';
 import '../../views/task_viewmodel.dart';
 import '../../widgets/floating_bottom_navbar.dart';
 import '../../widgets/mentor_ai.dart';
+import 'package:smart_app/ai/voiceassistant/voicebutton/voice_button.dart';
+import 'package:smart_app/ai/voiceassistant/voicebutton/voice_handler.dart';
 import '../../widgets/sidebar.dart';
 import '../../notifications/task_notification_bell.dart';
 import 'charts_colors.dart';
 import 'widgets/charts_distribution_section.dart';
-import 'widgets/charts_focus_section.dart';
 import 'widgets/charts_kpi_section.dart';
 import 'widgets/charts_motivation_card.dart';
 import 'widgets/charts_summary_banner.dart';
@@ -38,7 +39,10 @@ class _ChartsScreenState extends State<ChartsScreen> {
       surfaceTintColor: Colors.transparent,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Container(height: 1, color: ChartsColors.outlineVariant.withValues(alpha: 0.30)),
+        child: Container(
+          height: 1,
+          color: ChartsColors.outlineVariant.withValues(alpha: 0.30),
+        ),
       ),
       leading: Builder(
         builder: (context) => IconButton(
@@ -48,10 +52,19 @@ class _ChartsScreenState extends State<ChartsScreen> {
       ),
       title: const Text(
         'Serene Focus',
-        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: ChartsColors.primary, letterSpacing: -0.5),
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w800,
+          color: ChartsColors.primary,
+          letterSpacing: -0.5,
+        ),
       ),
       actions: [
-        TaskNotificationBellButton(userId: _currentUserUid, iconColor: ChartsColors.primary, badgeColor: ChartsColors.error),
+        TaskNotificationBellButton(
+          userId: _currentUserUid,
+          iconColor: ChartsColors.primary,
+          badgeColor: ChartsColors.error,
+        ),
       ],
     );
   }
@@ -62,18 +75,31 @@ class _ChartsScreenState extends State<ChartsScreen> {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(24),
-          child: Text('Vui lòng đăng nhập để xem thống kê.', style: TextStyle(color: ChartsColors.onSurfaceVariant, fontSize: 16)),
+          child: Text(
+            'Vui lòng đăng nhập để xem thống kê.',
+            style: TextStyle(
+              color: ChartsColors.onSurfaceVariant,
+              fontSize: 16,
+            ),
+          ),
         ),
       );
     }
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('tasks').where('uid', isEqualTo: uid).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('tasks')
+          .where('uid', isEqualTo: uid)
+          .snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return const Center(child: Text('Lỗi tải dữ liệu biểu đồ'));
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        if (snapshot.hasError)
+          return const Center(child: Text('Lỗi tải dữ liệu biểu đồ'));
+        if (!snapshot.hasData)
+          return const Center(child: CircularProgressIndicator());
 
-        final tasks = snapshot.data!.docs.map((doc) => TaskViewModel.fromMap(doc.data())).toList();
+        final tasks = snapshot.data!.docs
+            .map((doc) => TaskViewModel.fromMap(doc.data()))
+            .toList();
         final stats = StatsViewModel.fromTasks(uid: uid, tasks: tasks);
 
         if (stats.syncSignature != _lastSyncedSignature) {
@@ -90,15 +116,12 @@ class _ChartsScreenState extends State<ChartsScreen> {
             children: [
               ChartsSummaryBanner(stats: stats),
               const SizedBox(height: 20),
-              const MentorAiButton(),
               const SizedBox(height: 32),
               ChartsKpiSection(stats: stats),
               const SizedBox(height: 32),
               ChartsWeeklyChart(tasks: tasks),
               const SizedBox(height: 32),
               ChartsDistributionSection(stats: stats),
-              const SizedBox(height: 32),
-              ChartsFocusSection(stats: stats),
               const SizedBox(height: 32),
               const ChartsMotivationCard(),
               const SizedBox(height: 80),
@@ -134,8 +157,36 @@ class _ChartsScreenState extends State<ChartsScreen> {
         ),
       ),
       appBar: _buildAppBar(),
-      body: _buildBody(),
-      bottomNavigationBar: widget.showBottomNav ? const FloatingBottomNavBar(currentIndex: 2, showFab: false) : null,
+      body: Stack(
+        children: [
+          _buildBody(),
+          Positioned(
+            bottom: 96,
+            right: 24,
+            child: Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF4648D4), Color(0xFF6063EE)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(color: const Color(0xFF4648D4).withValues(alpha: 0.35), blurRadius: 20, offset: const Offset(0, 6)),
+                ],
+              ),
+              child: VoiceTaskButton(
+                onVoiceResult: (text) => VoiceHandler.process(text, context),
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: widget.showBottomNav
+          ? const FloatingBottomNavBar(currentIndex: 2, showFab: false)
+          : null,
     );
   }
 }

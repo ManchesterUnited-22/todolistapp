@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:google_generative_ai/google_generative_ai.dart';
-import '../ai/voice_ai_service.dart' as legacy_ai;
+import 'package:smart_app/ai/voice_ai_service.dart' as legacy_ai;
 
 class AiAnalysisService {
   AiAnalysisService._();
@@ -121,8 +121,7 @@ class AiAnalysisService {
       'messages': [
         {
           'role': 'system',
-          'content':
-              'You are an expert productivity coach. Answer concisely in Vietnamese.',
+          'content': 'You are an expert productivity coach. Answer concisely in Vietnamese.',
         },
         {'role': 'user', 'content': prompt},
       ],
