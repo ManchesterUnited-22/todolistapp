@@ -2,10 +2,11 @@ library timer_widget;
 
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_app/ai/voice_ai_service.dart';
 
 import '../services/timer_service.dart';
-import 'package:smart_app/ai/voiceassistant/voicebutton/promodoro_process.dart';
 
 part 'timer/timer_view.dart';
 part 'timer/timer_controls.dart';
@@ -117,7 +118,83 @@ class _TimerCardState extends State<TimerCard> {
   }
 
   Future<void> _onPressAi() async {
-    await handlePromodoroAiPress(context, _focusController, _breakController);
+    final focusMinutes = _parseMinutes(_focusController.text);
+    final breakMinutes = _parseMinutes(_breakController.text);
+
+    if (focusMinutes == null || breakMinutes == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nhập số phút hợp lệ cho cả tập trung và giải lao.'),
+        ),
+      );
+      return;
+    }
+
+    final rec = await VoiceAiService.instance.recommendFocusBreak(
+      focusMinutes: focusMinutes,
+      breakMinutes: breakMinutes,
+    );
+
+    if (!mounted) return;
+    final agree = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Center(
+          child: Icon(
+            Icons.auto_awesome_rounded,
+            size: 36,
+            color: Color(0xFF4648D4),
+          ),
+        ),
+        content: Text(rec.message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Hủy bỏ'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Đồng ý'),
+          ),
+        ],
+      ),
+    );
+
+    final appliedFocus = agree == true ? rec.suggestedFocusMinutes : focusMinutes;
+    final appliedBreak = agree == true ? rec.suggestedBreakMinutes : breakMinutes;
+
+    setState(() {
+      _focusMinutes = appliedFocus;
+      _breakMinutes = appliedBreak;
+      _focusController.text = appliedFocus.toString();
+      _breakController.text = appliedBreak.toString();
+      _svc.focusDurationMinutes = appliedFocus;
+      _svc.breakDurationMinutes = appliedBreak;
+    });
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng đăng nhập trước khi bắt đầu phiên.'),
+        ),
+      );
+      return;
+    }
+
+    await _svc.startSession(
+      focusMinutes: appliedFocus,
+      breakMinutes: appliedBreak,
+      uid: user.uid,
+    );
+  }
+
+  int? _parseMinutes(String input) {
+    final value = int.tryParse(input.trim());
+    if (value == null || value <= 0) return null;
+    return value;
   }
 
   @override

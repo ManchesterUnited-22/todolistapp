@@ -10,7 +10,7 @@ class ChartsKpiSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final completionPct = (stats.completionRate * 100).round();
+    final completionPct = (stats.dailyCompletionRate * 100).round();
 
     return Column(
       children: [
@@ -56,7 +56,7 @@ class ChartsKpiSection extends StatelessWidget {
                 width: 52,
                 height: 52,
                 child: CustomPaint(
-                  painter: ChartsRingPainter(value: stats.completionRate),
+                  painter: ChartsRingPainter(value: stats.dailyCompletionRate),
                 ),
               ),
             ],

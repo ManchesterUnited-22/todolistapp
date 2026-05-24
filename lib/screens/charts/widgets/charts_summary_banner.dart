@@ -9,7 +9,7 @@ class ChartsSummaryBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pct = (stats.completionRate * 100).round();
+    final pct = (stats.dailyCompletionRate * 100).round();
     final String headline;
     final String subline;
     if (pct >= 80) {

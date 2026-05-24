@@ -144,4 +144,24 @@ class TaskNotificationService {
       debugPrint('Task notification failed: $error');
     }
   }
+
+  Future<void> showManualNotification({
+    required String key,
+    required String title,
+    required String body,
+    String details = '',
+  }) async {
+    if (!_initialized) {
+      await initialize();
+    }
+
+    if (!_enabled) return;
+
+    await _showNotification(
+      id: key.hashCode & 0x7fffffff,
+      title: title,
+      body: body,
+      details: details,
+    );
+  }
 }

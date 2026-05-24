@@ -34,6 +34,7 @@ class StatsViewModel extends ViewModel {
   final int overdueTasks;
   final int delayedTasks;
   final double completionRate;
+  final double dailyCompletionRate;
   final int bestFocusStartMinute;
   final int bestFocusEndMinute;
   final int streakDays;
@@ -56,6 +57,7 @@ class StatsViewModel extends ViewModel {
     required this.overdueTasks,
     required this.delayedTasks,
     required this.completionRate,
+    required this.dailyCompletionRate,
     required this.bestFocusStartMinute,
     required this.bestFocusEndMinute,
     required this.streakDays,
@@ -87,6 +89,10 @@ class StatsViewModel extends ViewModel {
       overdueTasks: (map['overdueTasks'] as num?)?.toInt() ?? 0,
       delayedTasks: (map['delayedTasks'] as num?)?.toInt() ?? 0,
       completionRate: (map['completionRate'] as num?)?.toDouble() ?? 0,
+        dailyCompletionRate:
+          (map['dailyCompletionRate'] as num?)?.toDouble() ??
+          (map['completionRate'] as num?)?.toDouble() ??
+          0,
       bestFocusStartMinute: (map['bestFocusStartMinute'] as num?)?.toInt() ?? 0,
       bestFocusEndMinute: (map['bestFocusEndMinute'] as num?)?.toInt() ?? 0,
       streakDays: (map['streakDays'] as num?)?.toInt() ?? 0,
@@ -129,6 +135,7 @@ class StatsViewModel extends ViewModel {
       overdueTasks: 0,
       delayedTasks: 0,
       completionRate: 0,
+      dailyCompletionRate: 0,
       bestFocusStartMinute: 0,
       bestFocusEndMinute: 0,
       streakDays: 0,
@@ -174,6 +181,8 @@ class StatsViewModel extends ViewModel {
     var totalBreakTime = 0;
     var todayFocusTime = 0;
     var todayBreakTime = 0;
+    var todayTaskTotal = 0;
+    var todayCompletedTasks = 0;
     var lastFocusDuration = 0;
     var lastBreakDuration = 0;
     var lastDateString = _formatDate(currentTime);
@@ -202,6 +211,10 @@ class StatsViewModel extends ViewModel {
               taskAnchor.isBefore(tomorrowStart));
 
       if (isToday) {
+        todayTaskTotal += 1;
+        if (task.stat == 'Hoàn thành') {
+          todayCompletedTasks += 1;
+        }
         todayFocusTime += taskFocus;
         todayBreakTime += taskBreak;
       }
@@ -247,6 +260,8 @@ class StatsViewModel extends ViewModel {
       overdueTasks: overdueTasks,
       delayedTasks: overdueTasks,
       completionRate: totalTasks == 0 ? 0 : completedTasks / totalTasks,
+        dailyCompletionRate:
+          todayTaskTotal == 0 ? 0 : todayCompletedTasks / todayTaskTotal,
       bestFocusStartMinute: bestFocusWindow.$1,
       bestFocusEndMinute: bestFocusWindow.$2,
       streakDays: streakDays,
@@ -347,6 +362,7 @@ class StatsViewModel extends ViewModel {
       'overdueTasks': overdueTasks,
       'delayedTasks': delayedTasks,
       'completionRate': completionRate,
+      'dailyCompletionRate': dailyCompletionRate,
       'bestFocusStartMinute': bestFocusStartMinute,
       'bestFocusEndMinute': bestFocusEndMinute,
       'bestFocusWindowLabel': bestFocusWindowLabel,
@@ -377,6 +393,7 @@ class StatsViewModel extends ViewModel {
       overdueTasks,
       delayedTasks,
       completionRate.toStringAsFixed(4),
+      dailyCompletionRate.toStringAsFixed(4),
       bestFocusStartMinute,
       bestFocusEndMinute,
       streakDays,

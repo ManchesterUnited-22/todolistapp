@@ -11,11 +11,9 @@ import 'package:smart_app/ai/voiceassistant/voicebutton/voice_handler.dart';
 import '../../widgets/sidebar.dart';
 import '../../notifications/task_notification_bell.dart';
 import 'charts_colors.dart';
-import 'widgets/charts_distribution_section.dart';
 import 'widgets/charts_kpi_section.dart';
 import 'widgets/charts_motivation_card.dart';
 import 'widgets/charts_summary_banner.dart';
-import 'widgets/charts_weekly_chart.dart';
 
 class ChartsScreen extends StatefulWidget {
   final bool showBottomNav;
@@ -118,10 +116,6 @@ class _ChartsScreenState extends State<ChartsScreen> {
               const SizedBox(height: 20),
               const SizedBox(height: 32),
               ChartsKpiSection(stats: stats),
-              const SizedBox(height: 32),
-              ChartsWeeklyChart(tasks: tasks),
-              const SizedBox(height: 32),
-              ChartsDistributionSection(stats: stats),
               const SizedBox(height: 32),
               const ChartsMotivationCard(),
               const SizedBox(height: 80),

@@ -70,8 +70,22 @@ Hãy phân loại ý định thành một trong các kiểu JSON sau (chỉ ch�
   "type": "command",
   "action": "navigate",
   "target": "charts" | "calendar" | "dashboard" | "profile" | "stats",
-  "params": {}
+  "params": {
+    "diagram": true | false,
+    "view": "voice_diagram" | null,
+    "rangeType": "day" | "week" | "month" | "year" | null,
+    "anchorDate": "YYYY-MM-DD" | null,
+    "label": "..." | null
+  }
 }
+
+Ghi chú cho biểu đồ:
+- Nếu người dùng yêu cầu "xem biểu đồ", "xem hiệu suất" hoặc "thống kê theo thời gian", trả target = "charts" và params.diagram = true.
+- rangeType = "day" khi người dùng nói ngày cụ thể hoặc các cụm như "hôm qua", "hôm nay".
+- rangeType = "week" cho "tuần này", "tuần trước", "tuần sau".
+- rangeType = "month" cho "tháng này", "tháng trước", "tháng sau".
+- rangeType = "year" cho "năm nay", "năm ngoái", "năm sau".
+- anchorDate LUÔN theo định dạng YYYY-MM-DD nếu có giá trị.
 
 4) Không hiểu / noop:
 {
@@ -155,6 +169,8 @@ Future<void> voiceAiHandleVoiceInput(VoiceAiService self, String resultText) asy
 Map<String, dynamic>? _heuristicExtract(String text) {
   final raw = text.trim().toLowerCase();
   if (raw.isEmpty) return null;
+  final chartIntent = _heuristicExtractChartNavigation(raw);
+  if (chartIntent != null) return chartIntent;
   if (!(raw.contains('thêm') || raw.contains('tạo') || raw.contains('nhiệm vụ') || raw.contains('việc'))) return null;
 
   final now = DateTime.now();
@@ -235,4 +251,139 @@ Map<String, dynamic>? _heuristicExtract(String text) {
     'time': time,
     'person': null,
   };
+}
+
+Map<String, dynamic>? _heuristicExtractChartNavigation(String raw) {
+  final chartKeywords = <String>[
+    'biểu đồ',
+    'thống kê',
+    'hiệu suất',
+    'xem biểu đồ',
+    'mở biểu đồ',
+    'xem thống kê',
+    'xem hiệu suất',
+  ];
+  final hasChartKeyword = chartKeywords.any(raw.contains);
+  if (!hasChartKeyword) return null;
+
+  final now = DateTime.now();
+  final period = _chartPeriodFromText(raw);
+  final anchor = _chartAnchorFromText(raw, now, period);
+
+  return {
+    'type': 'command',
+    'action': 'navigate',
+    'target': 'charts',
+    'params': {
+      'diagram': true,
+      'view': 'voice_diagram',
+      'rangeType': period,
+      'anchorDate': _formatIsoDate(anchor),
+      'label': _chartLabelFromText(raw, period, anchor),
+    },
+  };
+}
+
+String _chartPeriodFromText(String raw) {
+  if (raw.contains('năm')) return 'year';
+  if (raw.contains('tháng')) return 'month';
+  if (raw.contains('tuần')) return 'week';
+  return 'day';
+}
+
+DateTime _chartAnchorFromText(String raw, DateTime now, String period) {
+  if (raw.contains('hôm qua')) return now.subtract(const Duration(days: 1));
+  if (raw.contains('hôm nay')) return now;
+  if (raw.contains('ngày mai')) return now.add(const Duration(days: 1));
+  if (raw.contains('tuần trước')) return now.subtract(const Duration(days: 7));
+  if (raw.contains('tuần sau')) return now.add(const Duration(days: 7));
+  if (raw.contains('tháng trước')) return DateTime(now.year, now.month - 1, 1);
+  if (raw.contains('tháng sau')) return DateTime(now.year, now.month + 1, 1);
+  if (raw.contains('năm ngoái')) return DateTime(now.year - 1, 1, 1);
+  if (raw.contains('năm sau')) return DateTime(now.year + 1, 1, 1);
+
+  final explicitDate = RegExp(r'(\d{1,2}[\/-]\d{1,2}(?:[\/-]\d{2,4})?)').firstMatch(raw);
+  if (explicitDate != null) {
+    final parsed = _parseDateLike(explicitDate.group(0)!, now);
+    if (parsed != null) return parsed;
+  }
+
+  final monthMatch = RegExp(r'tháng\s*(\d{1,2})(?:\s*năm\s*(\d{4}))?').firstMatch(raw);
+  if (monthMatch != null) {
+    final month = int.tryParse(monthMatch.group(1) ?? '') ?? now.month;
+    final year = int.tryParse(monthMatch.group(2) ?? '') ?? now.year;
+    return DateTime(year, month, 1);
+  }
+
+  final yearMatch = RegExp(r'năm\s*(\d{4})').firstMatch(raw);
+  if (yearMatch != null) {
+    final year = int.tryParse(yearMatch.group(1) ?? '') ?? now.year;
+    return DateTime(year, 1, 1);
+  }
+
+  switch (period) {
+    case 'week':
+      return now;
+    case 'month':
+      return DateTime(now.year, now.month, 1);
+    case 'year':
+      return DateTime(now.year, 1, 1);
+    case 'day':
+    default:
+      return now;
+  }
+}
+
+String _chartLabelFromText(String raw, String period, DateTime anchor) {
+  if (raw.contains('hôm qua')) return 'Hôm qua';
+  if (raw.contains('hôm nay')) return 'Hôm nay';
+  if (raw.contains('ngày mai')) return 'Ngày mai';
+  if (raw.contains('tuần trước')) return 'Tuần trước';
+  if (raw.contains('tuần này')) return 'Tuần này';
+  if (raw.contains('tuần sau')) return 'Tuần sau';
+  if (raw.contains('tháng trước')) return 'Tháng trước';
+  if (raw.contains('tháng này')) return 'Tháng này';
+  if (raw.contains('tháng sau')) return 'Tháng sau';
+  if (raw.contains('năm ngoái')) return 'Năm ngoái';
+  if (raw.contains('năm nay')) return 'Năm nay';
+  if (raw.contains('năm sau')) return 'Năm sau';
+
+  switch (period) {
+    case 'day':
+      return _formatIsoDate(anchor);
+    case 'week':
+      return 'Tuần ${_formatIsoDate(anchor)}';
+    case 'month':
+      return '${anchor.month.toString().padLeft(2, '0')}/${anchor.year}';
+    case 'year':
+      return anchor.year.toString();
+    default:
+      return _formatIsoDate(anchor);
+  }
+}
+
+String _formatIsoDate(DateTime dateTime) {
+  return '${dateTime.year.toString().padLeft(4, '0')}-'
+      '${dateTime.month.toString().padLeft(2, '0')}-'
+      '${dateTime.day.toString().padLeft(2, '0')}';
+}
+
+DateTime? _parseDateLike(String value, DateTime fallbackNow) {
+  final cleaned = value.replaceAll('/', '-').trim();
+  final parts = cleaned.split('-');
+  if (parts.length < 2) return DateTime.tryParse(cleaned);
+
+  final day = int.tryParse(parts[0]);
+  final month = int.tryParse(parts[1]);
+  if (day == null || month == null) return DateTime.tryParse(cleaned);
+
+  int year = fallbackNow.year;
+  if (parts.length >= 3) {
+    final rawYear = parts[2];
+    year = rawYear.length == 2
+        ? int.tryParse('20$rawYear') ?? fallbackNow.year
+        : int.tryParse(rawYear) ?? fallbackNow.year;
+  }
+
+  return DateTime(year, month, day);
 }

@@ -20,10 +20,12 @@ class TaskDeadlineNotification extends StatefulWidget {
 class _TaskDeadlineNotificationState extends State<TaskDeadlineNotification> {
   static const Duration _dueSoonWindow = Duration(minutes: 10);
   static const Duration _refreshInterval = Duration(seconds: 30);
+  static const Duration _overdueDeletionGracePeriod = Duration(minutes: 10);
 
   Timer? _timer;
   DateTime _now = DateTime.now();
   String _lastSignature = '';
+  bool _maintenanceInProgress = false;
 
   @override
   void initState() {
@@ -50,6 +52,13 @@ class _TaskDeadlineNotificationState extends State<TaskDeadlineNotification> {
     return dueAt.isBefore(_now);
   }
 
+  bool _isOverdueBeyondGrace(TaskViewModel task) {
+    if (_isCompleted(task)) return false;
+    final dueAt = task.dueAt?.toDate();
+    if (dueAt == null) return false;
+    return _now.difference(dueAt) >= _overdueDeletionGracePeriod;
+  }
+
   bool _isDueSoon(TaskViewModel task) {
     if (_isCompleted(task)) return false;
     final dueAt = task.dueAt?.toDate();
@@ -57,6 +66,66 @@ class _TaskDeadlineNotificationState extends State<TaskDeadlineNotification> {
 
     final remaining = dueAt.difference(_now);
     return remaining > Duration.zero && remaining <= _dueSoonWindow;
+  }
+
+  bool _isPromodoroTask(TaskViewModel task) {
+    final way = task.way.toLowerCase();
+    return way.contains('promodoro') || way.contains('pomodoro');
+  }
+
+  DateTime? _taskAnchor(TaskViewModel task) {
+    return task.createdAt?.toDate() ??
+        task.timestamp?.toDate() ??
+        task.completedAt?.toDate() ??
+        task.dueAt?.toDate();
+  }
+
+  bool _isBeforeToday(DateTime value) {
+    final today = DateTime(_now.year, _now.month, _now.day);
+    final day = DateTime(value.year, value.month, value.day);
+    return day.isBefore(today);
+  }
+
+  Future<void> _applyAutoCleanup(
+    List<MapEntry<String, TaskViewModel>> tasks,
+  ) async {
+    if (_maintenanceInProgress) return;
+    _maintenanceInProgress = true;
+
+    try {
+      for (final entry in tasks) {
+        final taskId = entry.key;
+        final task = entry.value;
+
+        if (_isOverdueBeyondGrace(task)) {
+          await FirebaseFirestore.instance.collection('tasks').doc(taskId).delete();
+          await TaskNotificationService.instance.showManualNotification(
+            key: 'cleanup-overdue-$taskId',
+            title: 'Đã xóa nhiệm vụ quá hạn',
+            body: 'Nhiệm vụ "${task.title}" đã được xóa sau thời gian ân hạn quá hạn.',
+            details: 'Bạn có thể tạo lại nếu vẫn cần theo dõi.',
+          );
+          continue;
+        }
+
+        if (_isPromodoroTask(task)) {
+          final anchor = _taskAnchor(task);
+          if (anchor != null && _isBeforeToday(anchor)) {
+            await FirebaseFirestore.instance.collection('tasks').doc(taskId).delete();
+            await TaskNotificationService.instance.showManualNotification(
+              key: 'cleanup-promodoro-$taskId',
+              title: 'Đã dọn nhiệm vụ Promodoro cũ',
+              body: 'Nhiệm vụ "${task.title}" đã được xóa vì đã sang ngày mới.',
+              details: 'Promodoro được dọn theo ngày để danh sách gọn hơn.',
+            );
+          }
+        }
+      }
+    } catch (_) {
+      // Keep UI resilient if cleanup fails; stream will retry on next tick.
+    } finally {
+      _maintenanceInProgress = false;
+    }
   }
 
   Future<void> _syncSystemNotifications(
@@ -186,16 +255,20 @@ class _TaskDeadlineNotificationState extends State<TaskDeadlineNotification> {
 
         final tasks = snapshot.data!.docs
             .map((doc) => MapEntry(doc.id, TaskViewModel.fromMap(doc.data())))
+            .toList();
+
+        final tasksWithDueAt = tasks
             .where((entry) => entry.value.dueAt != null)
             .toList();
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            _syncSystemNotifications(tasks);
+            _applyAutoCleanup(tasks);
+            _syncSystemNotifications(tasksWithDueAt);
           }
         });
 
-        final overdueTasks = tasks
+        final overdueTasks = tasksWithDueAt
             .map((entry) => entry.value)
             .where(_isOverdue)
             .toList();
@@ -222,7 +295,7 @@ class _TaskDeadlineNotificationState extends State<TaskDeadlineNotification> {
           );
         }
 
-        final dueSoonTasks = tasks
+        final dueSoonTasks = tasksWithDueAt
             .map((entry) => entry.value)
             .where(_isDueSoon)
             .toList();

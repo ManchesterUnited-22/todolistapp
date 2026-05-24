@@ -2,9 +2,8 @@ library promodoro_timer_sheet;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
-import '../services/timer_service.dart';
-import '../views/task_viewmodel.dart';
+import 'package:smart_app/services/timer_service.dart';
+import 'package:smart_app/views/task_viewmodel.dart';
 
 part 'promodoro_timer_sheet/promodoro_timer_sheet_view.dart';
 
