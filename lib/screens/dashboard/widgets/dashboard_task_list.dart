@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_app/ai/voiceassistant/voicebutton/promodoro/promodoro_timer_sheet.dart';
 import '../../../views/task_viewmodel.dart';
+import '../../../widgets/promodoro_timer_sheet.dart';
 import '../dashboard_colors.dart';
 import 'dashboard_task_card.dart';
 

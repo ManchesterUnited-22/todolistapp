@@ -2,16 +2,13 @@ export 'dashboard/dashboard_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:smart_app/ai/voiceassistant/voicebutton/promodoro/promodoro_timer_sheet.dart';
 import '../widgets/floating_bottom_navbar.dart';
 import '../widgets/sidebar.dart';
 import '../services/timer_service.dart';
-import '../notifications/task_notification_bell.dart';
-import 'package:smart_app/ai/voice_ai_service.dart';
-import 'package:smart_app/ai/voiceassistant/voicebutton/voice_button.dart';
-import 'package:smart_app/ai/voiceassistant/voicebutton/voice_handler.dart';
-import 'package:smart_app/ai/voiceassistant/voicebutton/voice_input_dialog.dart';
+import '../widgets/promodoro_timer_sheet.dart';
+import '../widgets/task_notification_bell.dart';
+import '../widgets/voicebutton/voice_button.dart';
+import '../widgets/voicebutton/voice_handler.dart';
 import '../views/task_viewmodel.dart';
 
 // ── Colour tokens ─────────────────────────────────────────────────────────────
@@ -59,24 +56,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   // ── Task Helpers ──────────────────────────────────────────────────────────
   bool _isTaskCompleted(TaskViewModel task) => task.stat == 'Hoàn thành';
 
-  DateTime? _taskAnchor(TaskViewModel task) {
-    final candidates = [
-      task.completedAt?.toDate(),
-      task.dueAt?.toDate(),
-      task.createdAt?.toDate(),
-      task.timestamp?.toDate(),
-    ];
-
-    for (final candidate in candidates) {
-      if (candidate != null) return candidate;
-    }
-    return null;
-  }
-
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
-  }
-
   bool _isTaskOverdue(TaskViewModel task) {
     if (_isTaskCompleted(task)) return false;
     final dueAt = task.dueAt?.toDate();
@@ -95,7 +74,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
     final updates = <String, dynamic>{'stat': stat};
     if (checked) {
       updates['completedAt'] = FieldValue.serverTimestamp();
-      updates['timestamp'] = FieldValue.serverTimestamp();
     } else {
       updates['completedAt'] = FieldValue.delete();
     }
@@ -107,128 +85,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
 
   Future<void> _deleteTask(String docId) async =>
       FirebaseFirestore.instance.collection('tasks').doc(docId).delete();
-
-  Future<void> _editLongTaskByVoice(String docId, TaskViewModel task) async {
-    if (task.way != 'long_term_task') return;
-
-    await SystemSound.play(SystemSoundType.click);
-    await VoiceAiService.instance.speakText('Bạn muốn thay đổi gì ạ?');
-
-    if (!mounted) return;
-    final transcript = await showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const VoiceInputDialog(
-        prompt: 'Nói phần bạn muốn đổi cho task dài hạn',
-      ),
-    );
-
-    if (!mounted || transcript == null || transcript.trim().isEmpty) return;
-
-    final updates = <String, dynamic>{};
-    final parsed = await VoiceAiService.instance.extractTaskFromText(transcript);
-
-    final aiTitle = (parsed?['task_name'] as String?)?.trim();
-    if (aiTitle != null && aiTitle.isNotEmpty) {
-      updates['title'] = aiTitle;
-    }
-
-    final aiPriority = (parsed?['priority'] as String?)?.trim();
-    final priority = aiPriority ?? _parsePriorityFromSpeech(transcript);
-    if (priority != null) updates['priority'] = priority;
-
-    final aiCategory = (parsed?['category'] as String?)?.trim();
-    final category = aiCategory ?? _parseCategoryFromSpeech(transcript);
-    if (category != null) updates['category'] = category;
-
-    final parsedDue = _parseDueAtFromSpeech(
-      dateText: parsed?['date'] as String?,
-      timeText: parsed?['time'] as String?,
-      rawText: transcript,
-    );
-    if (parsedDue != null) {
-      updates['dueAt'] = Timestamp.fromDate(parsedDue);
-    }
-
-    if (updates.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Chưa nhận diện được thông tin cần thay đổi.')),
-        );
-      }
-      return;
-    }
-
-    updates['timestamp'] = FieldValue.serverTimestamp();
-
-    await FirebaseFirestore.instance.collection('tasks').doc(docId).update(updates);
-    await SystemSound.play(SystemSoundType.click);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã cập nhật task bằng giọng nói.')),
-      );
-    }
-  }
-
-  String? _parsePriorityFromSpeech(String input) {
-    final lower = input.toLowerCase();
-    if (lower.contains('cao') || lower.contains('high')) return 'Cao';
-    if (lower.contains('thấp') || lower.contains('thap') || lower.contains('low')) return 'Thấp';
-    if (lower.contains('vừa') || lower.contains('vua') || lower.contains('medium')) return 'Vừa';
-    return null;
-  }
-
-  String? _parseCategoryFromSpeech(String input) {
-    final lower = input.toLowerCase();
-    if (lower.contains('học')) return 'Học tập';
-    if (lower.contains('cá nhân') || lower.contains('ca nhan') || lower.contains('personal')) return 'Cá nhân';
-    if (lower.contains('sức') || lower.contains('suc') || lower.contains('health')) return 'Sức khỏe';
-    if (lower.contains('công') || lower.contains('cong') || lower.contains('work')) return 'Công việc';
-    return null;
-  }
-
-  DateTime? _parseDueAtFromSpeech({
-    String? dateText,
-    String? timeText,
-    required String rawText,
-  }) {
-    final now = DateTime.now();
-    DateTime base = now;
-
-    if (dateText != null && dateText.trim().isNotEmpty) {
-      final parsed = DateTime.tryParse(dateText.trim());
-      if (parsed != null) base = parsed;
-    } else {
-      final lower = rawText.toLowerCase();
-      if (lower.contains('ngày mai') || lower.contains('mai')) {
-        base = now.add(const Duration(days: 1));
-      }
-    }
-
-    int? hour;
-    int minute = 0;
-
-    if (timeText != null && timeText.trim().isNotEmpty) {
-      final parts = timeText.trim().split(':');
-      if (parts.length == 2) {
-        hour = int.tryParse(parts[0]);
-        minute = int.tryParse(parts[1]) ?? 0;
-      }
-    }
-
-    if (hour == null) {
-      final hm = RegExp(r'(\d{1,2}):(\d{2})').firstMatch(rawText);
-      if (hm != null) {
-        hour = int.tryParse(hm.group(1) ?? '0') ?? 0;
-        minute = int.tryParse(hm.group(2) ?? '0') ?? 0;
-      }
-    }
-
-    if (hour == null) return null;
-
-    return DateTime(base.year, base.month, base.day, hour, minute);
-  }
 
   String _taskSectionTitle() => _selectedCategory == null
       ? 'Danh sách việc làm'
@@ -385,22 +241,12 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
           .snapshots(),
       builder: (context, snapshot) {
         final docs = snapshot.data?.docs ?? [];
-        final today = DateTime.now();
-        final todayStart = DateTime(today.year, today.month, today.day);
-        final tomorrowStart = todayStart.add(const Duration(days: 1));
-
-        final todayTasks = docs.where((doc) {
-          final task = TaskViewModel.fromMap(
-            doc.data() as Map<String, dynamic>,
-          );
-          final anchor = _taskAnchor(task);
-          return anchor != null &&
-              !anchor.isBefore(todayStart) &&
-              anchor.isBefore(tomorrowStart);
-        }).map((doc) => TaskViewModel.fromMap(doc.data() as Map<String, dynamic>)).toList();
-
-        final total = todayTasks.length;
-        final completed = todayTasks.where(_isTaskCompleted).length;
+        final total = docs.length;
+        final completed = docs
+            .where(
+              (d) => (d.data() as Map<String, dynamic>)['stat'] == 'Hoàn thành',
+            )
+            .length;
         final double pct = total == 0 ? 0.0 : completed / total;
         final String pctStr = '${(pct * 100).toInt()}%';
 
@@ -575,9 +421,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
               onToggle: (val) =>
                   _toggleTaskStatus(doc.id, task, val ?? false),
               onDelete: () => _deleteTask(doc.id),
-              onVoiceEdit: task.way == 'long_term_task'
-                ? () => _editLongTaskByVoice(doc.id, task)
-                : null,
               onTimerTap: task.way == 'promodoro'
                   ? () => showPromodoroTimerSheet(
                         context,
@@ -781,7 +624,6 @@ class _TaskCard extends StatelessWidget {
   final bool isOverdue;
   final ValueChanged<bool?> onToggle;
   final VoidCallback onDelete;
-  final VoidCallback? onVoiceEdit;
   final VoidCallback? onTimerTap;
 
   const _TaskCard({
@@ -791,7 +633,6 @@ class _TaskCard extends StatelessWidget {
     required this.isOverdue,
     required this.onToggle,
     required this.onDelete,
-    this.onVoiceEdit,
     this.onTimerTap,
   });
 
@@ -987,23 +828,6 @@ class _TaskCard extends StatelessWidget {
                                 ),
                               );
                             },
-                          ),
-                        if (task.way == 'long_term_task' && !isCompleted)
-                          GestureDetector(
-                            onTap: onVoiceEdit,
-                            child: Container(
-                              margin: const EdgeInsets.only(left: 8),
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE1E0FF),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.mic_none_rounded,
-                                size: 18,
-                                color: Color(0xFF4648D4),
-                              ),
-                            ),
                           ),
                         if (!isCompleted)
                           GestureDetector(
