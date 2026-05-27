@@ -118,7 +118,7 @@ class AuthService {
 
     debugPrint('Register: updating display name');
     try {
-      await user.updateDisplayName(registerData.name.trim());
+      await user.updateDisplayName(registerData.displayName.trim());
     } on FirebaseException catch (error) {
       debugPrint(
         'Register profile error: ${error.plugin} ${error.code} ${error.message}',

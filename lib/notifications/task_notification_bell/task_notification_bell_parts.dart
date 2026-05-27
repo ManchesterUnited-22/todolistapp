@@ -14,143 +14,281 @@ Future<void> showTaskNotificationsSheet(
   required Color badgeColor,
   required List<_NotificationEntry> urgentEntries,
   required List<_NotificationEntry> completionEntries,
+  required List<TaskNotificationItem> reminderTasks,
+  required Future<void> Function(List<_NotificationEntry> entries) onClearAll,
 }) async {
   await showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (sheetContext) {
-      return SafeArea(
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.14),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.textSecondary.withValues(alpha: 0.20),
-                    borderRadius: BorderRadius.circular(999),
+      final urgentState = List<_NotificationEntry>.from(urgentEntries);
+      final completionState = List<_NotificationEntry>.from(completionEntries);
+      var notificationsEnabled = TaskNotificationService.instance.notificationsEnabled;
+
+      return StatefulBuilder(
+        builder: (context, setSheetState) {
+          final totalCount = urgentState.length + completionState.length;
+
+          return SafeArea(
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.14),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: badgeColor.withValues(alpha: 0.10),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.notifications_active_rounded,
-                      color: badgeColor,
-                      size: 22,
+                  Center(
+                    child: Container(
+                      width: 42,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.textSecondary.withValues(alpha: 0.20),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: badgeColor.withValues(alpha: 0.10),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.notifications_active_rounded,
+                          color: badgeColor,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Thông báo nhiệm vụ',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              totalCount == 0
+                                  ? 'Không có thông báo mới.'
+                                  : '$totalCount thông báo mới',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (totalCount > 0)
+                        TextButton.icon(
+                          onPressed: () async {
+                            final shouldClear = await showDialog<bool>(
+                              context: context,
+                              builder: (dialogContext) {
+                                return AlertDialog(
+                                  title: const Text('Xóa tất cả thông báo'),
+                                  content: const Text(
+                                    'Bạn có muốn xóa tất cả thông báo trong chuông không?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(dialogContext).pop(false),
+                                      child: const Text('Không'),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () => Navigator.of(dialogContext).pop(true),
+                                      child: const Text('Có'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+
+                            if (shouldClear != true) return;
+
+                            await onClearAll([
+                              ...urgentState,
+                              ...completionState,
+                            ]);
+
+                            if (!context.mounted) return;
+                            setSheetState(() {
+                              urgentState.clear();
+                              completionState.clear();
+                            });
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Đã xóa toàn bộ thông báo.'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.delete_sweep_rounded, size: 18),
+                          label: const Text('Xóa tất cả'),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.background.withValues(alpha: 0.78),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.textSecondary.withValues(alpha: 0.10)),
+                    ),
+                    child: Row(
                       children: [
-                        const Text(
-                          'Thông báo nhiệm vụ',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: badgeColor.withValues(alpha: 0.10),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            notificationsEnabled
+                                ? Icons.notifications_active_rounded
+                                : Icons.notifications_off_outlined,
+                            color: badgeColor,
+                            size: 20,
                           ),
                         ),
-                        Text(
-                            (urgentEntries.isEmpty && completionEntries.isEmpty)
-                              ? 'Không có thông báo mới.'
-                              : '${urgentEntries.length + completionEntries.length} thông báo mới',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                notificationsEnabled ? 'Thông báo đang bật' : 'Thông báo đang tắt',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Bật để nhận nhắc lịch ngay cả khi thoát app.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
                           ),
+                        ),
+                        Switch.adaptive(
+                          value: notificationsEnabled,
+                          activeColor: badgeColor,
+                          onChanged: (value) async {
+                            setSheetState(() => notificationsEnabled = value);
+
+                            await TaskNotificationService.instance
+                                .setNotificationsEnabled(value);
+
+                            if (value) {
+                              await TaskNotificationService.instance.syncTaskReminders(
+                                tasks: reminderTasks,
+                                now: DateTime.now(),
+                              );
+                            }
+
+                            if (!context.mounted) return;
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(value ? 'Đã bật thông báo.' : 'Đã tắt thông báo.'),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              if (urgentEntries.isEmpty && completionEntries.isEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.background.withValues(alpha: 0.85),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    'Hiện tại chưa có task quá hạn, sắp đến hạn, hoặc task nào vừa hoàn thành gần đây.',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      height: 1.4,
+                  const SizedBox(height: 18),
+                  if (totalCount == 0)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.background.withValues(alpha: 0.85),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Hiện tại chưa có task quá hạn, sắp đến hạn, hoặc task nào vừa hoàn thành gần đây.',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    )
+                  else
+                    Flexible(
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: (urgentState.isNotEmpty ? 1 : 0) +
+                            (completionState.isNotEmpty ? 1 : 0),
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          if (urgentState.isNotEmpty && index == 0) {
+                            return _buildNotificationGroup(
+                              title: 'Nhắc việc cần xử lý',
+                              subtitle:
+                                  '${urgentState.length} nhiệm vụ đang cần bạn chú ý',
+                              accentColor: AppColors.high,
+                              entries: urgentState,
+                              isCompletedGroup: false,
+                            );
+                          }
+
+                          return _buildNotificationGroup(
+                            title: 'Vừa hoàn thành',
+                            subtitle:
+                                '${completionState.length} nhiệm vụ đã được hoàn tất gần đây',
+                            accentColor: AppColors.tertiary,
+                            entries: completionState,
+                            isCompletedGroup: true,
+                          );
+                        },
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                      child: const Text('Đóng'),
                     ),
                   ),
-                )
-              else
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: (urgentEntries.isNotEmpty ? 1 : 0) +
-                        (completionEntries.isNotEmpty ? 1 : 0),
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      if (urgentEntries.isNotEmpty && index == 0) {
-                        return _buildNotificationGroup(
-                          title: 'Nhắc việc cần xử lý',
-                          subtitle:
-                              '${urgentEntries.length} nhiệm vụ đang cần bạn chú ý',
-                          accentColor: AppColors.high,
-                          entries: urgentEntries,
-                          isCompletedGroup: false,
-                        );
-                      }
-
-                      return _buildNotificationGroup(
-                        title: 'Vừa hoàn thành',
-                        subtitle:
-                            '${completionEntries.length} nhiệm vụ đã được hoàn tất gần đây',
-                        accentColor: AppColors.tertiary,
-                        entries: completionEntries,
-                        isCompletedGroup: true,
-                      );
-                    },
-                  ),
-                ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.of(sheetContext).pop(),
-                  child: const Text('Đóng'),
-                ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       );
     },
   );

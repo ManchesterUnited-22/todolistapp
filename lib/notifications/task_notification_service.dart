@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class TaskNotificationItem {
   final String id;
@@ -22,10 +25,12 @@ class TaskNotificationService {
   static const Duration dueSoonWindow = Duration(minutes: 10);
   static const String _shownKeysPrefsKey = 'task_notification_shown_keys';
   static const String _enabledPrefsKey = 'task_notification_enabled';
+  static const String _scheduledKeysPrefsKey = 'task_notification_scheduled_keys';
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   bool _initialized = false;
+  bool _timezoneInitialized = false;
   bool _enabled = true;
 
   bool get notificationsEnabled => _enabled;
@@ -44,13 +49,34 @@ class TaskNotificationService {
     );
 
     await _plugin.initialize(initializationSettings);
+    await _initializeTimezone();
     _initialized = true;
+  }
+
+  Future<void> _initializeTimezone() async {
+    if (_timezoneInitialized) return;
+
+    tz.initializeTimeZones();
+
+    try {
+      final timezoneName = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timezoneName));
+    } catch (error) {
+      debugPrint('Timezone init failed: $error');
+      tz.setLocalLocation(tz.getLocation('UTC'));
+    }
+
+    _timezoneInitialized = true;
   }
 
   Future<void> setNotificationsEnabled(bool enabled) async {
     _enabled = enabled;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_enabledPrefsKey, enabled);
+
+    if (!enabled) {
+      await clearAllNotifications();
+    }
   }
 
   Future<void> clearAllNotifications() async {
@@ -62,6 +88,7 @@ class TaskNotificationService {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_shownKeysPrefsKey);
+    await prefs.remove(_scheduledKeysPrefsKey);
   }
 
   Future<void> syncTaskReminders({
@@ -75,44 +102,97 @@ class TaskNotificationService {
     if (!_enabled) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final shownKeys =
-        prefs.getStringList(_shownKeysPrefsKey)?.toSet() ?? <String>{};
+    final scheduledKeys =
+        prefs.getStringList(_scheduledKeysPrefsKey)?.toSet() ?? <String>{};
     bool changed = false;
 
     for (final task in tasks) {
       final remaining = task.dueAt.difference(now);
-      if (remaining <= Duration.zero) {
-        final notificationKey =
-            'overdue:${task.id}:${task.dueAt.millisecondsSinceEpoch}';
-        if (shownKeys.add(notificationKey)) {
-          changed = true;
-          await _showNotification(
-            id: notificationKey.hashCode & 0x7fffffff,
-            title: 'Nhiệm vụ quá hạn',
-            body: '${task.title} chưa được hoàn thành đúng hạn.',
-            details: '1 nhiệm vụ chưa được hoàn thành',
-          );
-        }
-        continue;
-      }
 
-      if (remaining <= dueSoonWindow) {
-        final notificationKey =
-            'dueSoon:${task.id}:${task.dueAt.millisecondsSinceEpoch}';
-        if (shownKeys.add(notificationKey)) {
+      if (remaining > Duration.zero) {
+        final reminderTime = remaining > dueSoonWindow
+            ? task.dueAt.subtract(dueSoonWindow)
+            : now.add(const Duration(minutes: 1));
+        final scheduleKey =
+            'schedule:${task.id}:${task.dueAt.millisecondsSinceEpoch}';
+        final notificationId = task.id.hashCode & 0x7fffffff;
+
+        if (!scheduledKeys.contains(scheduleKey)) {
+          _removeScheduledKeysForTask(task.id, scheduledKeys);
+          scheduledKeys.add(scheduleKey);
           changed = true;
-          await _showNotification(
-            id: notificationKey.hashCode & 0x7fffffff,
-            title: 'Nhiệm vụ sắp đến hạn',
-            body: '${task.title} còn khoảng 10 phút nữa sẽ đến hạn.',
-            details: 'Cảnh báo nhẹ',
+
+          await _plugin.cancel(notificationId);
+          await _scheduleNotification(
+            id: notificationId,
+            title: 'Nhắc lịch nhiệm vụ',
+            body: '${task.title} sẽ đến hạn lúc ${_formatTime(task.dueAt)}.',
+            scheduledAt: reminderTime,
           );
         }
+      } else {
+        if (_removeScheduledKeysForTask(task.id, scheduledKeys)) {
+          changed = true;
+        }
+        await _plugin.cancel(task.id.hashCode & 0x7fffffff);
       }
     }
 
     if (changed) {
-      await prefs.setStringList(_shownKeysPrefsKey, shownKeys.toList());
+      await prefs.setStringList(_scheduledKeysPrefsKey, scheduledKeys.toList());
+    }
+  }
+
+  bool _removeScheduledKeysForTask(String taskId, Set<String> scheduledKeys) {
+    final before = scheduledKeys.length;
+    scheduledKeys.removeWhere((key) => key.startsWith('schedule:$taskId:'));
+    return scheduledKeys.length != before;
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  Future<void> _scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledAt,
+  }) async {
+    const androidDetails = AndroidNotificationDetails(
+      'task_deadline_alerts',
+      'Task deadline alerts',
+      channelDescription: 'Cảnh báo nhiệm vụ sắp đến hạn và quá hạn',
+      importance: Importance.high,
+      priority: Priority.high,
+      playSound: true,
+    );
+
+    const notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: DarwinNotificationDetails(),
+      macOS: DarwinNotificationDetails(),
+      linux: LinuxNotificationDetails(),
+    );
+
+    try {
+      final tzScheduledAt = tz.TZDateTime.from(scheduledAt, tz.local);
+
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        tzScheduledAt,
+        notificationDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: null,
+      );
+    } catch (error) {
+      debugPrint('Task reminder schedule failed: $error');
     }
   }
 

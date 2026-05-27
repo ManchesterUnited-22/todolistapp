@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smart_app/core/app_colors.dart';
 import 'package:smart_app/screens/main_dashboard_screen.dart';
-import 'package:smart_app/screens/onboarding_step2_screen.dart';
-import 'widgets/onboarding_step1_footer.dart';
-import 'widgets/onboarding_floating_badge.dart';
+import 'package:smart_app/screens/onboarding_step2/onboarding_step2_screen.dart';
 
 class OnboardingStep1Screen extends StatefulWidget {
   const OnboardingStep1Screen({super.key});
@@ -14,224 +12,392 @@ class OnboardingStep1Screen extends StatefulWidget {
 
 class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
     with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnim;
+  late final AnimationController _floatController;
+  late final Animation<double> _floatAnimation;
 
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
+    _floatController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 6),
     )..repeat(reverse: true);
-    _pulseAnim = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    _floatAnimation = Tween<double>(begin: 0, end: -10).animate(
+      CurvedAnimation(parent: _floatController, curve: Curves.easeInOut),
     );
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
+    _floatController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          Positioned(
-            top: -size.height * 0.1,
-            right: -size.width * 0.1,
-            child: Container(
-              width: size.width * 0.64,
-              height: size.width * 0.64,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFC0C1FF).withValues(alpha: 0.20),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 0,
+                bottom: MediaQuery.of(context).padding.bottom + 16,
               ),
-            ),
-          ),
-          Positioned(
-            bottom: -size.height * 0.05,
-            left: -size.width * 0.05,
-            child: Container(
-              width: size.width * 0.8,
-              height: size.width * 0.8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFD4E3FF).withValues(alpha: 0.30),
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 420),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    height: 6,
-                                    width: 32,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.brand,
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    height: 6,
-                                    width: 8,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.textSecondary.withValues(alpha: 0.18),
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    height: 6,
-                                    width: 8,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.textSecondary.withValues(alpha: 0.18),
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                  ),
-                                ],
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      // Top Navigation
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              onPressed: () => Navigator.of(context).maybePop(),
+                              icon: const Icon(Icons.arrow_back_rounded),
+                              color: AppColors.brand,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 40,
+                                minHeight: 40,
                               ),
-                              const SizedBox(height: 32),
-                              SizedBox(
-                                width: double.infinity,
-                                child: AspectRatio(
+                            ),
+                            Text(
+                              'Serene Focus',
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                    builder: (_) => const MainDashboardScreen(),
+                                  ),
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.brand,
+                              ),
+                              child: const Text('Skip'),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Main content — expands to fill available height
+                      Expanded(
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 500),
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 20),
+
+                                // Hero Image Section — matches HTML design
+                                AspectRatio(
                                   aspectRatio: 1,
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      AnimatedBuilder(
-                                        animation: _pulseAnim,
-                                        builder: (context, child) {
-                                          return Transform.scale(scale: _pulseAnim.value, child: child);
-                                        },
-                                        child: Container(
-                                          width: 260,
-                                          height: 260,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: AppColors.brand.withValues(alpha: 0.10),
-                                              width: 1,
-                                            ),
-                                          ),
-                                        ),
+                                  child: _HeroImageSection(
+                                    floatAnimation: _floatAnimation,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 48),
+
+                                // Title
+                                Text(
+                                  'Tích hợp Giọng nói AI',
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.headlineMedium?.copyWith(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.9,
+                                    height: 1.1,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                // Description
+                                SizedBox(
+                                  width: 340,
+                                  child: Text(
+                                    'Trải nghiệm cách tương tác hoàn toàn mới với trợ lý ảo thông minh, giúp bạn quản lý công việc chỉ bằng lời nói.',
+                                    textAlign: TextAlign.center,
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      color: AppColors.textSecondary,
+                                      height: 1.65,
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 48),
+
+                                // Progress Dots
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      height: 6,
+                                      width: 32,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.brand,
+                                        borderRadius: BorderRadius.circular(999),
                                       ),
-                                      Container(
-                                        width: 200,
-                                        height: 200,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: AppColors.brand.withValues(alpha: 0.20),
-                                            width: 1,
-                                          ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      height: 6,
+                                      width: 6,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.textSecondary.withValues(
+                                          alpha: 0.25,
                                         ),
+                                        shape: BoxShape.circle,
                                       ),
-                                      Container(
-                                        width: 136,
-                                        height: 136,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: AppColors.brand.withValues(alpha: 0.40),
-                                            width: 1,
-                                          ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      height: 6,
+                                      width: 6,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.textSecondary.withValues(
+                                          alpha: 0.25,
                                         ),
+                                        shape: BoxShape.circle,
                                       ),
-                                      Column(
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 48),
+
+                                // CTA — match onboarding step 2 style
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 56,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [Color(0xFF4648D4), Color(0xFF6063EE)],
+                                      ),
+                                      borderRadius: BorderRadius.circular(999),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.brand.withValues(alpha: 0.30),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        foregroundColor: Colors.white,
+                                        shape: const StadiumBorder(),
+                                        elevation: 0,
+                                      ),
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => const OnboardingStep2Screen(),
+                                          ),
+                                        );
+                                      },
+                                      child: const Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          Stack(
-                                            clipBehavior: Clip.none,
-                                            alignment: Alignment.center,
-                                            children: [
-                                              ClipRRect(
-                                                borderRadius: BorderRadius.circular(24),
-                                                child: Image.network(
-                                                  'https://lh3.googleusercontent.com/aida-public/AB6AXuAN05ZhpLVBwx1Ddy7UkjsT6Ubse02n8r-bV67vg1uybLS459ZXVoM__iuIk9Py1_b9G8ICttScu6YmVjUGc4grQP6n57k45qlgLYqy9MnlW5XscvH_A_dSNkxFqR0c3HKPr1-lkcoowvUIh5uMl4oichAegxgPpKcOouRch5cRnY-7Ds405c3HeoOedgNVwYPSg4wk0O6SskI-_4tl-AliQ1__9pfRDXYroDgG7OO1JogxeOmXdLkAHkigrBDO32eiYYCFERp82kA',
-                                                  width: 288,
-                                                  height: 288,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (context, error, stackTrace) => Container(
-                                                    width: 288,
-                                                    height: 288,
-                                                    decoration: BoxDecoration(
-                                                      color: AppColors.brand.withValues(alpha: 0.08),
-                                                      borderRadius: BorderRadius.circular(24),
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.center_focus_strong_outlined,
-                                                      color: AppColors.brand,
-                                                      size: 64,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              const Positioned(bottom: -16, child: OnboardingFloatingBadge()),
-                                            ],
+                                          Text(
+                                            'Tiếp tục',
+                                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                                           ),
+                                          SizedBox(width: 8),
+                                          Icon(Icons.arrow_forward, size: 20),
                                         ],
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 48),
-                              Text(
-                                'Welcome to Serene Focus',
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.headlineLarge?.copyWith(
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.8,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: 280,
-                                child: Text(
-                                  'Organize your life with ease',
-                                  textAlign: TextAlign.center,
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    color: AppColors.textSecondary,
-                                    height: 1.65,
+                                const SizedBox(height: 10),
+                                Text(
+                                  'Bước 1 trên 3',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: AppColors.textSecondary.withValues(alpha: 0.72),
+                                    letterSpacing: 0.9,
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 32),
-                            ],
+                                const SizedBox(height: 24),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-                OnboardingStep1Footer(theme: theme),
-              ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// Hero image section with floating animation and glassmorphism badges.
+/// Matches the HTML design: network image, ambient glow, mic badge top-right,
+/// auto_awesome badge bottom-left.
+class _HeroImageSection extends StatelessWidget {
+  const _HeroImageSection({required this.floatAnimation});
+
+  final Animation<double> floatAnimation;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // Ambient radial glow behind the image
+        Positioned.fill(
+          child: Center(
+            child: FractionallySizedBox(
+              widthFactor: 0.75,
+              heightFactor: 0.75,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.brand.withValues(alpha: 0.18),
+                      AppColors.brand.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
+        ),
+
+        // Floating hero image
+        Positioned.fill(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: AnimatedBuilder(
+              animation: floatAnimation,
+              builder: (context, child) => Transform.translate(
+                offset: Offset(0, floatAnimation.value),
+                child: child,
+              ),
+              child: Image.network(
+                'https://lh3.googleusercontent.com/aida-public/AB6AXuDRqUBQYdwp-r2UCvs4dvZkASDpuAYlHV7M_G1fPZ9XnUg5QcFCBzXYMaOTMR_myByPXxvnk7zMmYc4Sf_byDlL-o2szdmjBP80DLSzpWoGfArSiKknNm3U3Jl0Y-QvUa6GIgNF2VjH5F544_qoOwEoBD7ZYxYWj2m4cb-n3NiUsx240k8FSQ8wpLE4M76X16Kt_SZ9c8UjhNHFJRRfC0UPObAOXstoC38huVz8IAF_GOx5NErFWZ_kAavZnL7Uetr_qBgrAx5xB98',
+                fit: BoxFit.contain,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) =>
+                    const _FallbackHeroArtwork(),
+              ),
+            ),
+          ),
+        ),
+
+        // Glass badge — top right: mic icon
+        Positioned(
+          top: 32,
+          right: 32,
+          child: _GlassBadge(
+            child: Icon(Icons.mic_rounded, color: AppColors.brand, size: 22),
+          ),
+        ),
+
+        // Glass badge — bottom left: auto_awesome icon
+        Positioned(
+          bottom: 72,
+          left: 32,
+          child: _GlassBadge(
+            size: 44,
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              color: AppColors.brand,
+              size: 18,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Glassmorphism circular badge.
+class _GlassBadge extends StatelessWidget {
+  const _GlassBadge({required this.child, this.size = 52});
+
+  final Widget child;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withValues(alpha: 0.70),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.35),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.brand.withValues(alpha: 0.10),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
         ],
+      ),
+      child: Center(child: child),
+    );
+  }
+}
+
+/// Fallback artwork shown when network image fails to load.
+/// Reuses the original gradient orb design.
+class _FallbackHeroArtwork extends StatelessWidget {
+  const _FallbackHeroArtwork();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          center: const Alignment(-0.2, -0.18),
+          radius: 0.58,
+          colors: const [
+            Color(0xCCF6FFFF),
+            Color(0xCCB27DFF),
+            Color(0xB46F48D9),
+          ],
+          stops: const [0.0, 0.52, 1.0],
+        ),
+      ),
+      child: const Center(
+        child: Icon(Icons.mic_rounded, color: Colors.white, size: 64),
       ),
     );
   }

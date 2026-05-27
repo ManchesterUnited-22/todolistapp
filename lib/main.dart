@@ -10,8 +10,8 @@ import 'package:smart_app/ai/voice_ai_service.dart';
 import 'screens/main_dashboard_screen.dart';
 import 'screens/home_tabs.dart';
 import 'screens/splash_screen.dart';
-import 'screens/charts_screen.dart';
 import 'screens/calendar_screen.dart';
+import 'screens/achievements_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/success_screen.dart';
 // AI removed: ai_subagents, ai_config, ai_provider
@@ -67,7 +67,9 @@ Future<void> main() async {
       VoiceAiService.instance.setApiKey(apiKey);
       debugPrint('==> main: VoiceAiService API key set');
     } else {
-      debugPrint('==> main: VoiceAiService API key skipped because dotenv was not loaded');
+      debugPrint(
+        '==> main: VoiceAiService API key skipped because dotenv was not loaded',
+      );
     }
   } catch (e) {
     debugPrint('==> main: VoiceAiService setApiKey error: $e');
@@ -137,8 +139,7 @@ class _MyAppState extends State<MyApp> {
               routes: {
                 '/dashboard': (context) => const HomeTabs(),
                 '/calendar': (context) => const CalendarScreen(),
-                '/charts': (context) => const ChartsScreen(),
-                '/stats': (context) => const ChartsScreen(),
+                '/achievements': (context) => const AchievementsScreen(),
                 '/profile': (context) => const ProfileScreen(),
               },
               home: FutureBuilder<void>(

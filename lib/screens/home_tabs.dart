@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'main_dashboard_screen.dart';
 import 'calendar_screen.dart';
-import 'charts_screen.dart';
+import 'achievements_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/floating_bottom_navbar.dart';
 
@@ -49,14 +49,16 @@ class _HomeTabsState extends State<HomeTabs> {
         children: const [
           MainDashboardScreen(showBottomNav: false),
           CalendarScreen(showBottomNav: false),
-          ChartsScreen(showBottomNav: false),
+          AchievementsScreen(showBottomNav: false),
           ProfileScreen(showBottomNav: false),
         ],
       ),
       bottomNavigationBar: FloatingBottomNavBar(
         currentIndex: _current,
         onTap: _onTap,
-        showFab: _current == 0 ? false : false, // Luôn ẩn FAB ở mọi tab (nếu muốn chỉ hiện ở tab khác, đổi điều kiện)
+        showFab: _current == 0
+            ? false
+            : false, // Luôn ẩn FAB ở mọi tab (nếu muốn chỉ hiện ở tab khác, đổi điều kiện)
       ),
     );
   }

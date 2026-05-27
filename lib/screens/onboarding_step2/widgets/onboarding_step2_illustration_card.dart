@@ -8,19 +8,19 @@ class OnboardingStep2IllustrationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
+      borderRadius: BorderRadius.circular(30),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.70),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.40)),
+            color: Colors.white.withValues(alpha: 0.78),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.55)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -51,7 +51,7 @@ class OnboardingStep2IllustrationCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(32),
+                padding: const EdgeInsets.all(28),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
@@ -94,14 +94,14 @@ class _OnboardingStep2Image extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(22),
       child: Image.network(
         'https://lh3.googleusercontent.com/aida-public/AB6AXuBMh1C_Vxcp4ItFZwSfOI4LnO0GdrfJUOCXFdfOYtrQXDWpp9r7rSoKPvllVTpOto8T8ELZQr3E_DqTDdSIsbEiC55FV0xb7Hf9lxUnaS3LqHxjTqIOCxatUIsxSYRkB4A0T5nLKJiIS8Kua8Erg8YSQGDdNx1vZVS8UbnY2MvH5lwanbhpBq1wglJ9O7wpcuJH9Yg2foO2_iplzoOOn8SShlnyu9cAwYEQOS_N_eKZROR55zRm4qgOkkgXN7jtzJX5AFs5Gdp83LQ',
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Container(
           decoration: BoxDecoration(
             color: AppColors.brand.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(22),
           ),
           child: Icon(
             Icons.task_alt_rounded,
@@ -133,8 +133,9 @@ class OnboardingStep2FloatingChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: bgColor.withValues(alpha: 0.10),
+        color: Colors.white.withValues(alpha: 0.80),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: bgColor.withValues(alpha: 0.22)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

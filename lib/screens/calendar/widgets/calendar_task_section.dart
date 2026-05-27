@@ -11,6 +11,28 @@ class CalendarTaskSection extends StatelessWidget {
 
   const CalendarTaskSection({super.key, required this.selectedDay, required this.displayedMonth});
 
+  DateTime? _taskDate(Map<String, dynamic>? data) {
+    if (data == null) return null;
+
+    final dueAt = (data['dueAt'] as Timestamp?)?.toDate();
+    if (dueAt != null) return dueAt;
+
+    final dateString = (data['date_string'] as String? ?? data['dateString'] as String?)?.trim();
+    if (dateString != null && dateString.isNotEmpty) {
+      try {
+        return DateTime.parse(dateString);
+      } catch (_) {}
+    }
+
+    final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
+    if (timestamp != null) return timestamp;
+
+    final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
+    if (createdAt != null) return createdAt;
+
+    return (data['completedAt'] as Timestamp?)?.toDate();
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -32,8 +54,8 @@ class CalendarTaskSection extends StatelessWidget {
                 final count = snap.hasData
                     ? snap.data!.docs.where((doc) {
                         final data = doc.data() as Map<String, dynamic>?;
-                        final due = (data?['dueAt'] as Timestamp?)?.toDate();
-                        return due != null && due.year == start.year && due.month == start.month && due.day == start.day;
+                          final taskDate = _taskDate(data);
+                          return taskDate != null && taskDate.year == start.year && taskDate.month == start.month && taskDate.day == start.day;
                       }).length
                     : 0;
 
@@ -73,15 +95,60 @@ class CalendarTaskSection extends StatelessWidget {
 
               final docs = snapshot.data!.docs.where((doc) {
                 final data = doc.data() as Map<String, dynamic>?;
-                final due = (data?['dueAt'] as Timestamp?)?.toDate();
-                return due != null && due.year == start.year && due.month == start.month && due.day == start.day;
+                final taskDate = _taskDate(data);
+                return taskDate != null && taskDate.year == start.year && taskDate.month == start.month && taskDate.day == start.day;
               }).toList();
 
               if (docs.isEmpty) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 40),
-                    child: Text('Chưa có nhiệm vụ nào', style: TextStyle(color: CalendarColors.outline, fontSize: 15)),
+                return Center(
+                  child: Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.fromLTRB(20, 26, 20, 28),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3F4F8),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE7E8F2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.task_alt_rounded,
+                            size: 34,
+                            color: Color(0xFFA7A7EA),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        const Text(
+                          'Mọi thứ đã gọn gàng',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF4A4B5C),
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Chưa có nhiệm vụ đang làm. Nhấn\nnút micro để thêm nhiệm vụ mới\nbằng giọng nói.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFF707388),
+                            fontSize: 16,
+                            height: 1.35,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               }
@@ -95,7 +162,7 @@ class CalendarTaskSection extends StatelessWidget {
                   final doc = docs[index];
                   final task = TaskViewModel.fromMap(doc.data() as Map<String, dynamic>);
                   final isCompleted = task.stat == 'Hoàn thành';
-                  final dueAt = task.dueAt?.toDate();
+                  final dueAt = task.dueAt?.toDate() ?? _taskDate(doc.data() as Map<String, dynamic>);
                   final isOverdue = !isCompleted && (dueAt != null ? dueAt.isBefore(DateTime.now()) : task.stat == 'Quá hạn');
 
                   return CalendarTaskCard(

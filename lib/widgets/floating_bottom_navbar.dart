@@ -6,14 +6,15 @@ import 'package:smart_app/core/app_colors.dart';
 class _NavItemData {
   final IconData icon;
   final String label;
-  const _NavItemData(this.icon, this.label);
+  final Color color;
+  const _NavItemData(this.icon, this.label, this.color);
 }
 
 const List<_NavItemData> _items = [
-    _NavItemData(Icons.home_rounded, 'Trang chủ'),
-    _NavItemData(Icons.calendar_today_rounded, 'Lịch của tôi'),
-    _NavItemData(Icons.bar_chart_rounded, 'Thống kê'),
-    _NavItemData(Icons.person_rounded, 'Hồ sơ'),
+  _NavItemData(Icons.home_rounded, 'Trang chủ', Colors.blue),
+  _NavItemData(Icons.calendar_today_rounded, 'Lịch của tôi', Colors.green),
+  _NavItemData(Icons.emoji_events_rounded, 'Thành tựu', Colors.amber),
+  _NavItemData(Icons.person_rounded, 'Hồ sơ', Colors.black),
 ];
 
 // ─── Main widget ──────────────────────────────────────────────────────────────
@@ -41,7 +42,7 @@ class FloatingBottomNavBar extends StatelessWidget {
     const routeMap = {
       0: '/dashboard',
       1: '/calendar',
-      2: '/stats',
+      2: '/achievements',
       3: '/profile',
     };
 
@@ -54,54 +55,35 @@ class FloatingBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 72,
+      height: 68,
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 20,
-            offset: const Offset(0, -6),
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 24,
+            spreadRadius: 0,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _NavItem(
-              icon: _items[0].icon,
-              label: _items[0].label,
-              selected: currentIndex == 0,
-              onTap: () => _handleTap(context, 0),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: List.generate(
+            _items.length,
+            (index) => Expanded(
+              child: _NavItem(
+                icon: _items[index].icon,
+                label: _items[index].label,
+                iconColor: _items[index].color,
+                selected: currentIndex == index,
+                onTap: () => _handleTap(context, index),
+              ),
             ),
           ),
-          Expanded(
-            child: _NavItem(
-              icon: _items[1].icon,
-              label: _items[1].label,
-              selected: currentIndex == 1,
-              onTap: () => _handleTap(context, 1),
-            ),
-          ),
-          Expanded(
-            child: _NavItem(
-              icon: _items[2].icon,
-              label: _items[2].label,
-              selected: currentIndex == 2,
-              onTap: () => _handleTap(context, 2),
-            ),
-          ),
-          Expanded(
-            child: _NavItem(
-              icon: _items[3].icon,
-              label: _items[3].label,
-              selected: currentIndex == 3,
-              onTap: () => _handleTap(context, 3),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -112,6 +94,7 @@ class FloatingBottomNavBar extends StatelessWidget {
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
+  final Color iconColor;
   final bool selected;
   final VoidCallback onTap;
 
@@ -119,42 +102,76 @@ class _NavItem extends StatelessWidget {
     super.key,
     required this.icon,
     required this.label,
+    required this.iconColor,
     required this.selected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.brand : AppColors.textSecondary;
+    final textColor = selected
+        ? iconColor
+        : iconColor.withValues(alpha: 0.70);
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 240),
-            width: selected ? 40 : 36,
-            height: selected ? 40 : 36,
-            decoration: BoxDecoration(
-              color: selected
-                  ? AppColors.brand.withValues(alpha: 0.12)
-                  : Colors.transparent,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: selected ? 22 : 20),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: AppColors.brand.withValues(alpha: 0.06),
+        highlightColor: Colors.transparent,
+        child: SizedBox(
+          height: double.infinity,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Icon container ────────────────────────────────────────
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                width: 40,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? iconColor.withOpacity(0.10)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(height: 3),
+              // ── Label ────────────────────────────────────────────────
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 10,
+                  fontWeight:
+                      selected ? FontWeight.w700 : FontWeight.w500,
+                  letterSpacing: selected ? 0.1 : 0.0,
+                ),
+              ),
+              const SizedBox(height: 4),
+              // ── Active dot ───────────────────────────────────────────
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                width: selected ? 16 : 0,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: selected ? iconColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

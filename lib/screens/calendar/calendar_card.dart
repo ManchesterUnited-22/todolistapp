@@ -17,6 +17,29 @@ class CalendarCard extends StatelessWidget {
   static const _weekdays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
   static const _monthNames = ['Tháng Một', 'Tháng Hai', 'Tháng Ba', 'Tháng Tư', 'Tháng Năm', 'Tháng Sáu', 'Tháng Bảy', 'Tháng Tám', 'Tháng Chín', 'Tháng Mười', 'Tháng Mười Một', 'Tháng Mười Hai'];
 
+  DateTime? _taskDate(Map<String, dynamic>? data) {
+    if (data == null) return null;
+
+    final dueAt = (data['dueAt'] as Timestamp?)?.toDate();
+    if (dueAt != null) return dueAt;
+
+    final dateString = (data['date_string'] as String? ?? data['dateString'] as String?)?.trim();
+    if (dateString != null && dateString.isNotEmpty) {
+      try {
+        return DateTime.parse(dateString);
+      } catch (_) {}
+    }
+
+    final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
+    if (timestamp != null) return timestamp;
+
+    final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
+    if (createdAt != null) return createdAt;
+
+    final completedAt = (data['completedAt'] as Timestamp?)?.toDate();
+    return completedAt;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -41,14 +64,13 @@ class CalendarCard extends StatelessWidget {
             stream: FirebaseFirestore.instance.collection('tasks').where('uid', isEqualTo: FirebaseAuth.instance.currentUser?.uid ?? '').snapshots(),
             builder: (context, snap) {
               final Map<int, List<Color>> dayColors = {};
-              final Map<int, int> dayCounts = {};
 
               if (snap.hasData) {
                 for (final doc in snap.data!.docs) {
                   final data = doc.data() as Map<String, dynamic>?;
-                  final due = (data?['dueAt'] as Timestamp?)?.toDate();
-                  if (due != null && due.year == displayedMonth.year && due.month == displayedMonth.month) {
-                    final day = due.day;
+                  final taskDate = _taskDate(data);
+                  if (taskDate != null && taskDate.year == displayedMonth.year && taskDate.month == displayedMonth.month) {
+                    final day = taskDate.day;
                     final category = (data?['category'] as String?) ?? '';
                     Color col = CalendarColors.primary;
                     if (category.toLowerCase().contains('sức')) {
@@ -62,7 +84,6 @@ class CalendarCard extends StatelessWidget {
                     if (!dayColors[day]!.contains(col)) {
                       dayColors[day]!.add(col);
                     }
-                    dayCounts[day] = (dayCounts[day] ?? 0) + 1;
                   }
                 }
               }
@@ -87,7 +108,6 @@ class CalendarCard extends StatelessWidget {
                       day: dayNumber,
                       isSelected: dayNumber == selectedDay,
                       dots: dayColors[dayNumber] ?? const [],
-                      badgeCount: dayCounts[dayNumber] ?? 0,
                     ),
                   );
                 }),

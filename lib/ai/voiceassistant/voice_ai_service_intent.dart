@@ -16,9 +16,7 @@ Future<Map<String, dynamic>?> voiceAiExtractIntentFromText(
         '${tomorrowDate.month.toString().padLeft(2, '0')}-'
         '${tomorrowDate.day.toString().padLeft(2, '0')}';
 
-    final candidateModels = [
-      'gemini-2.5-flash',
-    ];
+    final candidateModels = ['gemini-2.5-flash'];
 
     Exception? lastException;
 
@@ -69,7 +67,7 @@ Hãy phân loại ý định thành một trong các kiểu JSON sau (chỉ ch�
 {
   "type": "command",
   "action": "navigate",
-  "target": "charts" | "calendar" | "dashboard" | "profile" | "stats",
+  "target": "charts" | "calendar" | "dashboard" | "profile" | "achievements" | "stats",
   "params": {
     "diagram": true | false,
     "view": "voice_diagram" | null,
@@ -81,6 +79,7 @@ Hãy phân loại ý định thành một trong các kiểu JSON sau (chỉ ch�
 
 Ghi chú cho biểu đồ:
 - Nếu người dùng yêu cầu "xem biểu đồ", "xem hiệu suất" hoặc "thống kê theo thời gian", trả target = "charts" và params.diagram = true.
+- Nếu người dùng yêu cầu "thành tựu", "huy hiệu" hoặc "badge", trả target = "achievements".
 - rangeType = "day" khi người dùng nói ngày cụ thể hoặc các cụm như "hôm qua", "hôm nay".
 - rangeType = "week" cho "tuần này", "tuần trước", "tuần sau".
 - rangeType = "month" cho "tháng này", "tháng trước", "tháng sau".
@@ -100,9 +99,7 @@ Hướng dẫn quan trọng:
 '''),
         );
 
-        final response = await model.generateContent([
-          Content.text(userText),
-        ]);
+        final response = await model.generateContent([Content.text(userText)]);
         final jsonText = response.text;
         if (jsonText != null) {
           final cleanJson = jsonText
@@ -156,7 +153,10 @@ Future<Map<String, dynamic>?> voiceAiExtractTaskFromText(
   return null;
 }
 
-Future<void> voiceAiHandleVoiceInput(VoiceAiService self, String resultText) async {
+Future<void> voiceAiHandleVoiceInput(
+  VoiceAiService self,
+  String resultText,
+) async {
   final intent = await voiceAiExtractIntentFromText(self, resultText);
   if (intent != null && intent['type'] == 'task') {
     if (kDebugMode)
@@ -171,7 +171,13 @@ Map<String, dynamic>? _heuristicExtract(String text) {
   if (raw.isEmpty) return null;
   final chartIntent = _heuristicExtractChartNavigation(raw);
   if (chartIntent != null) return chartIntent;
-  if (!(raw.contains('thêm') || raw.contains('tạo') || raw.contains('nhiệm vụ') || raw.contains('việc'))) return null;
+  final achievementIntent = _heuristicExtractAchievementNavigation(raw);
+  if (achievementIntent != null) return achievementIntent;
+  if (!(raw.contains('thêm') ||
+      raw.contains('tạo') ||
+      raw.contains('nhiệm vụ') ||
+      raw.contains('việc')))
+    return null;
 
   final now = DateTime.now();
   String? date;
@@ -228,13 +234,16 @@ Map<String, dynamic>? _heuristicExtract(String text) {
     if (vm != null) {
       final hh = int.tryParse(vm.group(1) ?? '0') ?? 0;
       final mm = int.tryParse(vm.group(2) ?? '0') ?? 0;
-      time = '${hh.toString().padLeft(2, '0')}:${mm.toString().padLeft(2, '0')}';
+      time =
+          '${hh.toString().padLeft(2, '0')}:${mm.toString().padLeft(2, '0')}';
     }
   }
 
   var name = raw;
   name = name.replaceAll(
-    RegExp(r'\b(thêm|tạo|nhiệm vụ|việc|cho|vào|lúc|ngày mai|hôm nay|tuần sau|vào ngày|vào lúc)\b'),
+    RegExp(
+      r'\b(thêm|tạo|nhiệm vụ|việc|cho|vào|lúc|ngày mai|hôm nay|tuần sau|vào ngày|vào lúc)\b',
+    ),
     '',
   );
   if (dateMatch != null) name = name.replaceAll(dateMatch.group(0)!, '');
@@ -246,7 +255,8 @@ Map<String, dynamic>? _heuristicExtract(String text) {
 
   return {
     'type': 'task',
-    'task_name': name[0].toUpperCase() + (name.length > 1 ? name.substring(1) : ''),
+    'task_name':
+        name[0].toUpperCase() + (name.length > 1 ? name.substring(1) : ''),
     'date': date,
     'time': time,
     'person': null,
@@ -284,6 +294,32 @@ Map<String, dynamic>? _heuristicExtractChartNavigation(String raw) {
   };
 }
 
+Map<String, dynamic>? _heuristicExtractAchievementNavigation(String raw) {
+  final achievementKeywords = <String>[
+    'thành tựu',
+    'huy hiệu',
+    'badge',
+    'mở thành tựu',
+    'xem thành tựu',
+    'xem huy hiệu',
+  ];
+  final hasAchievementKeyword = achievementKeywords.any(raw.contains);
+  if (!hasAchievementKeyword) return null;
+
+  return {
+    'type': 'command',
+    'action': 'navigate',
+    'target': 'achievements',
+    'params': {
+      'diagram': false,
+      'view': null,
+      'rangeType': null,
+      'anchorDate': null,
+      'label': 'Thành tựu',
+    },
+  };
+}
+
 String _chartPeriodFromText(String raw) {
   if (raw.contains('năm')) return 'year';
   if (raw.contains('tháng')) return 'month';
@@ -302,13 +338,17 @@ DateTime _chartAnchorFromText(String raw, DateTime now, String period) {
   if (raw.contains('năm ngoái')) return DateTime(now.year - 1, 1, 1);
   if (raw.contains('năm sau')) return DateTime(now.year + 1, 1, 1);
 
-  final explicitDate = RegExp(r'(\d{1,2}[\/-]\d{1,2}(?:[\/-]\d{2,4})?)').firstMatch(raw);
+  final explicitDate = RegExp(
+    r'(\d{1,2}[\/-]\d{1,2}(?:[\/-]\d{2,4})?)',
+  ).firstMatch(raw);
   if (explicitDate != null) {
     final parsed = _parseDateLike(explicitDate.group(0)!, now);
     if (parsed != null) return parsed;
   }
 
-  final monthMatch = RegExp(r'tháng\s*(\d{1,2})(?:\s*năm\s*(\d{4}))?').firstMatch(raw);
+  final monthMatch = RegExp(
+    r'tháng\s*(\d{1,2})(?:\s*năm\s*(\d{4}))?',
+  ).firstMatch(raw);
   if (monthMatch != null) {
     final month = int.tryParse(monthMatch.group(1) ?? '') ?? now.month;
     final year = int.tryParse(monthMatch.group(2) ?? '') ?? now.year;

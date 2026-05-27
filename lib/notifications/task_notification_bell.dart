@@ -2,13 +2,15 @@ library task_notification_bell;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/app_colors.dart';
+import 'task_notification_service.dart';
 import '../views/task_viewmodel.dart';
 
 part 'task_notification_bell/task_notification_bell_parts.dart';
 
-class TaskNotificationBellButton extends StatelessWidget {
+class TaskNotificationBellButton extends StatefulWidget {
   final String userId;
   final Color iconColor;
   final Color badgeColor;
@@ -26,8 +28,55 @@ class TaskNotificationBellButton extends StatelessWidget {
     this.constraints = const BoxConstraints.tightFor(width: 44, height: 44),
   });
 
+  @override
+  State<TaskNotificationBellButton> createState() =>
+      _TaskNotificationBellButtonState();
+}
+
+class _TaskNotificationBellButtonState extends State<TaskNotificationBellButton> {
+  static const String _dismissedEntryPrefsKey =
+      'task_notification_bell_dismissed_entries';
+
   static const Duration _dueSoonWindow = Duration(minutes: 10);
   static const Duration _recentCompletionWindow = Duration(hours: 24);
+
+  Set<String> _dismissedKeys = <String>{};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDismissedKeys();
+  }
+
+  Future<void> _loadDismissedKeys() async {
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getStringList(_dismissedEntryPrefsKey) ?? <String>[];
+    if (!mounted) return;
+    setState(() => _dismissedKeys = keys.toSet());
+  }
+
+  String _entryKey(_NotificationEntry entry) {
+    return '${entry.kind.name}:${entry.taskId}:${entry.timestamp.millisecondsSinceEpoch}';
+  }
+
+  List<_NotificationEntry> _applyDismissedFilter(
+    List<_NotificationEntry> entries,
+  ) {
+    return entries.where((entry) => !_dismissedKeys.contains(_entryKey(entry))).toList();
+  }
+
+  Future<void> _clearAllFromBell(List<_NotificationEntry> entries) async {
+    if (entries.isEmpty) return;
+
+    final nextKeys = Set<String>.from(_dismissedKeys)
+      ..addAll(entries.map(_entryKey));
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_dismissedEntryPrefsKey, nextKeys.toList());
+    await TaskNotificationService.instance.clearAllNotifications();
+
+    if (!mounted) return;
+    setState(() => _dismissedKeys = nextKeys);
+  }
 
   bool _isCompleted(TaskViewModel task) => task.stat == 'Hoàn thành';
 
@@ -130,25 +179,28 @@ class TaskNotificationBellButton extends StatelessWidget {
     BuildContext context,
     List<_NotificationEntry> urgentEntries,
     List<_NotificationEntry> completionEntries,
+    List<TaskNotificationItem> reminderTasks,
   ) async {
     await showTaskNotificationsSheet(
       context,
-      badgeColor: badgeColor,
+      badgeColor: widget.badgeColor,
       urgentEntries: urgentEntries,
       completionEntries: completionEntries,
+      reminderTasks: reminderTasks,
+      onClearAll: _clearAllFromBell,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (userId.isEmpty) {
+    if (widget.userId.isEmpty) {
       return IconButton(
-        padding: padding,
-        constraints: constraints,
+        padding: widget.padding,
+        constraints: widget.constraints,
         icon: Icon(
           Icons.notifications_outlined,
-          color: iconColor,
-          size: iconSize,
+          color: widget.iconColor,
+          size: widget.iconSize,
         ),
         onPressed: null,
       );
@@ -157,7 +209,7 @@ class TaskNotificationBellButton extends StatelessWidget {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
           .collection('tasks')
-          .where('uid', isEqualTo: userId)
+          .where('uid', isEqualTo: widget.userId)
           .snapshots(),
       builder: (context, snapshot) {
         final now = DateTime.now();
@@ -171,23 +223,42 @@ class TaskNotificationBellButton extends StatelessWidget {
             : <MapEntry<String, TaskViewModel>>[];
         final urgentEntries = _buildUrgentEntries(entries, now);
         final completionEntries = _buildCompletionEntries(entries, now);
-        final totalCount = urgentEntries.length + completionEntries.length;
+        final reminderTasks = entries
+            .where(
+              (entry) =>
+                  entry.value.dueAt != null &&
+                  entry.value.stat != 'Hoàn thành',
+            )
+            .map(
+              (entry) => TaskNotificationItem(
+                id: entry.key,
+                title: entry.value.title,
+                dueAt: entry.value.dueAt!.toDate(),
+              ),
+            )
+            .toList();
+        final filteredUrgentEntries = _applyDismissedFilter(urgentEntries);
+        final filteredCompletionEntries =
+            _applyDismissedFilter(completionEntries);
+        final totalCount =
+            filteredUrgentEntries.length + filteredCompletionEntries.length;
 
         return Stack(
           alignment: Alignment.topRight,
           children: [
             IconButton(
-              padding: padding,
-              constraints: constraints,
+              padding: widget.padding,
+              constraints: widget.constraints,
               icon: Icon(
                 Icons.notifications_outlined,
-                color: iconColor,
-                size: iconSize,
+                color: widget.iconColor,
+                size: widget.iconSize,
               ),
               onPressed: () => _openUrgentTasksSheet(
                 context,
-                urgentEntries,
-                completionEntries,
+                filteredUrgentEntries,
+                filteredCompletionEntries,
+                reminderTasks,
               ),
             ),
             if (totalCount > 0)
@@ -198,11 +269,11 @@ class TaskNotificationBellButton extends StatelessWidget {
                   width: 18,
                   height: 18,
                   decoration: BoxDecoration(
-                    color: badgeColor,
+                    color: widget.badgeColor,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: badgeColor.withValues(alpha: 0.4),
+                        color: widget.badgeColor.withValues(alpha: 0.4),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),

@@ -1,15 +1,17 @@
-export 'dashboard/dashboard_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_app/screens/dashboard/widgets/dashboard_top_bar.dart';
 import '../widgets/floating_bottom_navbar.dart';
-import '../widgets/sidebar.dart';
 import '../services/timer_service.dart';
-import '../widgets/promodoro_timer_sheet.dart';
-import '../widgets/task_notification_bell.dart';
-import '../widgets/voicebutton/voice_button.dart';
-import '../widgets/voicebutton/voice_handler.dart';
+import 'package:smart_app/ai/voiceassistant/voicebutton/promodoro/promodoro_timer_sheet.dart';
+import 'package:smart_app/notifications/task_notification_bell.dart';
+import 'package:smart_app/ai/voiceassistant/voicebutton/voice_button.dart';
+import 'package:smart_app/ai/voiceassistant/voicebutton/voice_handler.dart';
 import '../views/task_viewmodel.dart';
+
+import 'dashboard/widgets/dashboard_streak_card.dart';
 
 // ── Colour tokens ─────────────────────────────────────────────────────────────
 class _C {
@@ -41,17 +43,95 @@ class MainDashboardScreen extends StatefulWidget {
 }
 
 class _MainDashboardScreenState extends State<MainDashboardScreen> {
-  bool _showSidebar = false;
+  static const String _dailyCleanupPrefsPrefix =
+      'main_dashboard_daily_cleanup_last_';
+
   String? _selectedCategory;
+  bool _dailyCleanupRunning = false;
 
   String get _currentUserUid => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   @override
   void initState() {
     super.initState();
+    _runDailyTaskCleanupIfNeeded();
   }
 
-  void _toggleSidebar() => setState(() => _showSidebar = !_showSidebar);
+  String _dateKey(DateTime dateTime) {
+    final y = dateTime.year.toString().padLeft(4, '0');
+    final m = dateTime.month.toString().padLeft(2, '0');
+    final d = dateTime.day.toString().padLeft(2, '0');
+    return '$y-$m-$d';
+  }
+
+  bool _isBeforeToday(DateTime value, DateTime now) {
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(value.year, value.month, value.day);
+    return day.isBefore(today);
+  }
+
+  Future<void> _runDailyTaskCleanupIfNeeded() async {
+    if (_dailyCleanupRunning) return;
+
+    final uid = _currentUserUid;
+    if (uid.isEmpty) return;
+
+    _dailyCleanupRunning = true;
+    try {
+      final now = DateTime.now();
+      final todayKey = _dateKey(now);
+      final prefs = await SharedPreferences.getInstance();
+      final prefKey = '$_dailyCleanupPrefsPrefix$uid';
+      final lastRun = prefs.getString(prefKey);
+      if (lastRun == todayKey) return;
+
+      final snap = await FirebaseFirestore.instance
+          .collection('tasks')
+          .where('uid', isEqualTo: uid)
+          .get();
+
+      final batch = FirebaseFirestore.instance.batch();
+      var deleteCount = 0;
+
+      for (final doc in snap.docs) {
+        final task = TaskViewModel.fromMap(doc.data());
+
+        final dueAt = task.dueAt?.toDate();
+        final isOverdueFromPreviousDays =
+            dueAt != null && _isBeforeToday(dueAt, now);
+
+        DateTime? completionAnchor;
+        if (task.stat == 'Hoàn thành') {
+          completionAnchor =
+              task.completedAt?.toDate() ??
+              task.timestamp?.toDate() ??
+              task.createdAt?.toDate();
+        }
+        final isCompletedFromPreviousDays =
+            completionAnchor != null && _isBeforeToday(completionAnchor, now);
+
+        final shouldDelete = isCompletedFromPreviousDays ||
+            isOverdueFromPreviousDays ||
+            (task.stat == 'Quá hạn' &&
+                (dueAt == null || _isBeforeToday(dueAt, now)));
+
+        if (shouldDelete) {
+          batch.delete(doc.reference);
+          deleteCount++;
+        }
+      }
+
+      if (deleteCount > 0) {
+        await batch.commit();
+      }
+
+      await prefs.setString(prefKey, todayKey);
+    } catch (_) {
+      // Keep home screen resilient; cleanup can retry next time.
+    } finally {
+      _dailyCleanupRunning = false;
+    }
+  }
 
   // ── Task Helpers ──────────────────────────────────────────────────────────
   bool _isTaskCompleted(TaskViewModel task) => task.stat == 'Hoàn thành';
@@ -94,46 +174,141 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   // TOP BAR — premium glass style from code 2
   // ════════════════════════════════════════════════════════════════════════════
   Widget _buildTopBar() {
+    return DashboardTopBar(userUid: _currentUserUid);
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // GREETING SECTION — premium style from code 2, data from code 1
+  // ════════════════════════════════════════════════════════════════════════════
+  Widget _buildGreetingSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _C.surface.withValues(alpha: 0.60),
-        border: Border(
-          bottom: BorderSide(color: _C.surfaceVariant.withValues(alpha: 0.10)),
-        ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _C.surfaceVariant.withValues(alpha: 0.20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          GestureDetector(
-            onTap: _toggleSidebar,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: const Icon(
-                Icons.menu_rounded,
-                color: _C.onSurface,
-                size: 24,
-              ),
+          Expanded(
+            child: StreamBuilder<DocumentSnapshot>(
+              stream: _currentUserUid.isEmpty
+                  ? null
+                  : FirebaseFirestore.instance
+                        .collection('register')
+                        .doc(_currentUserUid)
+                        .snapshots(),
+                builder: (context, snapshot) {
+                final data = snapshot.data?.data() as Map<String, dynamic>?;
+                final regName = (data?['displayName'] as String?)?.trim();
+                final googleName = FirebaseAuth.instance.currentUser?.displayName?.trim();
+                final displayName = (regName != null && regName.isNotEmpty)
+                  ? regName
+                  : (googleName != null && googleName.isNotEmpty)
+                    ? googleName
+                    : 'User';
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'XIN CHÀO',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: _C.outline.withValues(alpha: 0.85),
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: _C.onSurface,
+                        letterSpacing: -0.8,
+                        height: 1.05,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Hôm nay bạn muốn hoàn thành điều gì?',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: _C.outline,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
           const SizedBox(width: 16),
-          const Text(
-            'Serene Focus',
-            style: TextStyle(
-              color: _C.primary,
-              fontWeight: FontWeight.w800,
-              fontSize: 18,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const Spacer(),
-          TaskNotificationBellButton(
-            userId: _currentUserUid,
-            iconColor: _C.onSurfaceVariant,
-            badgeColor: _C.error,
+          StreamBuilder<DocumentSnapshot>(
+            stream: _currentUserUid.isEmpty
+                ? null
+                : FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(_currentUserUid)
+                      .snapshots(),
+            builder: (context, snapshot) {
+              final userData = snapshot.data?.data() as Map<String, dynamic>?;
+              final avatarFromProfile =
+                  (userData?['avatarUrl'] as String?)?.trim() ?? '';
+              final avatarFromAuth =
+                  FirebaseAuth.instance.currentUser?.photoURL?.trim() ?? '';
+              final avatarUrl = avatarFromProfile.isNotEmpty
+                  ? avatarFromProfile
+                  : avatarFromAuth;
+
+              return Container(
+                width: 64,
+                height: 64,
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _C.primary.withValues(alpha: 0.22),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: avatarUrl.isNotEmpty
+                      ? Image.network(
+                          avatarUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _GreetingAvatarFallback(
+                            name: FirebaseAuth.instance.currentUser?.displayName,
+                          ),
+                        )
+                      : _GreetingAvatarFallback(
+                          name: FirebaseAuth.instance.currentUser?.displayName,
+                        ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -141,227 +316,225 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // GREETING SECTION — premium style from code 2, data from code 1
+  // PROGRESS CARD — premium circular ring from code 2, data from code 1
   // ════════════════════════════════════════════════════════════════════════════
-  Widget _buildGreetingSection() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              StreamBuilder<DocumentSnapshot>(
-                stream: _currentUserUid.isEmpty
-                    ? null
-                    : FirebaseFirestore.instance
-                          .collection('register')
-                          .doc(_currentUserUid)
-                          .snapshots(),
-                builder: (context, snapshot) {
-                  final data = snapshot.data?.data() as Map<String, dynamic>?;
-                  final displayName =
-                      (data?['displayName'] as String?)?.trim().isNotEmpty ==
-                          true
-                      ? data!['displayName'] as String
-                      : 'User';
+  Widget _buildProgressCard() {
+  return StreamBuilder<QuerySnapshot>(
+    stream: FirebaseFirestore.instance
+        .collection('tasks')
+        .where('uid', isEqualTo: _currentUserUid)
+        .snapshots(),
+    builder: (context, snapshot) {
+      final docs = snapshot.data?.docs ?? [];
+      final total = docs.length;
+      final completed = docs
+          .where(
+            (d) => (d.data() as Map<String, dynamic>)['stat'] == 'Hoàn thành',
+          )
+          .length;
+      final double pct = total == 0 ? 0.0 : completed / total;
+      final String pctStr = '${(pct * 100).toInt()}%';
 
-                  return RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w700,
-                        height: 1.25,
-                        letterSpacing: -0.5,
-                      ),
-                      children: [
-                        const TextSpan(
-                          text: 'Chào, ',
-                          style: TextStyle(color: _C.onSurface),
-                        ),
-                        TextSpan(
-                          text: displayName,
-                          style: const TextStyle(
-                            color: _C.primary,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: _C.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _C.surfaceVariant.withValues(alpha: 0.24),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 52,
+              height: 52,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    value: pct,
+                    strokeWidth: 5,
+                    backgroundColor: _C.surfaceContainer,
+                    valueColor: const AlwaysStoppedAnimation(_C.primary),
+                    strokeCap: StrokeCap.round,
+                  ),
+                  Text(
+                    pctStr,
+                    style: const TextStyle(
+                      color: _C.primary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.1,
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
-              const SizedBox(height: 6),
-              const Text(
-                'Hôm nay bạn muốn hoàn thành điều gì?',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: _C.outline,
-                  fontWeight: FontWeight.w500,
-                  height: 1.5,
-                ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'TIẾN ĐỘ',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _C.outline,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.9,
               ),
-            ],
+            ),
+            const SizedBox(height: 3),
+            Text(
+              '$completed / $total',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: _C.onSurface,
+                fontWeight: FontWeight.w800,
+                fontSize: 20,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+  Widget _buildCategorySection() {
+    final items = [
+      _CategoryUiItem(
+        label: 'Công việc',
+        value: 'Công việc',
+        icon: Icons.work_rounded,
+        color: const Color(0xFFEFF1FF),
+        iconBackground: const Color(0xFF6875F5),
+        iconColor: Colors.white,
+        textColor: const Color(0xFF5560CC),
+      ),
+      _CategoryUiItem(
+        label: 'Cá nhân',
+        value: 'Cá nhân',
+        icon: Icons.person_rounded,
+        color: const Color(0xFFE3F7EC),
+        iconBackground: const Color(0xFF35B36A),
+        iconColor: Colors.white,
+        textColor: const Color(0xFF238751),
+      ),
+      _CategoryUiItem(
+        label: 'Sức khỏe',
+        value: 'Sức khỏe',
+        icon: Icons.favorite_rounded,
+        color: const Color(0xFFFFE5E5),
+        iconBackground: const Color(0xFFFF5A5F),
+        iconColor: Colors.white,
+        textColor: const Color(0xFFD94242),
+      ),
+      _CategoryUiItem(
+        label: 'Học tập',
+        value: 'Học tập',
+        icon: Icons.menu_book_rounded,
+        color: const Color(0xFFF4E8D7),
+        iconBackground: const Color(0xFFB17705),
+        iconColor: Colors.white,
+        textColor: const Color(0xFF8E6412),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Danh mục',
+          style: TextStyle(
+            color: _C.onSurfaceVariant,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.1,
           ),
         ),
-        const SizedBox(width: 16),
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.70),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.50)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.light_mode_outlined,
-            color: _C.primary,
-            size: 26,
-          ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(child: _buildCategoryTile(items[0])),
+            const SizedBox(width: 10),
+            Expanded(child: _buildCategoryTile(items[1])),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(child: _buildCategoryTile(items[2])),
+            const SizedBox(width: 10),
+            Expanded(child: _buildCategoryTile(items[3])),
+          ],
         ),
       ],
     );
   }
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // PROGRESS CARD — premium circular ring from code 2, data from code 1
-  // ════════════════════════════════════════════════════════════════════════════
-  Widget _buildProgressCard() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('tasks')
-          .where('uid', isEqualTo: _currentUserUid)
-          .snapshots(),
-      builder: (context, snapshot) {
-        final docs = snapshot.data?.docs ?? [];
-        final total = docs.length;
-        final completed = docs
-            .where(
-              (d) => (d.data() as Map<String, dynamic>)['stat'] == 'Hoàn thành',
-            )
-            .length;
-        final double pct = total == 0 ? 0.0 : completed / total;
-        final String pctStr = '${(pct * 100).toInt()}%';
+  Widget _buildCategoryTile(_CategoryUiItem item) {
+    final selected = _selectedCategory == item.value;
 
-        String mood, sub;
-        if (total == 0) {
-          mood = 'Hôm nay bắt đầu nào!';
-          sub = 'Bạn có thể làm được nhiều điều.';
-        } else if (pct >= 1.0) {
-          mood = 'Xuất sắc! 🎉';
-          sub = 'Bạn đã hoàn thành tất cả!';
-        } else if (pct >= 0.5) {
-          mood = 'Bạn đang làm rất tốt!';
-          sub = 'Hãy tiếp tục nhé!';
-        } else {
-          mood = 'Cố lên nào!';
-          sub = 'Bạn đang làm rất tốt.';
-        }
-
-        return Container(
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: _C.surface,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: _C.surfaceVariant.withValues(alpha: 0.20),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // Circular progress ring
-              SizedBox(
-                width: 160,
-                height: 160,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 160,
-                      height: 160,
-                      child: CircularProgressIndicator(
-                        value: pct,
-                        strokeWidth: 10,
-                        backgroundColor: _C.surfaceContainer,
-                        valueColor: const AlwaysStoppedAnimation(_C.primary),
-                        strokeCap: StrokeCap.round,
-                      ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          pctStr,
-                          style: const TextStyle(
-                            color: _C.primary,
-                            fontSize: 40,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -1.5,
-                            height: 1.0,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'TIẾN ĐỘ',
-                          style: TextStyle(
-                            color: _C.outline,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Stats text
-              Text(
-                total == 0
-                    ? 'Chưa có công việc nào.'
-                    : '$completed trên $total công việc',
-                style: const TextStyle(
-                  color: _C.onSurface,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 22,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                sub,
-                style: const TextStyle(
-                  color: _C.outline,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-        );
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedCategory = selected ? null : item.value;
+        });
       },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        height: 96,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: item.color,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: selected
+                ? _C.primary.withValues(alpha: 0.55)
+                : Colors.transparent,
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: item.iconBackground,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(item.icon, size: 17, color: item.iconColor),
+            ),
+            Text(
+              item.label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                color: item.textColor,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -389,12 +562,54 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
 
         final docs = snapshot.data!.docs;
         if (docs.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 40),
-            child: Center(
-              child: Text(
-                'Chưa có nhiệm vụ nào phù hợp',
-                style: TextStyle(color: _C.outline, fontSize: 15),
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(4, 8, 4, 32),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 26, 20, 28),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F4F8),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE7E8F2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.task_alt_rounded,
+                      size: 34,
+                      color: Color(0xFFA7A7EA),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Mọi thứ đã gọn gàng',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF4A4B5C),
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Chưa có nhiệm vụ đang làm. Nhấn\nnút micro để thêm nhiệm vụ mới\nbằng giọng nói.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Color(0xFF707388),
+                      fontSize: 16,
+                      height: 1.35,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
           );
@@ -418,15 +633,14 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
               task: task,
               isCompleted: isCompleted,
               isOverdue: isOverdue,
-              onToggle: (val) =>
-                  _toggleTaskStatus(doc.id, task, val ?? false),
+              onToggle: (val) => _toggleTaskStatus(doc.id, task, val ?? false),
               onDelete: () => _deleteTask(doc.id),
               onTimerTap: task.way == 'promodoro'
                   ? () => showPromodoroTimerSheet(
-                        context,
-                        taskDocId: doc.id,
-                        task: task,
-                      )
+                      context,
+                      taskDocId: doc.id,
+                      task: task,
+                    )
                   : null,
             );
           },
@@ -442,17 +656,36 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
         _buildTopBar(),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 28, 24, 120),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Greeting
                 _buildGreetingSection(),
-                const SizedBox(height: 32),
+                const SizedBox(height: 18),
 
-                // Progress
-                _buildProgressCard(),
-                const SizedBox(height: 32),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: DashboardStreakCard(userUid: _currentUserUid),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: _buildProgressCard(),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+
+                _buildCategorySection(),
+                const SizedBox(height: 22),
 
                 // Section header
                 Row(
@@ -462,7 +695,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
                     Text(
                       _taskSectionTitle(),
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: _C.onSurface,
                         letterSpacing: -0.2,
@@ -511,55 +744,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
       children: [
         _buildHomeContent(),
 
-        // Sidebar overlay
-        AnimatedOpacity(
-          duration: const Duration(milliseconds: 320),
-          opacity: _showSidebar ? 1.0 : 0.0,
-          child: IgnorePointer(
-            ignoring: !_showSidebar,
-            child: GestureDetector(
-              onTap: _toggleSidebar,
-              child: Container(color: Colors.black.withValues(alpha: 0.3)),
-            ),
-          ),
-        ),
-
-        // Sidebar
-        AnimatedPositioned(
-          duration: const Duration(milliseconds: 320),
-          left: _showSidebar ? 0 : -280,
-          top: 0,
-          bottom: 0,
-          width: 280,
-          child: DashboardSidebar(
-            currentPage: 'dashboard',
-            userName: 'User Name',
-            selectedTag: _selectedCategory,
-            onTagSelected: (category) {
-              setState(() {
-                _selectedCategory = category;
-                _showSidebar = false;
-              });
-            },
-            onDashboardTap: () {
-              setState(() {
-                _selectedCategory = null;
-                _showSidebar = false;
-              });
-            },
-            onCalendarTap: () {
-              setState(() => _showSidebar = false);
-              Navigator.of(context).pushNamed('/calendar');
-            },
-            onChartsTap: () {
-              setState(() => _showSidebar = false);
-              Navigator.of(context).pushNamed('/charts');
-            },
-            onEditProfile: () {},
-            onLanguage: () => Navigator.of(context).pushNamed('/language'),
-          ),
-        ),
-
         if (widget.showBottomNav)
           const Positioned(
             left: 0,
@@ -572,27 +756,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
         Positioned(
           bottom: 96,
           right: 24,
-          child: Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF4648D4), Color(0xFF6063EE)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF4648D4).withValues(alpha: 0.35),
-                  blurRadius: 20,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: VoiceTaskButton(
-              onVoiceResult: (text) => VoiceHandler.process(text, context),
-            ),
+          child: VoiceTaskButton(
+            onVoiceResult: (text) => VoiceHandler.process(text, context),
           ),
         ),
       ],
@@ -603,15 +768,63 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _C.background,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            _buildBody(),
-          ],
+      body: SafeArea(child: _buildBody()),
+    );
+  }
+}
+
+class _GreetingAvatarFallback extends StatelessWidget {
+  final String? name;
+
+  const _GreetingAvatarFallback({this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final safeName = (name ?? '').trim();
+    final initials = safeName.isEmpty
+        ? 'U'
+        : safeName
+              .split(' ')
+              .where((w) => w.isNotEmpty)
+              .map((w) => w[0])
+              .take(2)
+              .join()
+              .toUpperCase();
+
+    return Container(
+      color: _C.primaryFixed,
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: const TextStyle(
+          color: _C.primary,
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.3,
         ),
       ),
     );
   }
+}
+
+class _CategoryUiItem {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final Color iconBackground;
+  final Color iconColor;
+  final Color textColor;
+
+  const _CategoryUiItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.iconBackground,
+    required this.iconColor,
+    required this.textColor,
+  });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -820,11 +1033,7 @@ class _TaskCard extends StatelessWidget {
                                     color: bgColor,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: Icon(
-                                    icon,
-                                    size: 18,
-                                    color: fgColor,
-                                  ),
+                                  child: Icon(icon, size: 18, color: fgColor),
                                 ),
                               );
                             },
@@ -847,7 +1056,8 @@ class _TaskCard extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     if (task.way == 'promodoro' &&
-                        (task.focusDuration != null || task.breakDuration != null))
+                        (task.focusDuration != null ||
+                            task.breakDuration != null))
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Text(

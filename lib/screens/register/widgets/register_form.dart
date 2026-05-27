@@ -16,6 +16,7 @@ class RegisterForm extends StatefulWidget {
 class _RegisterFormState extends State<RegisterForm> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -28,6 +29,7 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   void dispose() {
     _fullNameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -43,7 +45,7 @@ class _RegisterFormState extends State<RegisterForm> {
       final registerViewModel = RegisterViewModel(
         uid: '',
         name: _fullNameController.text,
-        displayName: _fullNameController.text,
+        displayName: _usernameController.text,
         email: _emailController.text,
         password: _passwordController.text,
         confirmPassword: _confirmPasswordController.text,
@@ -110,6 +112,29 @@ class _RegisterFormState extends State<RegisterForm> {
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.person_outline, color: AppColors.textSecondary),
               hintText: 'Nguyễn Văn A',
+              filled: true,
+              fillColor: AppColors.surface,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: AppColors.brand.withValues(alpha: 0.22), width: 1.5)),
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary.withValues(alpha: 0.55)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text('Tên đăng nhập', style: theme.textTheme.labelMedium?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _usernameController,
+            style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textPrimary),
+            validator: (value) {
+              final text = value?.trim() ?? '';
+              if (text.isEmpty) return 'Vui lòng nhập tên đăng nhập';
+              if (text.length < 3) return 'Tên đăng nhập phải ít nhất 3 ký tự';
+              return null;
+            },
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.alternate_email, color: AppColors.textSecondary),
+              hintText: 'ten_dang_nhap',
               filled: true,
               fillColor: AppColors.surface,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),

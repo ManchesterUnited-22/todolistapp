@@ -5,9 +5,8 @@ class CalendarDayCell extends StatelessWidget {
   final int day;
   final bool isSelected;
   final List<Color> dots;
-  final int badgeCount;
 
-  const CalendarDayCell({super.key, required this.day, required this.isSelected, required this.dots, this.badgeCount = 0});
+  const CalendarDayCell({super.key, required this.day, required this.isSelected, required this.dots});
 
   @override
   Widget build(BuildContext context) {
@@ -34,25 +33,6 @@ class CalendarDayCell extends StatelessWidget {
               ),
             ),
           ),
-        if (badgeCount > 0)
-          Positioned(
-            top: 2,
-            right: 2,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 6),
-                ],
-              ),
-              child: Text(
-                badgeCount > 9 ? '9+' : '$badgeCount',
-                style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: CalendarColors.onSurface),
-              ),
-            ),
-          ),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -76,8 +56,15 @@ class CalendarDayCell extends StatelessWidget {
                         height: 4,
                         margin: const EdgeInsets.symmetric(horizontal: 1),
                         decoration: BoxDecoration(
-                          color: isSelected ? Colors.white.withValues(alpha: 0.80) : c,
+                          color: isSelected ? Colors.white.withValues(alpha: 0.92) : c,
                           shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: c.withValues(alpha: 0.20),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
                         ),
                       ),
                     )

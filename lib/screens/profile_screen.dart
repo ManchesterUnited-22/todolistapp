@@ -1,11 +1,9 @@
-export 'profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:math' as math;
 import '../widgets/floating_bottom_navbar.dart';
-import '../widgets/sidebar.dart';
 import '../widgets/edit_profile_form.dart';
 import '../screens/login_screen.dart';
 import '../services/theme_service.dart';
@@ -170,30 +168,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      drawer: Drawer(
-        width: 280,
-        child: SafeArea(
-          child: DashboardSidebar(
-            currentPage: 'profile',
-            userName: 'User Name',
-            onDashboardTap: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushNamed('/dashboard');
-            },
-            onCalendarTap: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushNamed('/calendar');
-            },
-            onChartsTap: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushNamed('/charts');
-            },
-            onEditProfile: () => Navigator.of(context).pushNamed('/profile'),
-            onLanguage: () => Navigator.of(context).pushNamed('/language'),
-            onLogout: () => _handleLogout(context),
-          ),
-        ),
-      ),
       appBar: _buildAppBar(context),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
@@ -201,8 +175,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const _ProfileHeader(),
-            const SizedBox(height: 32),
-            _AchievementsSection(userId: _currentUserUid),
             const SizedBox(height: 32),
             _SettingsSection(onLogoutTap: () => _handleLogout(context)),
             const SizedBox(height: 80),
@@ -221,14 +193,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       elevation: 0,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
-      leading: Builder(
-        builder: (context) => IconButton(
-          icon: const Icon(Icons.menu, color: _C.primary),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
-      ),
       title: const Text(
-        'Serene Focus',
+        'Hồ sơ',
         style: TextStyle(
           fontFamily: 'Inter',
           fontSize: 24,
@@ -315,8 +281,14 @@ class _ProfileHeader extends StatelessWidget {
                     .snapshots(),
                 builder: (context, snap) {
                   final data = snap.data?.data() as Map<String, dynamic>?;
-                  final avatarUrl =
-                      (data?['avatarUrl'] as String?)?.trim() ?? '';
+                  final avatarFromProfile =
+                    (data?['avatarUrl'] as String?)?.trim() ?? '';
+                  final avatarFromAuth =
+                    FirebaseAuth.instance.currentUser?.photoURL?.trim() ??
+                    '';
+                  final avatarUrl = avatarFromProfile.isNotEmpty
+                    ? avatarFromProfile
+                    : avatarFromAuth;
                   if (avatarUrl.isNotEmpty) {
                     return Image.network(
                       avatarUrl,

@@ -23,7 +23,7 @@ class MentorAiButton extends StatelessWidget {
     super.key,
     this.onPressed,
     this.title = 'Phân tích',
-    this.subtitle = 'Xem gợi ý tối ưu hiệu suất học tập',
+    this.subtitle = 'Xem gợi ý tối ưu hiệu suất làm việc',
     this.icon = Icons.auto_awesome_rounded,
   });
 

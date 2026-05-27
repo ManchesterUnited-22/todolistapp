@@ -37,12 +37,15 @@ class VoiceHandler {
         return;
       }
 
-      final Map<String, dynamic>? intent = await ai.extractIntentFromText(normalizedTranscript);
+      final Map<String, dynamic>? intent = await ai.extractIntentFromText(
+        normalizedTranscript,
+      );
 
       final extractedIntent = intent ?? <String, dynamic>{};
       final String? type = (extractedIntent['type'] as String?)?.trim();
 
-      if (type == 'command' && (extractedIntent['action'] as String?) == 'navigate') {
+      if (type == 'command' &&
+          (extractedIntent['action'] as String?) == 'navigate') {
         final String? target = extractedIntent['target'] as String?;
         final Map<String, dynamic> params =
             (extractedIntent['params'] as Map<String, dynamic>?) ?? {};
@@ -59,29 +62,47 @@ class VoiceHandler {
                 params.containsKey('anchor');
 
             if (shouldOpenVoiceDiagram) {
-              await collectDiagramWithVoiceForm(context, initialTranscript: normalizedTranscript, initialParams: params);
+              await collectDiagramWithVoiceForm(
+                context,
+                initialTranscript: normalizedTranscript,
+                initialParams: params,
+              );
               scaffold.showSnackBar(
-                const SnackBar(content: Text('Đang mở biểu đồ theo mốc thời gian đã chọn')),
+                const SnackBar(
+                  content: Text('Đang mở biểu đồ theo mốc thời gian đã chọn'),
+                ),
               );
               return;
             }
 
-            Navigator.of(context).pushNamed('/stats', arguments: params);
+            Navigator.of(context).pushNamed('/achievements', arguments: params);
             scaffold.showSnackBar(
-              const SnackBar(content: Text('Đang mở trang thống kê')),
+              const SnackBar(content: Text('Đang mở trang thành tựu')),
+            );
+            return;
+          case 'achievements':
+            Navigator.of(context).pushNamed('/achievements', arguments: params);
+            scaffold.showSnackBar(
+              const SnackBar(content: Text('Đang mở trang thành tựu')),
             );
             return;
           case 'calendar':
             Navigator.of(context).pushNamed('/calendar', arguments: params);
-            scaffold.showSnackBar(const SnackBar(content: Text('Đang mở lịch')));
+            scaffold.showSnackBar(
+              const SnackBar(content: Text('Đang mở lịch')),
+            );
             return;
           case 'dashboard':
             Navigator.of(context).pushNamed('/dashboard', arguments: params);
-            scaffold.showSnackBar(const SnackBar(content: Text('Quay về trang chính')));
+            scaffold.showSnackBar(
+              const SnackBar(content: Text('Quay về trang chính')),
+            );
             return;
           case 'profile':
             Navigator.of(context).pushNamed('/profile', arguments: params);
-            scaffold.showSnackBar(const SnackBar(content: Text('Đang mở trang hồ sơ')));
+            scaffold.showSnackBar(
+              const SnackBar(content: Text('Đang mở trang hồ sơ')),
+            );
             return;
           default:
             scaffold.showSnackBar(
@@ -121,14 +142,25 @@ class VoiceHandler {
       );
 
       if (choice == 'diagram') {
-        await collectDiagramWithVoiceForm(context, initialTranscript: normalizedTranscript);
+        await collectDiagramWithVoiceForm(
+          context,
+          initialTranscript: normalizedTranscript,
+        );
       } else if (choice == 'promodoro') {
-        await collectPromodoroFlow(context, initialTranscript: normalizedTranscript);
+        await collectPromodoroFlow(
+          context,
+          initialTranscript: normalizedTranscript,
+        );
       } else if (choice == 'long') {
-        await collectLongTaskWithVoiceForm(context, initialTranscript: normalizedTranscript);
+        await collectLongTaskWithVoiceForm(
+          context,
+          initialTranscript: normalizedTranscript,
+        );
       }
     } catch (e) {
-      scaffold.showSnackBar(SnackBar(content: Text('Lỗi khi xử lý giọng nói: $e')));
+      scaffold.showSnackBar(
+        SnackBar(content: Text('Lỗi khi xử lý giọng nói: $e')),
+      );
     }
   }
 }
@@ -172,7 +204,11 @@ class _VoiceStartDialog extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(Icons.mic_rounded, color: Colors.white, size: 28),
+              child: const Icon(
+                Icons.mic_rounded,
+                color: Colors.white,
+                size: 28,
+              ),
             ),
             const SizedBox(height: 14),
             const Text(
@@ -188,7 +224,12 @@ class _VoiceStartDialog extends StatelessWidget {
             const Text(
               'Đang lắng nghe...',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: Color(0xFF4648D4), height: 1.35, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 13,
+                color: Color(0xFF4648D4),
+                height: 1.35,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 18),
             _VoiceStartOption(

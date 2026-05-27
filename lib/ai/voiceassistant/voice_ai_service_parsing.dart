@@ -87,7 +87,7 @@ VoiceTaskConversationReply voiceAiAdvanceVoiceTaskConversation(
     );
   }
 
-  if (state.step == VoiceTaskStep.askCategory) {
+    if (state.step == VoiceTaskStep.askCategory) {
     final category = _parseCategory(text);
     if (category == null) {
       return VoiceTaskConversationReply(

@@ -74,7 +74,7 @@ Future<void> collectPromodoroFlow(BuildContext context, {String? initialTranscri
       final categoryInput = await _askByVoice(
         context,
         ai,
-        'Bạn muốn xếp task này vào loại gì? Ví dụ Công việc hoặc Học tập',
+        'Bạn muốn xếp task này vào loại gì? Ví dụ Công việc, Học tập, Cá nhân hoặc Sức khỏe',
       );
       if (categoryInput != null && categoryInput.trim().isNotEmpty) {
         category = _parseCategory(categoryInput);

@@ -63,32 +63,65 @@ class _VoiceTaskButtonState extends State<VoiceTaskButton>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        if (_isProcessing)
-          ScaleTransition(
-            scale: Tween<double>(begin: 1.0, end: 1.35).animate(
-              CurvedAnimation(
-                parent: _pulseController,
-                curve: Curves.easeInOut,
+    return SizedBox(
+      width: 56,
+      height: 56,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _openVoiceAssistant,
+          borderRadius: BorderRadius.circular(18),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: _isProcessing
+                      ? const Color(0xFF7AA9FF)
+                      : const Color(0xFF4EA2FF),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: const Color(0xFF4C56D6),
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF4C56D6).withValues(alpha: 0.28),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            child: Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.15),
-                shape: BoxShape.circle,
+              if (_isProcessing)
+                ScaleTransition(
+                  scale: Tween<double>(begin: 1.0, end: 1.12).animate(
+                    CurvedAnimation(
+                      parent: _pulseController,
+                      curve: Curves.easeInOut,
+                    ),
+                  ),
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                ),
+              Icon(
+                _isProcessing ? Icons.hourglass_top_rounded : Icons.mic_rounded,
+                color: const Color(0xFF111827),
+                size: 26,
               ),
-            ),
+            ],
           ),
-        FloatingActionButton(
-          onPressed: _openVoiceAssistant,
-          backgroundColor: _isProcessing ? Colors.red : Colors.blue,
-          child: Icon(_isProcessing ? Icons.hourglass_top : Icons.mic_none),
         ),
-      ],
+      ),
     );
   }
 }

@@ -21,9 +21,13 @@ class DashboardGreetingSection extends StatelessWidget {
                 stream: userUid.isEmpty ? null : FirebaseFirestore.instance.collection('register').doc(userUid).snapshots(),
                 builder: (context, snapshot) {
                   final data = snapshot.data?.data() as Map<String, dynamic>?;
-                  final displayName = (data?['displayName'] as String?)?.trim().isNotEmpty == true
-                      ? data!['displayName'] as String
-                      : 'User';
+                  final regName = (data?['displayName'] as String?)?.trim();
+                  final googleName = FirebaseAuth.instance.currentUser?.displayName?.trim();
+                  final displayName = (regName != null && regName.isNotEmpty)
+                      ? regName
+                      : (googleName != null && googleName.isNotEmpty)
+                          ? googleName
+                          : 'User';
 
                   return RichText(
                     text: TextSpan(

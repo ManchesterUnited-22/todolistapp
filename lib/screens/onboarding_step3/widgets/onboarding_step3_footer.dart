@@ -10,20 +10,10 @@ class OnboardingStep3Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 28),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              OnboardingStep3ProgressDot(active: false),
-              SizedBox(width: 8),
-              OnboardingStep3ProgressDot(active: false),
-              SizedBox(width: 8),
-              OnboardingStep3ProgressDot(active: true),
-            ],
-          ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
             height: 56,
@@ -37,7 +27,9 @@ class OnboardingStep3Footer extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
                 boxShadow: [
                   BoxShadow(
-                    color: OnboardingStep3Colors.primary.withValues(alpha: 0.25),
+                    color: OnboardingStep3Colors.primary.withValues(
+                      alpha: 0.25,
+                    ),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
@@ -62,11 +54,11 @@ class OnboardingStep3Footer extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'GET STARTED',
+                      'Bắt đầu ngay',
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
-                        letterSpacing: 2.0,
+                        letterSpacing: 0.3,
                       ),
                     ),
                     const SizedBox(width: 12),
