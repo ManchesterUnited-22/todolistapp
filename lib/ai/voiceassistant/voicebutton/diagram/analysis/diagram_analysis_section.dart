@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_app/ai/voice_ai_service.dart';
 import 'package:smart_app/views/task_viewmodel.dart';
 
 import 'diagram_analysis_service.dart';
@@ -69,6 +70,7 @@ class _DiagramAnalysisSectionLoaderState extends State<DiagramAnalysisSectionLoa
           return _AnalysisCard(
             title: 'Phân tích báo cáo',
             subtitle: widget.rangeLabel,
+            spokenText: null,
             child: Text(
               'Không thể tạo phân tích: ${snapshot.error}',
               style: const TextStyle(fontSize: 13, color: Color(0xFF93000A)),
@@ -80,6 +82,7 @@ class _DiagramAnalysisSectionLoaderState extends State<DiagramAnalysisSectionLoa
           return _AnalysisCard(
             title: 'Phân tích báo cáo',
             subtitle: widget.rangeLabel,
+            spokenText: null,
             child: const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Row(
@@ -123,6 +126,7 @@ class _DiagramAnalysisCard extends StatelessWidget {
     return _AnalysisCard(
       title: 'Phân tích báo cáo',
       subtitle: result.rangeLabel,
+      spokenText: result.spokenSummary,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -164,25 +168,134 @@ class _DiagramAnalysisCard extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: 6),
+          _AdviceBlock(text: result.adviceText, isAi: result.adviceIsAi),
         ],
       ),
     );
   }
 }
 
-class _AnalysisCard extends StatelessWidget {
+/// Khối lời khuyên — nổi bật rõ với phần "Nhận định nhanh" ở trên, có nhãn
+/// "AI" khi nội dung thực sự do mô hình sinh ra (không gắn nhãn AI giả khi
+/// đang dùng gợi ý dự phòng, để không đánh lừa người dùng).
+class _AdviceBlock extends StatelessWidget {
+  final String text;
+  final bool isAi;
+
+  const _AdviceBlock({required this.text, required this.isAi});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isAi ? const Color(0xFFF4F3FF) : const Color(0xFFF7F7F9),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isAi ? const Color(0xFFDAD6FF) : const Color(0x1A767586),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isAi ? Icons.auto_awesome_rounded : Icons.tips_and_updates_rounded,
+                size: 16,
+                color: isAi ? const Color(0xFF4648D4) : Colors.grey.shade700,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                isAi ? 'Lời khuyên từ AI' : 'Gợi ý cải thiện',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: isAi ? const Color(0xFF4648D4) : Colors.grey.shade800,
+                ),
+              ),
+              if (isAi) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4648D4),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'AI',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            text,
+            style: const TextStyle(fontSize: 13, color: Color(0xFF464554), height: 1.5),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnalysisCard extends StatefulWidget {
   final String title;
   final String subtitle;
   final Widget child;
+
+  /// Toàn bộ nội dung sẽ được đọc to khi bấm nút loa. Null khi chưa có dữ
+  /// liệu để đọc (ví dụ đang tải hoặc bị lỗi) — khi đó nút loa sẽ bị ẩn.
+  final String? spokenText;
 
   const _AnalysisCard({
     required this.title,
     required this.subtitle,
     required this.child,
+    required this.spokenText,
   });
 
   @override
+  State<_AnalysisCard> createState() => _AnalysisCardState();
+}
+
+class _AnalysisCardState extends State<_AnalysisCard> {
+  bool _isSpeaking = false;
+
+  @override
+  void dispose() {
+    if (_isSpeaking) {
+      VoiceAiService.instance.stopSpeaking();
+    }
+    super.dispose();
+  }
+
+  Future<void> _toggleSpeak() async {
+    final text = widget.spokenText;
+    if (text == null || text.trim().isEmpty) return;
+
+    if (_isSpeaking) {
+      await VoiceAiService.instance.stopSpeaking();
+      if (mounted) setState(() => _isSpeaking = false);
+      return;
+    }
+
+    setState(() => _isSpeaking = true);
+    // Đọc chậm hơn mức mặc định của app vì đây là đoạn phân tích dài, cần
+    // nghe rõ — các luồng hội thoại ngắn khác (tạo nhiệm vụ, pomodoro...)
+    // vẫn giữ tốc độ mặc định, không bị ảnh hưởng.
+    await VoiceAiService.instance.speakText(text, speechRate: 0.32);
+    if (mounted) setState(() => _isSpeaking = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final hasSpokenText = widget.spokenText != null && widget.spokenText!.trim().isNotEmpty;
+
     return Container(
       margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.all(18),
@@ -207,7 +320,7 @@ class _AnalysisCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  title,
+                  widget.title,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -215,16 +328,53 @@ class _AnalysisCard extends StatelessWidget {
                   ),
                 ),
               ),
+              // Nút loa: cho người dùng nghe toàn bộ phân tích + lời khuyên
+              // thay vì phải đọc, hữu ích khi đang bận tay hoặc không muốn
+              // nhìn màn hình.
+              if (hasSpokenText)
+                _SpeakerButton(isSpeaking: _isSpeaking, onTap: _toggleSpeak),
             ],
           ),
           const SizedBox(height: 4),
           Text(
-            subtitle,
+            widget.subtitle,
             style: const TextStyle(fontSize: 12, color: Color(0xFF767586)),
           ),
           const SizedBox(height: 14),
-          child,
+          widget.child,
         ],
+      ),
+    );
+  }
+}
+
+class _SpeakerButton extends StatelessWidget {
+  final bool isSpeaking;
+  final VoidCallback onTap;
+
+  const _SpeakerButton({required this.isSpeaking, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: isSpeaking ? 'Dừng đọc' : 'Nghe phân tích này',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: 36,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSpeaking ? const Color(0xFF4648D4) : const Color(0xFFF4F3FF),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            isSpeaking ? Icons.volume_up_rounded : Icons.volume_up_outlined,
+            size: 19,
+            color: isSpeaking ? Colors.white : const Color(0xFF4648D4),
+          ),
+        ),
       ),
     );
   }

@@ -135,7 +135,16 @@ class VoiceAiService {
     _apiKey = key.trim();
   }
 
-  Future<void> speakText(String text) => voiceAiSpeakText(this, text);
+  Future<void> speakText(String text, {double? speechRate}) =>
+      voiceAiSpeakText(this, text, speechRate: speechRate);
+
+  /// Dừng phát giọng nói hiện tại (dùng cho nút loa khi người dùng bấm lần 2
+  /// để ngắt giữa lúc đang đọc).
+  Future<void> stopSpeaking() async {
+    try {
+      await _tts.stop();
+    } catch (_) {}
+  }
 
   /// Gọi sớm (ví dụ khi mở màn hình có nút mic) để engine TTS native được
   /// khởi tạo/bind trước, tránh độ trễ "cold start" ở lần nói đầu tiên
