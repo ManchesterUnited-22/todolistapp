@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../../../services/voice_nudge_service.dart';
 import 'package:smart_app/ai/voice_ai_service.dart';
+import 'package:smart_app/services/stt_service.dart';
 
 Future<VoiceTaskDraft?> collectVoiceTaskDraft(
   BuildContext context, {
@@ -70,12 +70,12 @@ class _VoiceAnswerDialog extends StatefulWidget {
 }
 
 class _VoiceAnswerDialogState extends State<_VoiceAnswerDialog> {
-  final stt.SpeechToText _speech = stt.SpeechToText();
   String _spokenText = '';
   bool _isListening = false;
   bool _isReady = false;
   bool _isFinal = false;
   bool _starting = false;
+  String? _errorText;
 
   @override
   void initState() {
@@ -86,62 +86,58 @@ class _VoiceAnswerDialogState extends State<_VoiceAnswerDialog> {
   Future<void> _startListening() async {
     if (_starting || _isListening) return;
     _starting = true;
+    _errorText = null;
+    if (mounted) setState(() {});
 
-    final available = await _speech.initialize(
+    final ok = await SttService.instance.startListening(
+      onResult: (text, isFinal) {
+        if (!mounted) return;
+        setState(() {
+          _spokenText = text;
+          _isFinal = isFinal;
+          if (isFinal) _isListening = false;
+        });
+      },
       onStatus: (status) {
         if (status == 'done' || status == 'notListening') {
-          if (mounted) {
-            setState(() => _isListening = false);
-          }
+          if (mounted) setState(() => _isListening = false);
         }
       },
-      onError: (_) {
-        if (mounted) {
-          Navigator.of(context).pop();
-        }
+      onError: (message) {
+        if (!mounted) return;
+        setState(() {
+          _isListening = false;
+          _errorText = message;
+        });
       },
     );
 
-    if (!available) {
-      if (mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+
+    if (!ok) {
+      setState(() {
+        _starting = false;
+        _isListening = false;
+        _errorText ??= 'Không khởi động được mic. Hãy bấm "Nghe lại".';
+      });
       return;
     }
 
-    if (!mounted) return;
     setState(() {
       _isReady = true;
       _isListening = true;
       _starting = false;
     });
-
-    _speech.listen(
-      localeId: 'vi_VN',
-      listenMode: stt.ListenMode.confirmation,
-      pauseFor: const Duration(seconds: 2),
-      onResult: (result) {
-        if (!mounted) return;
-        setState(() {
-          _spokenText = result.recognizedWords;
-          _isFinal = result.finalResult;
-          if (result.finalResult) {
-            _isListening = false;
-          }
-        });
-        if (result.finalResult) {
-          _speech.stop();
-        }
-      },
-    );
   }
 
   Future<void> _stopListening() async {
-    await _speech.stop();
+    await SttService.instance.stopListening();
     if (mounted) setState(() => _isListening = false);
   }
 
   @override
   void dispose() {
-    _speech.stop();
+    SttService.instance.stopListening();
     super.dispose();
   }
 
@@ -182,6 +178,13 @@ class _VoiceAnswerDialogState extends State<_VoiceAnswerDialog> {
                 : 'Đang khởi tạo mic...',
             style: const TextStyle(fontSize: 11, color: Color(0xFF767586)),
           ),
+          if (_errorText != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _errorText!,
+              style: const TextStyle(fontSize: 11, color: Colors.redAccent),
+            ),
+          ],
         ],
       ),
       actions: [

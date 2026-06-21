@@ -137,6 +137,15 @@ class VoiceAiService {
 
   Future<void> speakText(String text) => voiceAiSpeakText(this, text);
 
+  /// Gọi sớm (ví dụ khi mở màn hình có nút mic) để engine TTS native được
+  /// khởi tạo/bind trước, tránh độ trễ "cold start" ở lần nói đầu tiên
+  /// trong session — nguyên nhân khiến lần nghe đầu tiên dễ bị bỏ lỡ.
+  Future<void> warmUpTts() async {
+    try {
+      await _tts.setLanguage('vi-VN');
+    } catch (_) {}
+  }
+
   String voicePromptForStep(VoiceTaskConversationState state) =>
       voiceAiVoicePromptForStep(state);
 

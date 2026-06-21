@@ -20,10 +20,15 @@ class AuthService {
   final FirebaseFirestore _firestore;
   Future<void>? _googleSignInInitialization;
 
+  // Web client ID (type "Web application" trong Google Cloud Console),
+  // dùng để Google trả về idToken hợp lệ cho Firebase Auth xác minh.
+  static const String _serverClientId =
+      '314034792177-0gkoiegn5qr3mk88epg192ge7lptkesc.apps.googleusercontent.com';
+
   Future<void> _ensureGoogleSignInInitialized() {
-    // Some google_sign_in versions expose different APIs; avoid calling
-    // package-specific initialize here and just return a resolved future.
-    return _googleSignInInitialization ??= Future.value();
+    return _googleSignInInitialization ??= GoogleSignIn.instance.initialize(
+      serverClientId: _serverClientId,
+    );
   }
 
   Future<UserCredential> signInWithGoogle() async {
@@ -37,7 +42,19 @@ class AuthService {
 
     await _ensureGoogleSignInInitialized();
 
-    final googleUser = await GoogleSignIn.instance.authenticate();
+    GoogleSignInAccount googleUser;
+    try {
+      googleUser = await GoogleSignIn.instance.authenticate();
+    } on GoogleSignInException catch (e) {
+      debugPrint(
+        'GoogleSignInException: code=${e.code} description=${e.description} details=${e.details}',
+      );
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw Exception('Google sign-in bị hủy bởi người dùng');
+      }
+      throw Exception('Google sign-in lỗi: ${e.code} - ${e.description}');
+    }
+
     final googleAuth = googleUser.authentication;
     final credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,

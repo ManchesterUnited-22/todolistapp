@@ -25,7 +25,7 @@ Future<void> collectVoiceTaskSequential(BuildContext context, {String? initialTr
     }
     if (title == null) {
       await ai.speakText('Tiêu đề công việc là gì?');
-      title = await showDialog<String>(context: context, barrierDismissible: false, builder: (_) => VoiceInputDialog(prompt: 'Tiêu đề công việc là gì?'));
+      title = await showDialog<String>(context: context, barrierDismissible: false, builder: (_) => VoiceInputDialog(prompt: 'Tiêu đề công việc là gì?', longListen: true));
     }
     if (title == null || title.trim().isEmpty) {
       scaffold.showSnackBar(const SnackBar(content: Text('Huỷ: không có tiêu đề')));
@@ -34,7 +34,7 @@ Future<void> collectVoiceTaskSequential(BuildContext context, {String? initialTr
 
     // Priority
     await ai.speakText('Độ ưu tiên? Cao, Vừa hay Thấp?');
-    final priorityInput = await showDialog<String>(context: context, barrierDismissible: false, builder: (_) => VoiceInputDialog(prompt: 'Độ ưu tiên: Cao, Vừa hay Thấp?'));
+    final priorityInput = await showDialog<String>(context: context, barrierDismissible: false, builder: (_) => VoiceInputDialog(prompt: 'Độ ưu tiên: Cao, Vừa hay Thấp?', longListen: true));
     if (priorityInput == null) {
       final saved = await _offerSaveDraft(context, title: title.trim());
       if (!saved) scaffold.showSnackBar(const SnackBar(content: Text('Đã huỷ')));
@@ -44,7 +44,7 @@ Future<void> collectVoiceTaskSequential(BuildContext context, {String? initialTr
 
     // Category
     await ai.speakText('Loại công việc? Ví dụ: Công việc, Học tập, Cá nhân, Sức khỏe');
-    final categoryInput = await showDialog<String>(context: context, barrierDismissible: false, builder: (_) => VoiceInputDialog(prompt: 'Loại công việc? (Công việc / Học tập / Cá nhân / Sức khỏe)'));
+    final categoryInput = await showDialog<String>(context: context, barrierDismissible: false, builder: (_) => VoiceInputDialog(prompt: 'Loại công việc? (Công việc / Học tập / Cá nhân / Sức khỏe)', longListen: true));
     if (categoryInput == null) {
       final saved = await _offerSaveDraft(context, title: title.trim(), priority: priority);
       if (!saved) scaffold.showSnackBar(const SnackBar(content: Text('Đã huỷ')));
@@ -54,7 +54,7 @@ Future<void> collectVoiceTaskSequential(BuildContext context, {String? initialTr
 
     // DueAt
     await ai.speakText('Có thời gian hẹn không? Nói "không" nếu không.');
-    final dueAtInput = await showDialog<String>(context: context, barrierDismissible: false, builder: (_) => VoiceInputDialog(prompt: 'Thời gian hẹn? (Nói "không" hoặc ví dụ "ngày mai 15:00")'));
+    final dueAtInput = await showDialog<String>(context: context, barrierDismissible: false, builder: (_) => VoiceInputDialog(prompt: 'Thời gian hẹn? (Nói "không" hoặc ví dụ "ngày mai 15:00")', longListen: true));
     if (dueAtInput == null) {
       final saved = await _offerSaveDraft(context, title: title.trim(), priority: priority, category: category);
       if (!saved) scaffold.showSnackBar(const SnackBar(content: Text('Đã huỷ')));

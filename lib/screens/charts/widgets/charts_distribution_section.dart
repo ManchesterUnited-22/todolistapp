@@ -9,32 +9,39 @@ class ChartsDistributionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double healthRatio = 0.0;
-    double workRatio = 0.0;
+    double healthRatio   = 0.0;
+    double workRatio     = 0.0;
     double personalRatio = 0.0;
+    double studyRatio    = 0.0;
 
     stats.categoryRatios.forEach((rawName, ratio) {
       final n = rawName.toLowerCase();
-      if (n.contains('sức') || n.contains('khỏe')) {
+      if (n.contains('sức') || n.contains('khỏe') || n.contains('health')) {
         healthRatio += ratio;
-      } else if (n.contains('cá nhân') || n.contains('cá nhan') || n.contains('personal')) {
+      } else if (n.contains('học') || n.contains('study') || n.contains('education')) {
+        studyRatio += ratio;
+      } else if (n.contains('cá nhân') || n.contains('ca nhan') || n.contains('personal')) {
         personalRatio += ratio;
       } else {
+        // "Công việc" và mọi thứ còn lại
         workRatio += ratio;
       }
     });
 
-    final total = healthRatio + workRatio + personalRatio;
-    if (total > 1.0) {
-      healthRatio /= total;
-      workRatio /= total;
+    // Chuẩn hóa nếu tổng > 1 do float
+    final total = healthRatio + workRatio + personalRatio + studyRatio;
+    if (total > 1.01) {
+      healthRatio   /= total;
+      workRatio     /= total;
       personalRatio /= total;
+      studyRatio    /= total;
     }
 
     final categories = <Map<String, dynamic>>[
-      {'name': 'Sức khỏe', 'ratio': healthRatio, 'icon': Icons.favorite_rounded, 'color': ChartsColors.tertiary},
-      {'name': 'Công việc', 'ratio': workRatio, 'icon': Icons.work_rounded, 'color': ChartsColors.secondary},
-      {'name': 'Cá nhân', 'ratio': personalRatio, 'icon': Icons.person_rounded, 'color': ChartsColors.primaryContainer},
+      {'name': 'Công việc', 'ratio': workRatio,     'icon': Icons.work_rounded,           'color': ChartsColors.secondary},
+      {'name': 'Học tập',   'ratio': studyRatio,    'icon': Icons.school_rounded,          'color': ChartsColors.primary},
+      {'name': 'Cá nhân',   'ratio': personalRatio, 'icon': Icons.person_rounded,          'color': ChartsColors.primaryContainer},
+      {'name': 'Sức khỏe',  'ratio': healthRatio,   'icon': Icons.favorite_rounded,        'color': ChartsColors.tertiary},
     ];
 
     return Column(

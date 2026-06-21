@@ -31,6 +31,7 @@ Future<void> collectPromodoroFlow(BuildContext context, {String? initialTranscri
         barrierDismissible: false,
         builder: (_) => const VoiceInputDialog(
           prompt: 'Ví dụ: Tạo promodoro ôn toán, làm 25 phút, nghỉ 5 phút',
+          longListen: true,
         ),
       );
     }
@@ -147,7 +148,7 @@ Future<String?> _askByVoice(
   return showDialog<String>(
     context: context,
     barrierDismissible: false,
-    builder: (_) => VoiceInputDialog(prompt: prompt),
+    builder: (_) => VoiceInputDialog(prompt: prompt, longListen: true),
   );
 }
 

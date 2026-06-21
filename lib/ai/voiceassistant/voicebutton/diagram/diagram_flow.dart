@@ -22,7 +22,10 @@ Future<void> collectDiagramWithVoiceForm(
     final spoken = await showDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const VoiceInputDialog(prompt: _initialDiagramPrompt),
+      builder: (_) => const VoiceInputDialog(
+        prompt: _initialDiagramPrompt,
+        longListen: true,
+      ),
     );
 
     final primaryText = (spoken ?? '').trim().isNotEmpty
@@ -96,7 +99,10 @@ Future<String?> _askByVoice(
   return showDialog<String>(
     context: context,
     barrierDismissible: false,
-    builder: (_) => VoiceInputDialog(prompt: prompt),
+    builder: (_) => VoiceInputDialog(
+      prompt: prompt,
+      longListen: true,
+    ),
   );
 }
 

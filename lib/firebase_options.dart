@@ -24,6 +24,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '314034792177',
     projectId: 'todolist-7bebc',
     storageBucket: 'todolist-7bebc.firebasestorage.app',
+    androidClientId: '314034792177-0gkoiegn5qr3mk88epg192ge7lptkesc.apps.googleusercontent.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

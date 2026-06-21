@@ -1,10 +1,10 @@
 part of voice_ai_service;
 
 String? _parseWay(String text) {
-  if (text.contains('promodoro') || text.contains('promodo') || text.contains('promodoro')) return 'promodoro';
+  if (text.contains('pomodoro') || text.contains('pomodo') || text.contains('pomodoro')) return 'pomodoro';
   if (text.contains('dài hạn') || text.contains('dai han') || text.contains('dài') || text.contains('dài hạn')) return 'long_term_task';
   // try common short forms
-  if (text.contains('ngắn') || text.contains('prom')) return 'promodoro';
+  if (text.contains('ngắn') || text.contains('pom')) return 'pomodoro';
   return null;
 }
 
@@ -68,12 +68,25 @@ DateTime? _parseDueAtVoice(String text) {
   return null;
 }
 
-String _buildSummary(VoiceTaskConversationState state) {
+String _buildVisualSummary(VoiceTaskConversationState state) {
   final parts = <String>[];
   parts.add('"${state.title ?? 'Nhiệm vụ'}"');
   parts.add('loại ${state.category ?? 'Chưa rõ'}');
   parts.add('thời lượng ${state.durationMinutes ?? 0} phút');
   parts.add('ưu tiên ${state.priority ?? 'Vừa'}');
-  if (state.dueAt != null) parts.add('hẹn ${DateFormat('yyyy-MM-dd HH:mm').format(state.dueAt!)}');
+  if (state.dueAt != null) {
+    parts.add('hẹn ${DateFormat('yyyy-MM-dd HH:mm').format(state.dueAt!)}');
+  }
   return parts.join(', ');
+}
+
+/// Dùng cho AI NÓI (ngắn gọn theo yêu cầu)
+String _buildSpokenSummary(VoiceTaskConversationState state) {
+  final title = state.title?.trim() ?? 'Nhiệm vụ mới';
+  return "Đây là nhiệm vụ của bạn: $title. Bạn có muốn thay đổi gì không?";
+}
+
+// Hàm gốc - giữ nguyên tên để không làm hỏng các file khác
+String _buildSummary(VoiceTaskConversationState state) {
+  return _buildSpokenSummary(state);   // ← Đã thay đổi theo yêu cầu của bạn
 }

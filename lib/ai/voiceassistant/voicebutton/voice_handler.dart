@@ -29,10 +29,13 @@ class VoiceHandler {
 
         if (choice == 'diagram') {
           await collectDiagramWithVoiceForm(context);
+          if (context.mounted) await _askNextSession(context, from: 'diagram');
         } else if (choice == 'promodoro') {
           await collectPromodoroFlow(context);
+          if (context.mounted) await _askNextSession(context, from: 'promodoro');
         } else if (choice == 'long') {
           await collectLongTaskWithVoiceForm(context);
+          if (context.mounted) await _askNextSession(context, from: 'long');
         }
         return;
       }
@@ -146,22 +149,248 @@ class VoiceHandler {
           context,
           initialTranscript: normalizedTranscript,
         );
+        if (context.mounted) await _askNextSession(context, from: 'diagram');
       } else if (choice == 'promodoro') {
         await collectPromodoroFlow(
           context,
           initialTranscript: normalizedTranscript,
         );
+        if (context.mounted) await _askNextSession(context, from: 'promodoro');
       } else if (choice == 'long') {
         await collectLongTaskWithVoiceForm(
           context,
           initialTranscript: normalizedTranscript,
         );
+        if (context.mounted) await _askNextSession(context, from: 'long');
       }
     } catch (e) {
       scaffold.showSnackBar(
         SnackBar(content: Text('Lỗi khi xử lý giọng nói: $e')),
       );
     }
+  }
+}
+
+// ─── Hỏi user muốn làm gì sau khi xong một phiên ────────────────────────────
+Future<void> _askNextSession(BuildContext context, {required String from}) async {
+  final ai = VoiceAiService.instance;
+
+  // Gợi ý 2 phiên còn lại theo phiên vừa xong
+  final Map<String, ({String label, IconData icon, String hint})> sessions = {
+    'diagram':  (label: 'Biểu đồ',         icon: Icons.bar_chart_rounded,  hint: 'Xem phân tích thống kê'),
+    'promodoro':(label: 'Pomodoro',         icon: Icons.timer_outlined,     hint: 'Tạo phiên tập trung'),
+    'long':     (label: 'Nhiệm vụ dài hạn', icon: Icons.task_alt_rounded,   hint: 'Thêm nhiệm vụ mới'),
+  };
+
+  final others = sessions.entries.where((e) => e.key != from).toList();
+
+  // AI nói gợi ý
+  final s1 = others[0].value.label;
+  final s2 = others[1].value.label;
+  await ai.speakText('Bạn muốn tạo thêm hay chuyển sang $s1 hoặc $s2 không?');
+
+  if (!context.mounted) return;
+
+  final next = await showDialog<String>(
+    context: context,
+    barrierDismissible: true,
+    builder: (ctx) => _NextSessionDialog(
+      from: from,
+      sessions: sessions,
+      others: others,
+    ),
+  );
+
+  if (!context.mounted || next == null) return;
+
+  if (next == from) {
+    // Làm thêm cùng phiên
+    if (from == 'long') {
+      await collectLongTaskWithVoiceForm(context);
+      if (context.mounted) await _askNextSession(context, from: 'long');
+    } else if (from == 'promodoro') {
+      await collectPromodoroFlow(context);
+      if (context.mounted) await _askNextSession(context, from: 'promodoro');
+    } else if (from == 'diagram') {
+      await collectDiagramWithVoiceForm(context);
+      if (context.mounted) await _askNextSession(context, from: 'diagram');
+    }
+  } else if (next == 'diagram') {
+    await collectDiagramWithVoiceForm(context);
+    if (context.mounted) await _askNextSession(context, from: 'diagram');
+  } else if (next == 'promodoro') {
+    await collectPromodoroFlow(context);
+    if (context.mounted) await _askNextSession(context, from: 'promodoro');
+  } else if (next == 'long') {
+    await collectLongTaskWithVoiceForm(context);
+    if (context.mounted) await _askNextSession(context, from: 'long');
+  }
+  // next == 'done' → thoát hoàn toàn
+}
+
+// ─── Dialog chọn phiên tiếp theo ─────────────────────────────────────────────
+class _NextSessionDialog extends StatelessWidget {
+  final String from;
+  final Map<String, ({String label, IconData icon, String hint})> sessions;
+  final List<MapEntry<String, ({String label, IconData icon, String hint})>> others;
+
+  const _NextSessionDialog({
+    required this.from,
+    required this.sessions,
+    required this.others,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final current = sessions[from]!;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 360),
+        padding: const EdgeInsets.fromLTRB(20, 22, 20, 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF4648D4).withValues(alpha: 0.12),
+              blurRadius: 32,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4648D4).withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(current.icon, color: const Color(0xFF4648D4), size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Xong phiên ${current.label}!',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF191C1E),
+                  ),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 6),
+            const Padding(
+              padding: EdgeInsets.only(left: 2),
+              child: Text(
+                'Tiếp theo bạn muốn làm gì?',
+                style: TextStyle(fontSize: 13, color: Color(0xFF767586)),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Làm thêm cùng phiên
+            _NextOption(
+              icon: current.icon,
+              label: 'Thêm ${current.label} nữa',
+              hint: 'Tiếp tục phiên hiện tại',
+              color: const Color(0xFF4648D4),
+              onTap: () => Navigator.of(context).pop(from),
+            ),
+            const SizedBox(height: 8),
+
+            // 2 phiên còn lại
+            ...others.map((e) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _NextOption(
+                icon: e.value.icon,
+                label: 'Chuyển sang ${e.value.label}',
+                hint: e.value.hint,
+                color: const Color(0xFF2E7D32),
+                onTap: () => Navigator.of(context).pop(e.key),
+              ),
+            )),
+
+            const Divider(height: 20, color: Color(0xFFF0EFF8)),
+
+            // Xong hẳn
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop('done'),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF9896AA),
+                ),
+                child: const Text('Xong, đóng lại'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NextOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String hint;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _NextOption({
+    required this.icon,
+    required this.label,
+    required this.hint,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color.withValues(alpha: 0.05),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(children: [
+            Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(
+                  fontSize: 14, fontWeight: FontWeight.w600,
+                  color: Color(0xFF191C1E),
+                )),
+                const SizedBox(height: 2),
+                Text(hint, style: const TextStyle(
+                  fontSize: 11, color: Color(0xFF9896AA),
+                )),
+              ],
+            )),
+            Icon(Icons.chevron_right_rounded, color: color.withValues(alpha: 0.5), size: 18),
+          ]),
+        ),
+      ),
+    );
   }
 }
 

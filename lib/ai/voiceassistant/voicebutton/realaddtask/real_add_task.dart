@@ -2,12 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:smart_app/ai/voice_ai_service.dart';
 import 'package:smart_app/ai/voiceassistant/voicebutton/voice_input_dialog.dart';
 import 'package:smart_app/views/task_viewmodel.dart';
-
-
 
 Future<void> collectLongTaskWithVoiceForm(
   BuildContext context, {
@@ -22,363 +19,287 @@ Future<void> collectLongTaskWithVoiceForm(
     return;
   }
 
-  await showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => _LongTaskVoiceFormDialog(
-      uid: user.uid,
-      initialTranscript: initialTranscript,
-      onTaskAdded: onTaskAdded,
-    ),
+  // Nếu đã có transcript từ màn hình trước thì dùng luôn, không cần ghi âm lại
+  final String? firstTranscript =
+      (initialTranscript != null && initialTranscript.trim().isNotEmpty)
+          ? initialTranscript.trim()
+          : null;
+
+  await _runVoiceTaskFlow(
+    context,
+    uid: user.uid,
+    firstTranscript: firstTranscript,
+    onTaskAdded: onTaskAdded,
   );
 }
 
-class _LongTaskVoiceFormDialog extends StatefulWidget {
-  final String uid;
-  final String? initialTranscript;
-  final ValueChanged<String>? onTaskAdded;
+// ─── Toàn bộ luồng chạy tuần tự, không có form UI ──────────────────────────
+Future<void> _runVoiceTaskFlow(
+  BuildContext context, {
+  required String uid,
+  String? firstTranscript,
+  ValueChanged<String>? onTaskAdded,
+}) async {
+  final ai = VoiceAiService.instance;
 
-  const _LongTaskVoiceFormDialog({
-    required this.uid,
-    required this.initialTranscript,
-    required this.onTaskAdded,
-  });
+  // ── Bước 1: Ghi âm nhiệm vụ ─────────────────────────────────────────────
+  String? transcript = firstTranscript;
 
-  @override
-  State<_LongTaskVoiceFormDialog> createState() => _LongTaskVoiceFormDialogState();
-}
-
-class _LongTaskVoiceFormDialogState extends State<_LongTaskVoiceFormDialog> {
-  final _titleController = TextEditingController();
-  final _detailController = TextEditingController();
-
-  String _priority = 'Vừa';
-  String _category = 'Công việc';
-  DateTime? _dueAt;
-  String _voiceStatus = 'Sẵn sàng ghi âm';
-  bool _initialized = false;
-  bool _saving = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_initialized) return;
-    _initialized = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (widget.initialTranscript != null && widget.initialTranscript!.trim().isNotEmpty) {
-        _applyTranscript(widget.initialTranscript!.trim());
-      }
-      await _greetAndListen();
-    });
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _detailController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _playTing() async {
+  if (transcript == null) {
     await SystemSound.play(SystemSoundType.click);
-  }
+    await ai.speakText('Mình đang nghe đây. Bạn nói câu đầy đủ nhé, ví dụ: dọn dẹp nhà cửa vào lúc chín giờ sáng mai.');
 
-  Future<void> _greetAndListen() async {
-    if (!mounted) return;
-    setState(() => _voiceStatus = 'AI đang chào bạn...');
-
-    await _playTing();
-    await VoiceAiService.instance.speakText('Mình đang nghe đây, bạn muốn thêm việc gì?');
-
-    if (!mounted) return;
-    setState(() => _voiceStatus = 'Đang ghi âm...');
-
-    final transcript = await showDialog<String>(
+    if (!context.mounted) return;
+    transcript = await showDialog<String>(
       context: context,
       barrierDismissible: false,
       builder: (_) => const VoiceInputDialog(
-        prompt: 'Nói một câu đầy đủ: tên việc, ưu tiên, loại, thời gian',
+        prompt: 'Nói câu đầy đủ: tên việc, thời gian, ưu tiên...',
+        longListen: true,
       ),
     );
-
-    if (!mounted) return;
-    if (transcript == null || transcript.trim().isEmpty) {
-      setState(() => _voiceStatus = 'Chưa ghi nhận câu nói');
-      return;
-    }
-
-    _applyTranscript(transcript.trim());
-    await _playTing();
-    if (!mounted) return;
-    setState(() => _voiceStatus = 'Đã ghi nhận thành công. Bạn kiểm tra form và bấm Lưu.');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đã ghi nhận giọng nói thành công')), 
-    );
   }
 
-  void _applyTranscript(String transcript) {
-    final title = _extractTitle(transcript);
-    final priority = _parsePriority(transcript);
-    final category = _parseCategory(transcript);
-    final dueAt = _parseDueAt(transcript);
+  if (!context.mounted) return;
+  if (transcript == null || transcript.trim().isEmpty) return;
+  transcript = transcript.trim();
 
-    if (title != null && title.trim().isNotEmpty) {
-      _titleController.text = title;
-    }
-    if (priority != null) _priority = priority;
-    if (category != null) _category = category;
-    if (dueAt != null) _dueAt = dueAt;
+  // ── Bước 2: Parse thông tin ──────────────────────────────────────────────
+  String title    = _extractTitle(transcript) ?? transcript;
+  String priority = _parsePriority(transcript) ?? 'Vừa';
+  String category = _parseCategory(transcript) ?? 'Công việc';
+  DateTime? dueAt = _parseDueAt(transcript);
 
-    if (mounted) setState(() {});
-  }
+  // ── Bước 3: AI đọc lại tóm tắt ──────────────────────────────────────────
+  await ai.speakText(
+    'Được rồi! ${_buildSummary(title, priority, category, dueAt)} '
+    'Bạn có muốn chỉnh sửa gì không?',
+  );
 
-  Future<String?> _askByVoice(String prompt) async {
-    await _playTing();
-    await VoiceAiService.instance.speakText(prompt);
-    return showDialog<String>(
+  // ── Bước 4 & 5: Vòng lặp chỉnh sửa → xác nhận lưu ──────────────────────
+  //
+  // Luồng:
+  //   [hỏi chỉnh gì không?]
+  //     ├─ user chỉnh → apply → đọc lại → [hỏi lưu chưa?]
+  //     └─ user không chỉnh → [hỏi lưu chưa?]
+  //
+  //   [hỏi lưu chưa?]
+  //     ├─ user đồng ý → break → lưu
+  //     └─ user chưa → quay lại [hỏi chỉnh gì không?]
+
+  while (true) {
+    if (!context.mounted) return;
+
+    // ── 4a: Nghe xem user muốn chỉnh gì (longListen để nghe câu dài) ──────
+    final editAnswer = await showDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => VoiceInputDialog(prompt: prompt),
-    );
-  }
-
-  Future<bool> _fillMissingRequiredFields() async {
-    if (_titleController.text.trim().isEmpty) {
-      final answer = await _askByVoice('Tên công việc là gì vậy nhỉ?');
-      if (answer != null && answer.trim().isNotEmpty) {
-        _titleController.text = answer.trim();
-      }
-    }
-
-    if (_priority.trim().isEmpty || _priority == 'Không rõ') {
-      final answer = await _askByVoice('Độ ưu tiên của công việc là gì vậy nhỉ?');
-      final parsed = answer == null ? null : _parsePriority(answer);
-      if (parsed != null) _priority = parsed;
-    }
-
-    if (_category.trim().isEmpty || _category == 'Không rõ') {
-      final answer = await _askByVoice('Loại công việc là gì vậy nhỉ?');
-      final parsed = answer == null ? null : _parseCategory(answer);
-      if (parsed != null) _category = parsed;
-    }
-
-    if (_dueAt == null) {
-      final answer = await _askByVoice('Thời gian thực hiện công việc là khi nào vậy nhỉ?');
-      final parsed = answer == null ? null : _parseDueAt(answer);
-      if (parsed != null) _dueAt = parsed;
-    }
-
-    if (mounted) setState(() {});
-
-    return _titleController.text.trim().isNotEmpty &&
-        _priority.trim().isNotEmpty &&
-        _category.trim().isNotEmpty &&
-        _dueAt != null;
-  }
-
-  Future<void> _saveTask() async {
-    if (_saving) return;
-    setState(() => _saving = true);
-
-    try {
-      final ok = await _fillMissingRequiredFields();
-      if (!ok) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Thiếu thông tin bắt buộc, chưa thể lưu task.')),
-          );
-        }
-        return;
-      }
-
-      final now = DateTime.now();
-      final task = TaskViewModel(
-        id: now.microsecondsSinceEpoch,
-        title: _titleController.text.trim(),
-        detail: _detailController.text.trim(),
-        category: _category,
-        priority: _priority,
-        way: 'long_term_task',
-        stat: 'Đang làm',
-        createdAt: Timestamp.fromDate(now),
-        dueAt: Timestamp.fromDate(_dueAt!),
-        dateString:
-            '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
-        timestamp: Timestamp.fromDate(now),
-        uid: widget.uid,
-      );
-
-      await FirebaseFirestore.instance
-          .collection('tasks')
-          .add(task.toFirestoreMap());
-
-      widget.onTaskAdded?.call(task.title);
-      await _playTing();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Đã thêm task dài hạn: ${task.title}')),
-        );
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không thể lưu task: $e')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final dueText = _dueAt == null ? 'Chưa chọn' : DateFormat('dd/MM/yyyy HH:mm').format(_dueAt!);
-
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Text('Task dài hạn (Voice Form)'),
-      content: SizedBox(
-        width: 420,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF2F4F6),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _voiceStatus,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF464554)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Tên công việc',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _detailController,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Ghi chú',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _priority,
-                decoration: const InputDecoration(
-                  labelText: 'Độ ưu tiên',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'Cao', child: Text('Cao')),
-                  DropdownMenuItem(value: 'Vừa', child: Text('Vừa')),
-                  DropdownMenuItem(value: 'Thấp', child: Text('Thấp')),
-                ],
-                onChanged: (v) => setState(() => _priority = v ?? 'Vừa'),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _category,
-                decoration: const InputDecoration(
-                  labelText: 'Loại công việc',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'Công việc', child: Text('Công việc')),
-                  DropdownMenuItem(value: 'Học tập', child: Text('Học tập')),
-                  DropdownMenuItem(value: 'Cá nhân', child: Text('Cá nhân')),
-                  DropdownMenuItem(value: 'Sức khỏe', child: Text('Sức khỏe')),
-                ],
-                onChanged: (v) => setState(() => _category = v ?? 'Công việc'),
-              ),
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: () async {
-                  final now = DateTime.now();
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: _dueAt ?? now,
-                    firstDate: DateTime(now.year - 1, 1, 1),
-                    lastDate: DateTime(now.year + 5, 12, 31),
-                  );
-                  if (date == null) return;
-                  final time = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.fromDateTime(_dueAt ?? now),
-                  );
-                  if (time == null) return;
-                  setState(() {
-                    _dueAt = DateTime(
-                      date.year,
-                      date.month,
-                      date.day,
-                      time.hour,
-                      time.minute,
-                    );
-                  });
-                },
-                child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Thời gian',
-                    border: OutlineInputBorder(),
-                  ),
-                  child: Text(dueText),
-                ),
-              ),
-            ],
-          ),
-        ),
+      builder: (_) => const VoiceInputDialog(
+        prompt: 'Bạn muốn chỉnh gì không?',
+        longListen: true,
       ),
-      actions: [
-        TextButton(
-          onPressed: _saving ? null : () => Navigator.of(context).pop(),
-          child: const Text('Hủy'),
-        ),
-        OutlinedButton.icon(
-          onPressed: _saving ? null : _greetAndListen,
-          icon: const Icon(Icons.mic_none_rounded),
-          label: const Text('Nói lại'),
-        ),
-        FilledButton(
-          onPressed: _saving ? null : _saveTask,
-          child: Text(_saving ? 'Đang lưu...' : 'Lưu task'),
-        ),
-      ],
     );
+
+    if (!context.mounted) return;
+    if (editAnswer == null || editAnswer.trim().isEmpty) return;
+
+    final trimmed = editAnswer.trim();
+
+    if (_wantsToEdit(trimmed)) {
+      // ── 4b: Apply chỉnh sửa ───────────────────────────────────────────
+      final newPriority = _parsePriority(trimmed);
+      final newCategory = _parseCategory(trimmed);
+      final newDueAt    = _parseDueAt(trimmed);
+      final newTitle    = _extractEditTitle(trimmed);
+
+      if (newPriority != null) priority = newPriority;
+      if (newCategory != null) category = newCategory;
+      if (newDueAt != null)    dueAt    = newDueAt;
+      if (newTitle != null)    title    = newTitle;
+
+      await ai.speakText(
+        'Đã cập nhật. ${_buildSummary(title, priority, category, dueAt)}',
+      );
+    }
+
+    // ── 5: Hỏi xác nhận lưu (luôn hỏi, dù có chỉnh hay không) ──────────
+    if (!context.mounted) return;
+    await ai.speakText('Bạn muốn lưu nhiệm vụ này chứ?');
+
+    final confirmAnswer = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const VoiceInputDialog(
+        prompt: 'Lưu nhiệm vụ này không?',
+        longListen: true,
+      ),
+    );
+
+    if (!context.mounted) return;
+
+    if (confirmAnswer != null && _wantsToConfirm(confirmAnswer.trim())) {
+      await ai.speakText('Okie! Mình lưu lại nhé!');
+      break; // thoát → lưu
+    }
+
+    // Chưa đồng ý → hỏi lại chỉnh gì nữa
+    await ai.speakText('Được, bạn muốn chỉnh thêm gì nữa không?');
+  }
+
+  // ── Bước 6: Lưu Firestore ────────────────────────────────────────────────
+  if (!context.mounted) return;
+
+  try {
+    final now = DateTime.now();
+    final due = dueAt ?? now.add(const Duration(days: 1));
+    final task = TaskViewModel(
+      id: now.microsecondsSinceEpoch,
+      title: title,
+      detail: '',
+      category: category,
+      priority: priority,
+      way: 'long_term_task',
+      stat: 'Đang làm',
+      createdAt: Timestamp.fromDate(now),
+      dueAt: Timestamp.fromDate(due),
+      dateString:
+          '${now.year.toString().padLeft(4, '0')}-'
+          '${now.month.toString().padLeft(2, '0')}-'
+          '${now.day.toString().padLeft(2, '0')}',
+      timestamp: Timestamp.fromDate(now),
+      uid: uid,
+    );
+
+    await FirebaseFirestore.instance.collection('tasks').add(task.toFirestoreMap());
+    onTaskAdded?.call(task.title);
+
+    await SystemSound.play(SystemSoundType.click);
+    await ai.speakText('Đã lưu nhiệm vụ "${task.title}" thành công!');
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('✓ Đã lưu: ${task.title}')),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không thể lưu: $e')),
+      );
+    }
   }
 }
 
+// ── Tạo câu tóm tắt đọc rõ ràng, không viết tắt tháng/ngày ────────────────
+String _buildSummary(String title, String priority, String category, DateTime? dueAt) {
+  String dueText;
+  if (dueAt != null) {
+    final hour   = dueAt.hour;
+    final minute = dueAt.minute;
+    final day    = dueAt.day;
+    final month  = dueAt.month;
+    final year   = dueAt.year;
+
+    final minuteStr = minute == 0 ? '' : ' $minute phút';
+    final ampm = hour < 12 ? 'sáng' : (hour < 18 ? 'chiều' : 'tối');
+    final h12  = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+
+    dueText = 'vào lúc $h12 giờ$minuteStr $ampm, '
+        'ngày $day tháng $month năm $year';
+  } else {
+    dueText = 'chưa có thời gian cụ thể';
+  }
+
+  return 'Mình hiểu bạn muốn thêm nhiệm vụ "$title", '
+      'loại $category, '
+      'ưu tiên $priority, '
+      '$dueText.';
+}
+
+// ── Phát hiện user đồng ý lưu ───────────────────────────────────────────────
+bool _wantsToConfirm(String answer) {
+  final lower = answer.toLowerCase().trim();
+  const yesPhrases = [
+    'có', 'ừ', 'uh', 'ok', 'oke', 'được', 'đúng', 'lưu', 'lưu đi',
+    'lưu luôn', 'đồng ý', 'xác nhận', 'chắc', 'chắc rồi', 'chuẩn',
+    'yes', 'yep', 'sure', 'right',
+  ];
+  for (final p in yesPhrases) {
+    if (lower == p || lower.startsWith(p) || lower.contains(p)) return true;
+  }
+  return false;
+}
+
+// ── Phát hiện user muốn chỉnh hay không ────────────────────────────────────
+bool _wantsToEdit(String answer) {
+  final lower = answer.toLowerCase().trim();
+  // Các cụm từ "không cần chỉnh"
+  const noEditPhrases = [
+    'không', 'ko', 'k', 'thôi', 'oke', 'ok', 'được rồi',
+    'không cần', 'lưu đi', 'lưu luôn', 'không chỉnh', 'không sửa',
+    'bình thường', 'vậy thôi', 'xong rồi', 'đúng rồi', 'chuẩn',
+  ];
+  for (final phrase in noEditPhrases) {
+    if (lower == phrase || lower.startsWith(phrase) || lower.contains(phrase)) {
+      return false;
+    }
+  }
+  return true; // còn lại đều coi là muốn chỉnh
+}
+
+// ── Trích tên mới khi user nói chỉnh (ví dụ "đổi tên thành X") ─────────────
+String? _extractEditTitle(String input) {
+  final m = RegExp(
+    r'(?:đổi tên|tên mới|tên là|đặt tên)\s*(?:thành|là|:)?\s*([^,;.]+)',
+    caseSensitive: false,
+  ).firstMatch(input);
+  return m?.group(1)?.trim();
+}
+
+// ─── Parse helpers (giữ nguyên từ trước) ────────────────────────────────────
 String? _extractTitle(String input) {
   final normalized = input.trim();
   if (normalized.isEmpty) return null;
 
-  final nameRegex = RegExp(r'(?:tên|việc|công việc)\s*(?:là)?\s*([^,.;]+)', caseSensitive: false);
-  final match = nameRegex.firstMatch(normalized);
-  if (match != null) {
-    final value = (match.group(1) ?? '').trim();
-    if (value.isNotEmpty) return value;
+  final explicitName = RegExp(
+    r'(?:tên(?:\s+(?:công\s+)?việc)?|nhiệm\s+vụ)\s*(?:là|:)?\s*([^,;.]+)',
+    caseSensitive: false,
+  ).firstMatch(normalized);
+  if (explicitName != null) {
+    final v = (explicitName.group(1) ?? '').trim();
+    if (v.isNotEmpty) return _capitalizeFirst(v);
   }
 
-  var cleaned = normalized
-      .replaceAll(RegExp(r'ưu tiên[^,.;]*', caseSensitive: false), '')
-      .replaceAll(RegExp(r'(loại|danh mục)[^,.;]*', caseSensitive: false), '')
-      .replaceAll(RegExp(r'(hạn|thời gian|ngày|lúc)[^,.;]*', caseSensitive: false), '')
-      .trim();
-  if (cleaned.isEmpty) return null;
-  return cleaned;
+  final cutKeywords = [
+    'vào lúc', 'vào', 'lúc', 'hạn', 'đến', 'trước',
+    'ngày mai', 'hôm nay', 'tuần sau', 'sáng mai', 'chiều mai', 'tối nay',
+    'ưu tiên', 'độ ưu', 'loại', 'danh mục',
+  ];
+
+  final lower = normalized.toLowerCase();
+  int cutIndex = normalized.length;
+
+  for (final kw in cutKeywords) {
+    final idx = lower.indexOf(kw);
+    if (idx > 2 && idx < cutIndex) cutIndex = idx;
+  }
+
+  final timeNumRegex = RegExp(r'\d{1,2}\s*giờ|\d{1,2}:\d{2}');
+  for (final m in timeNumRegex.allMatches(lower)) {
+    if (m.start > 2 && m.start < cutIndex) cutIndex = m.start;
+  }
+
+  if (cutIndex > 0 && cutIndex < normalized.length) {
+    var title = normalized.substring(0, cutIndex).trim();
+    title = title.replaceAll(RegExp(r'[,;.\-]+$'), '').trim();
+    if (title.isNotEmpty) return _capitalizeFirst(title);
+  }
+
+  return _capitalizeFirst(normalized);
 }
+
+String _capitalizeFirst(String s) =>
+    s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
 String? _parsePriority(String input) {
   final lower = input.toLowerCase();
@@ -423,22 +344,32 @@ DateTime? _parseDueAt(String input) {
 
   int? hour;
   int minute = 0;
+
   final hm = RegExp(r'(\d{1,2}):(\d{2})').firstMatch(lower);
   if (hm != null) {
-    hour = int.tryParse(hm.group(1) ?? '0') ?? 0;
+    hour   = int.tryParse(hm.group(1) ?? '0') ?? 0;
     minute = int.tryParse(hm.group(2) ?? '0') ?? 0;
   } else {
-    final onlyNum = RegExp(r'\b(\d{1,2})\b').firstMatch(lower);
-    if (onlyNum != null) {
-      hour = int.tryParse(onlyNum.group(1) ?? '0') ?? 0;
+    final gioPhut = RegExp(r'(\d{1,2})\s*gi[oờ]\s*(\d{1,2})\s*ph[uú]t').firstMatch(lower);
+    if (gioPhut != null) {
+      hour   = int.tryParse(gioPhut.group(1) ?? '0') ?? 0;
+      minute = int.tryParse(gioPhut.group(2) ?? '0') ?? 0;
+    } else {
+      final gioRuoi = RegExp(r'(\d{1,2})\s*gi[oờ]\s*r[uư][ỡo]i').firstMatch(lower);
+      if (gioRuoi != null) {
+        hour   = int.tryParse(gioRuoi.group(1) ?? '0') ?? 0;
+        minute = 30;
+      } else {
+        final gioOnly = RegExp(r'(\d{1,2})\s*gi[oờ]').firstMatch(lower);
+        if (gioOnly != null) {
+          hour = int.tryParse(gioOnly.group(1) ?? '0') ?? 0;
+        }
+      }
     }
   }
 
   if (hour == null) return null;
-
-  if ((lower.contains('chiều') || lower.contains('tối')) && hour < 12) {
-    hour += 12;
-  }
+  if ((lower.contains('chiều') || lower.contains('tối')) && hour < 12) hour += 12;
 
   return DateTime(base.year, base.month, base.day, hour, minute);
 }

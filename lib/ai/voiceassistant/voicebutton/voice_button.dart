@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:smart_app/ai/voice_ai_service.dart';
 
 class VoiceTaskButton extends StatefulWidget {
   final Future<void> Function(String) onVoiceResult;
@@ -24,6 +27,9 @@ class _VoiceTaskButtonState extends State<VoiceTaskButton>
       lowerBound: 0.0,
       upperBound: 1.0,
     )..repeat(reverse: true);
+    // Làm ấm engine TTS ngay khi nút mic xuất hiện trên màn hình, thay vì
+    // chờ tới lúc người dùng bấm — giảm trễ "cold start" cho lần nói đầu.
+    unawaited(VoiceAiService.instance.warmUpTts());
   }
 
   Future<void> _openVoiceAssistant() async {

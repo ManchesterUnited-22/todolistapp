@@ -700,35 +700,49 @@ DateTime? _parseDateString(String value, DateTime fallbackNow) {
   final parts = cleaned.split('-');
   if (parts.length < 2) return DateTime.tryParse(cleaned);
 
-  final day = int.tryParse(parts[0]);
-  final month = int.tryParse(parts[1]);
-  if (day == null || month == null) return DateTime.tryParse(cleaned);
-
-  int year = fallbackNow.year;
-  if (parts.length >= 3) {
-    final rawYear = parts[2];
-    year = rawYear.length == 2
-        ? int.tryParse('20$rawYear') ?? fallbackNow.year
-        : int.tryParse(rawYear) ?? fallbackNow.year;
+  // Firestore lưu dateString theo ISO: "yyyy-mm-dd" (parts[0] có 4 chữ số)
+  // Nhập tay từ voice thường là: "dd-mm-yyyy" hoặc "dd-mm"
+  if (parts[0].length == 4) {
+    // ISO format: yyyy-mm-dd
+    final y = int.tryParse(parts[0]) ?? fallbackNow.year;
+    final m = int.tryParse(parts[1]) ?? fallbackNow.month;
+    final d = parts.length >= 3 ? (int.tryParse(parts[2]) ?? 1) : 1;
+    return DateTime(y, m, d);
+  } else {
+    // Vietnamese format: dd-mm hoặc dd-mm-yyyy
+    final d = int.tryParse(parts[0]) ?? fallbackNow.day;
+    final m = int.tryParse(parts[1]) ?? fallbackNow.month;
+    int y = fallbackNow.year;
+    if (parts.length >= 3) {
+      final rawYear = parts[2];
+      y = rawYear.length == 2
+          ? (int.tryParse('20$rawYear') ?? fallbackNow.year)
+          : (int.tryParse(rawYear) ?? fallbackNow.year);
+    }
+    return DateTime(y, m, d);
   }
-
-  return DateTime(year, month, day);
 }
 
 DateTime? _taskAnchor(TaskViewModel task) {
-  final candidates = [
-    task.completedAt?.toDate(),
-    task.dueAt?.toDate(),
-    task.createdAt?.toDate(),
-    task.timestamp?.toDate(),
-  ];
-
-  for (final candidate in candidates) {
-    if (candidate != null) return candidate;
+  // Ưu tiên 1: dateString — đây là ngày user TẠO / LÊN LỊCH task
+  final dateString = task.dateString?.trim();
+  if (dateString != null && dateString.isNotEmpty) {
+    final parsed = _parseDateString(dateString, DateTime.now());
+    if (parsed != null) return parsed;
   }
 
-  final dateString = task.dateString?.trim();
-  if (dateString == null || dateString.isEmpty) return null;
+  // Ưu tiên 2: createdAt — timestamp tạo task
+  final created = task.createdAt?.toDate();
+  if (created != null) return created;
 
-  return _parseDateString(dateString, DateTime.now());
+  // Ưu tiên 3: completedAt — ngày hoàn thành (dùng khi filter "đã làm xong trong ngày X")
+  final completed = task.completedAt?.toDate();
+  if (completed != null) return completed;
+
+  // Ưu tiên 4: timestamp chung
+  final ts = task.timestamp?.toDate();
+  if (ts != null) return ts;
+
+  // Cuối cùng mới dùng dueAt — vì dueAt là ngày HẠN, không phải ngày lên lịch
+  return task.dueAt?.toDate();
 }
