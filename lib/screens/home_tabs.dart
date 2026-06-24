@@ -1,9 +1,12 @@
+// lib/screens/home_tabs.dart
 import 'package:flutter/material.dart';
-import 'main_dashboard_screen.dart';
+import 'package:smart_app/widgets/floating_bottom_navbar.dart';
+
+import 'ai_home_screen.dart';
 import 'calendar_screen.dart';
 import 'achievements_screen.dart';
+import '../screens/charts/insights_screen.dart'; // Insights
 import 'profile_screen.dart';
-import '../widgets/floating_bottom_navbar.dart';
 
 class HomeTabs extends StatefulWidget {
   const HomeTabs({super.key});
@@ -13,52 +16,28 @@ class HomeTabs extends StatefulWidget {
 }
 
 class _HomeTabsState extends State<HomeTabs> {
-  late final PageController _pc = PageController(initialPage: 0);
-  int _current = 0;
+  int _currentIndex = 0;
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    try {
-      // Do not dispose controller if other parts rely on it; but safe to dispose here
-      _pc.dispose();
-    } catch (_) {}
-    super.dispose();
-  }
-
-  void _onTap(int idx) {
-    setState(() => _current = idx);
-    _pc.animateToPage(
-      idx,
-      duration: const Duration(milliseconds: 550),
-      curve: Curves.easeInOut,
-    );
-  }
+  final List<Widget> _screens = const [
+    AiHomeScreen(),           // 0: AI Assistant - Trung tâm
+    CalendarScreen(),         // 1: Timeline
+    AchievementsScreen(),     // 2: Goals
+    InsightsScreen(),         // 3: Insights
+    ProfileScreen(),          // 4: Profile
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageView(
-        controller: _pc,
-        physics: const BouncingScrollPhysics(),
-        onPageChanged: (i) => setState(() => _current = i),
-        children: const [
-          MainDashboardScreen(showBottomNav: false),
-          CalendarScreen(showBottomNav: false),
-          AchievementsScreen(showBottomNav: false),
-          ProfileScreen(showBottomNav: false),
-        ],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
       ),
       bottomNavigationBar: FloatingBottomNavBar(
-        currentIndex: _current,
-        onTap: _onTap,
-        showFab: _current == 0
-            ? false
-            : false, // Luôn ẩn FAB ở mọi tab (nếu muốn chỉ hiện ở tab khác, đổi điều kiện)
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() => _currentIndex = index);
+        },
       ),
     );
   }

@@ -112,6 +112,9 @@ class ChartsWeeklyChart extends StatelessWidget {
       builder: (ctx) {
         return Container(
           margin: const EdgeInsets.only(top: 56),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height - 56,
+          ),
           decoration: const BoxDecoration(
             color: ChartsColors.background,
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -139,12 +142,12 @@ class ChartsWeeklyChart extends StatelessWidget {
                       child: Text('Không có nhiệm vụ trong ngày này.'),
                     )
                   else
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: dayTasks.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (context, idx) {
+                    Flexible(
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: dayTasks.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, idx) {
                         final task = dayTasks[idx];
                         final isCompleted = task.stat == 'Hoàn thành';
                         final iconColor = isCompleted ? ChartsColors.tertiary : ChartsColors.onSurfaceVariant;
@@ -182,6 +185,7 @@ class ChartsWeeklyChart extends StatelessWidget {
                           ),
                         );
                       },
+                      ),
                     ),
                 ],
               ),

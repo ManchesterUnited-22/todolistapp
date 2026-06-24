@@ -70,12 +70,17 @@ class _OnboardingStep1ScreenState extends State<OnboardingStep1Screen>
                                 minHeight: 40,
                               ),
                             ),
-                            Text(
-                              'Serene Focus',
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: -0.5,
+                            Flexible(
+                              child: Text(
+                                'Serene Focus',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: -0.5,
+                                ),
                               ),
                             ),
                             TextButton(

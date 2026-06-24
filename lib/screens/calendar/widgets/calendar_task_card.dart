@@ -100,12 +100,16 @@ class CalendarTaskCard extends StatelessWidget {
                           color: isCompleted ? CalendarColors.tertiary : isOverdue ? CalendarColors.error : CalendarColors.outline,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          isCompleted ? 'Đã hoàn thành' : isOverdue ? 'Quá hạn: ${_formatTs(task.dueAt)}' : _formatTs(task.dueAt),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: isOverdue ? FontWeight.w600 : FontWeight.w400,
-                            color: isCompleted ? CalendarColors.tertiary : isOverdue ? CalendarColors.error : CalendarColors.outline,
+                        Flexible(
+                          child: Text(
+                            isCompleted ? 'Đã hoàn thành' : isOverdue ? 'Quá hạn: ${_formatTs(task.dueAt)}' : _formatTs(task.dueAt),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: isOverdue ? FontWeight.w600 : FontWeight.w400,
+                              color: isCompleted ? CalendarColors.tertiary : isOverdue ? CalendarColors.error : CalendarColors.outline,
+                            ),
                           ),
                         ),
                       ],

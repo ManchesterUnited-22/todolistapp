@@ -44,10 +44,15 @@ class CalendarTaskSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'NHIỆM VỤ - NGÀY $selectedDay',
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 1.2, color: CalendarColors.onSurfaceVariant),
+            Expanded(
+              child: Text(
+                'NHIỆM VỤ - NGÀY $selectedDay',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 1.2, color: CalendarColors.onSurfaceVariant),
+              ),
             ),
+            const SizedBox(width: 8),
             StreamBuilder<QuerySnapshot>(
               stream: user == null ? null : FirebaseFirestore.instance.collection('tasks').where('uid', isEqualTo: user.uid).snapshots(),
               builder: (context, snap) {

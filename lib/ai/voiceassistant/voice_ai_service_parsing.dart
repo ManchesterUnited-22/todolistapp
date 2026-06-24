@@ -3,18 +3,18 @@ part of voice_ai_service;
 String voiceAiVoicePromptForStep(VoiceTaskConversationState state) {
   switch (state.step) {
     case VoiceTaskStep.chooseWay:
-      return 'Mình hỏi nhanh từng bước nhé. Bạn muốn tạo nhiệm vụ dài hạn hay Promodoro (nhiệm vụ ngắn hạn)? Nhiệm vụ dài hạn là việc kéo dài nhiều bước. Promodoro là nhiệm vụ ngắn theo phiên tập trung.';
+      return 'Mình hỏi nhanh từng bước nhé. Bạn muốn tạo nhiệm vụ dài hạn hay Pomodoro (nhiệm vụ ngắn hạn)? Nhiệm vụ dài hạn là việc kéo dài nhiều bước. Pomodoro là nhiệm vụ ngắn theo phiên tập trung.';
     case VoiceTaskStep.confirmWay:
-      return state.way == 'promodoro'
-          ? 'Mình nghe là bạn muốn tạo Promodoro tức nhiệm vụ ngắn hạn. Bạn xác nhận chứ?'
+      return state.way == 'pomodoro'
+          ? 'Mình nghe là bạn muốn tạo Pomodoro tức nhiệm vụ ngắn hạn. Bạn xác nhận chứ?'
           : 'Mình nghe là bạn muốn tạo nhiệm vụ dài hạn. Bạn xác nhận chứ?';
     case VoiceTaskStep.askTitle:
       return 'Tên nhiệm vụ là gì, nói ngắn gọn giúp mình nhé.';
     case VoiceTaskStep.askCategory:
       return 'Nhiệm vụ này thuộc nhóm nào: Công việc, Học tập, Cá nhân hay Sức khỏe?';
     case VoiceTaskStep.askDuration:
-      return state.way == 'promodoro'
-          ? 'Promodoro này bạn sẽ tập trung bao nhiêu phút?'
+      return state.way == 'pomodoro'
+          ? 'Pomodoro này bạn sẽ tập trung bao nhiêu phút?'
           : 'Nhiệm vụ này dự kiến kéo dài bao lâu (tính theo phút)?';
     case VoiceTaskStep.askPriority:
       return 'Mức độ ưu tiên của nhiệm vụ dài hạn là cao, vừa hay thấp?';
@@ -38,7 +38,7 @@ VoiceTaskConversationReply voiceAiAdvanceVoiceTaskConversation(
     if (way == null) {
       return VoiceTaskConversationReply(
         state: state,
-        prompt: 'Mình chưa rõ, bạn chọn task dài hạn hay Promodoro nhé.',
+        prompt: 'Mình chưa rõ, bạn chọn task dài hạn hay Pomodoro nhé.',
         isComplete: false,
       );
     }

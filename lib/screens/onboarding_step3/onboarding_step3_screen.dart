@@ -63,12 +63,16 @@ class OnboardingStep3Screen extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(24, 4, 16, 0),
                   child: Row(
                     children: [
-                      Text(
-                        'Serene Focus',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: OnboardingStep3Colors.onSurface,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.4,
+                      Flexible(
+                        child: Text(
+                          'Serene Focus',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: OnboardingStep3Colors.onSurface,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.4,
+                          ),
                         ),
                       ),
                       const Spacer(),

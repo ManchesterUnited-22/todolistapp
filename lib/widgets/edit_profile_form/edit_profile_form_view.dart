@@ -22,7 +22,8 @@ Widget buildEditProfileDialog(_EditProfileFormState state, BuildContext context)
         key: state._formKey,
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -144,6 +145,7 @@ Widget buildEditProfileDialog(_EditProfileFormState state, BuildContext context)
                 ],
               ),
             ],
+            ),
           ),
         ),
       ),

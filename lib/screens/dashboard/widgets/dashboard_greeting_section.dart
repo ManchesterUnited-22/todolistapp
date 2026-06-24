@@ -30,6 +30,8 @@ class DashboardGreetingSection extends StatelessWidget {
                           : 'User';
 
                   return RichText(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     text: TextSpan(
                       style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w700, height: 1.25, letterSpacing: -0.5),
                       children: [
