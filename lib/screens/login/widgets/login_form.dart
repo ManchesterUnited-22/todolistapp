@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:smart_app/core/app_colors.dart';
-import 'package:smart_app/screens/onboarding_step1_screen.dart';
+import 'package:smart_app/screens/main_dashboard_screen.dart';
 import 'package:smart_app/screens/register_screen.dart';
 import 'package:smart_app/services/auth.dart';
 import 'package:smart_app/views/login_viewmodel.dart';
@@ -46,7 +46,7 @@ class _LoginFormState extends State<LoginForm> {
         );
       }
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const OnboardingStep1Screen()),
+        MaterialPageRoute(builder: (context) => const MainDashboardScreen()),
       );
     } catch (error) {
       if (!mounted) return;
@@ -73,7 +73,7 @@ class _LoginFormState extends State<LoginForm> {
       if (!mounted) return;
       if (credential.user != null) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const OnboardingStep1Screen()),
+          MaterialPageRoute(builder: (context) => const MainDashboardScreen()),
         );
       }
     } on FirebaseAuthException catch (error) {

@@ -1,5 +1,18 @@
 library voice_ai_service;
 
+/// ⚠️ DEPRECATED VOICE TASK FLOW
+/// 
+/// This library (voice_ai_service) handles voice-based task creation via step-by-step
+/// prompts. This approach is **deprecated** per AI Architecture Plan.
+/// 
+/// See /memories/repo/ai_architecture_plan.md for the new direction:
+/// - Focus on Chat AI & Analytics AI via Gemini prompts
+/// - Dart handles all logic calculations (task conflicts, overdue detection, stats)
+/// - AI only disburses structured output (natural Vietnamese text or JSON)
+/// - Voice task flow may be revisited after core AI features stabilize
+/// 
+/// Keep this module for reference only. Do not expand voice task logic further.
+
 import 'dart:convert';
 import 'dart:async';
 import 'dart:math';

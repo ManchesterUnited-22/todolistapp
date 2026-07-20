@@ -1,5 +1,15 @@
 part of voice_ai_service;
 
+/// ⚠️ DEPRECATED: Voice task flow prompts (below) are deprecated.
+/// 
+/// Per AI Architecture Plan (see /memories/repo/ai_architecture_plan.md),
+/// future development prioritizes:
+/// - Chat AI via Gemini prompt (Dart calculates, AI narrates)
+/// - Analytics AI for performance insights
+/// 
+/// Voice task creation may be revisited after core AI features are stable.
+/// Keep this code for reference, but do not expand voice conversation logic.
+
 String voiceAiVoicePromptForStep(VoiceTaskConversationState state) {
   switch (state.step) {
     case VoiceTaskStep.chooseWay:
